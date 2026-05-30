@@ -10,3 +10,7 @@ dist/
 backend/dist/
 .DS_Store
 Thumbs.db
+
+# Exclude other markdown files except README.md
+*.md
+!README.md
