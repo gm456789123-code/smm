@@ -1,0 +1,90 @@
+{
+  "nav": {
+    "home": "Home",
+    "services": "Services",
+    "pricing": "Pricing",
+    "blog": "Blog",
+    "login": "Login",
+    "register": "Sign Up Free"
+  },
+  "hero": {
+    "badge": "#1 SMM Panel in Southeast Asia",
+    "tagline": "High Quality SMM Panel — Fast, Stable & Affordable",
+    "desc": "Boost your followers, likes, and engagement across all platforms",
+    "cta": "Get Started Free",
+    "viewServices": "View All Services",
+    "stats": {
+      "orders": "Orders",
+      "users": "Customers",
+      "platforms": "Platforms",
+      "uptime": "Uptime"
+    }
+  },
+  "features": {
+    "title": "Why Choose Us",
+    "fast": { "label": "Fast Start", "desc": "Orders start processing within 60 seconds" },
+    "safe": { "label": "100% Safe", "desc": "No password required, public links only" },
+    "quality": { "label": "High Quality", "desc": "Real followers, real engagement, no drop" },
+    "support": { "label": "24/7 Support", "desc": "Team ready to help, responds in minutes" },
+    "payment": { "label": "Easy Payment", "desc": "Supports PromptPay, Cards, TrueMoney" },
+    "global": { "label": "All Platforms", "desc": "10+ platforms, everything in one place" }
+  },
+  "platforms": {
+    "title": "Our Services",
+    "subtitle": "Supporting every platform you need",
+    "tags": { "followers": "Followers", "likes": "Likes", "views": "Views" },
+    "viewAll": "View All Services"
+  },
+  "pricing": {
+    "title": "Pricing & Packages",
+    "subtitle": "Top up and start immediately, no registration fee",
+    "popular": "Most Popular",
+    "getStarted": "Get Started",
+    "perK": "per 1,000",
+    "features": {
+      "allBasic": "All basic services",
+      "autoSystem": "Automated system",
+      "chatSupport": "Chat support",
+      "allStarter": "Everything in Starter",
+      "bulkPrice": "Special bulk pricing",
+      "prioritySupport": "Priority support",
+      "refillGuarantee": "Refill guarantee",
+      "allPopular": "Everything in Popular",
+      "apiAccess": "API Access",
+      "accountManager": "Account manager",
+      "customServices": "Custom services"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": "Is the service safe?",
+    "a1": "Yes! We never ask for your password. Only public links are required.",
+    "q2": "How fast does it start?",
+    "a2": "Most orders start within 0–1 hour after payment, depending on the service.",
+    "q3": "Can I get a refill if the order is incomplete?",
+    "a3": "Yes! Services that support refill can be requested through My Orders page.",
+    "q4": "Will followers drop after purchase?",
+    "a4": "Our services include a lifetime guarantee for specified services."
+  },
+  "cta": {
+    "ready": "Ready to Get Started?",
+    "grow": "Grow Your",
+    "today": "Audience Today",
+    "subtitle": "Sign up free, no upfront cost. Top up and start immediately."
+  },
+  "footer": {
+    "developer": "Developed by",
+    "rights": "All rights reserved"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Create Account",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "forgotPassword": "Forgot password?",
+    "username": "Username or Email",
+    "password": "Password",
+    "submit": "Login",
+    "submitting": "Logging in..."
+  }
+}

@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans, Inter } from 'next/font/google';
+import { cookies } from 'next/headers';
 import './globals.css';
+import LocaleProvider from '@/components/LocaleProvider';
+import { getMessages, LOCALES, type Locale } from '@/lib/i18n';
 
 const jakarta = Plus_Jakarta_Sans({
   variable: '--font-jakarta',
@@ -64,16 +67,27 @@ export const metadata: Metadata = {
   category: 'technology',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore  = await cookies();
+  const cookieLang   = cookieStore.get('locale')?.value;
+  const locale       = (LOCALES as readonly string[]).includes(cookieLang ?? '')
+    ? (cookieLang as Locale)
+    : 'th';
+  const messages = await getMessages(locale);
+
   return (
-    <html lang="th" className={`${jakarta.variable} ${inter.variable} h-full`}>
+    <html lang={locale} className={`${jakarta.variable} ${inter.variable} h-full`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="format-detection" content="telephone=no" />
       </head>
-      <body className="h-full">{children}</body>
+      <body className="h-full">
+        <LocaleProvider initialLocale={locale} initialMessages={messages}>
+          {children}
+        </LocaleProvider>
+      </body>
     </html>
   );
 }

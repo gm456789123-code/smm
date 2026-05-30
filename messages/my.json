@@ -1,0 +1,87 @@
+{
+  "nav": {
+    "home": "ပင်မစာမျက်နှာ",
+    "services": "ဝန်ဆောင်မှုများ",
+    "pricing": "စျေးနှုန်း",
+    "blog": "ဆောင်းပါး",
+    "login": "ဝင်ရောက်ရန်",
+    "register": "အခမဲ့ မှတ်ပုံတင်"
+  },
+  "hero": {
+    "badge": "SEA တွင် အဆင့် ၁ SMM Panel",
+    "tagline": "အရည်အသွေးမြင့် SMM Panel — မြန်ဆန်၊ တည်ငြိမ်၊ သင့်တော်သောစျေးနှုန်း",
+    "desc": "Followers, Likes နှင့် Engagement များကို ပလက်ဖောင်းအားလုံးတွင် တိုးမြှင့်ပါ",
+    "cta": "အခမဲ့ စတင်ပါ",
+    "viewServices": "ဝန်ဆောင်မှုများ ကြည့်ရန်",
+    "stats": {
+      "orders": "အော်ဒါများ",
+      "users": "ဖောက်သည်များ",
+      "platforms": "ပလက်ဖောင်းများ",
+      "uptime": "Uptime"
+    }
+  },
+  "features": {
+    "title": "ကျွန်ုပ်တို့ကို ဘာကြောင့် ရွေးချယ်သင့်သနည်း",
+    "fast": { "label": "မြန်ဆန်သည်", "desc": "အော်ဒါများ ၆၀ စက္ကန့်အတွင်း စတင်သည်" },
+    "safe": { "label": "၁၀၀% လုံခြုံ", "desc": "လျှို့ဝှက်နံပါတ် မလိုအပ်ပါ" },
+    "quality": { "label": "အရည်အသွေးမြင့်", "desc": "တကယ့် followers တကယ့် engagement" },
+    "support": { "label": "Support ၂၄/၇", "desc": "အချိန်မရွေး ကူညီရန် အသင့်ရှိသည်" },
+    "payment": { "label": "ငွေပေးချေရ လွယ်ကူ", "desc": "PromptPay, ကတ်, TrueMoney ရနိုင်သည်" },
+    "global": { "label": "ပလက်ဖောင်းအားလုံး", "desc": "၁၀+ ပလက်ဖောင်း တစ်နေရာတည်းတွင်" }
+  },
+  "platforms": {
+    "title": "ကျွန်ုပ်တို့၏ ဝန်ဆောင်မှုများ",
+    "subtitle": "သင်လိုအပ်သော ပလက်ဖောင်းအားလုံးကို ပံ့ပိုးသည်",
+    "tags": { "followers": "Followers", "likes": "Likes", "views": "Views" },
+    "viewAll": "ဝန်ဆောင်မှုအားလုံး ကြည့်ရန်"
+  },
+  "pricing": {
+    "title": "စျေးနှုန်း နှင့် Package များ",
+    "subtitle": "ငွေဖြည့်ပြီး ချက်ချင်းစတင်နိုင်သည်",
+    "popular": "အကြိုက်ဆုံး",
+    "getStarted": "စတင်ပါ",
+    "perK": "၁,၀၀၀ တွင်",
+    "features": {
+      "allBasic": "အခြေခံဝန်ဆောင်မှုအားလုံး",
+      "autoSystem": "အလိုအလျောက် စနစ်",
+      "chatSupport": "Chat Support",
+      "allStarter": "Starter ထဲ မှ အားလုံး",
+      "bulkPrice": "Bulk သီးသန့် စျေးနှုန်း",
+      "prioritySupport": "Priority Support",
+      "refillGuarantee": "Refill အာမခံ",
+      "allPopular": "Popular ထဲ မှ အားလုံး",
+      "apiAccess": "API Access",
+      "accountManager": "Account Manager",
+      "customServices": "Custom Services"
+    }
+  },
+  "faq": {
+    "title": "မကြာခဏ မေးသောမေးခွန်းများ",
+    "q1": "ဝန်ဆောင်မှု လုံခြုံပါသလား?",
+    "a1": "လုံခြုံသည်! လျှို့ဝှက်နံပါတ် မတောင်းပါ",
+    "q2": "မည်မျှ မြန်မြန် စတင်နိုင်သနည်း?",
+    "a2": "ငွေပေးချေပြီး ၀-၁ နာရီအတွင်း အများအားဖြင့် စတင်သည်",
+    "q3": "အော်ဒါ မပြည့်မှီ refill ရနိုင်သလား?",
+    "a3": "ရနိုင်သည်! My Orders မှတဆင့် တောင်းဆိုနိုင်သည်",
+    "q4": "ဝယ်ပြီးနောက် followers ကျသွားမည်လား?",
+    "a4": "ဖော်ပြထားသော service များအတွက် lifetime guarantee ရှိသည်"
+  },
+  "cta": {
+    "ready": "စတင်ရန် အသင့်ဖြစ်ပြီလား?",
+    "grow": "သင်၏",
+    "today": "ယနေ့ပင် တိုးမြှင့်ပါ",
+    "subtitle": "အခမဲ့ မှတ်ပုံတင်ပါ၊ ငွေဖြည့်ပြီး ချက်ချင်းစတင်နိုင်သည်"
+  },
+  "footer": { "developer": "တည်ဆောက်သည်", "rights": "မူပိုင်ခွင့် ကြင်ကြင်" },
+  "auth": {
+    "login": "ဝင်ရောက်ရန်",
+    "register": "အကောင့် ဖွင့်ရန်",
+    "noAccount": "အကောင့် မရှိသေးဘူးလား?",
+    "hasAccount": "အကောင့် ရှိပြီးသားလား?",
+    "forgotPassword": "လျှို့ဝှက်နံပါတ် မေ့သွားလား?",
+    "username": "Username သို့မဟုတ် Email",
+    "password": "လျှို့ဝှက်နံပါတ်",
+    "submit": "ဝင်ရောက်ရန်",
+    "submitting": "ဝင်ရောက်နေသည်..."
+  }
+}

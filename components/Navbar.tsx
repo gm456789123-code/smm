@@ -8,19 +8,15 @@ import {
   BsPersonPlus, BsBoxArrowInRight,
   BsHouseDoorFill, BsList, BsX,
 } from 'react-icons/bs';
-
-const NAV_ITEMS = [
-  { href: '/',          label: 'หน้าแรก',  icon: BsHouseDoorFill },
-  { href: '/#services', label: 'บริการ',   icon: BsGrid          },
-  { href: '/#pricing',  label: 'ราคา',     icon: BsCurrencyDollar },
-  { href: '/blog',      label: 'บทความ',   icon: BsFileText       },
-];
+import { useLocale } from './LocaleProvider';
+import LangSwitcher from './LangSwitcher';
 
 interface NavbarProps { brandName?: string }
 
 export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
-  const path          = usePathname();
-  const [open, setOpen]     = useState(false);
+  const path              = usePathname();
+  const { t }             = useLocale();
+  const [open, setOpen]   = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -28,6 +24,13 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  const NAV_ITEMS = [
+    { href: '/',          label: t('nav.home'),     icon: BsHouseDoorFill },
+    { href: '/#services', label: t('nav.services'), icon: BsGrid          },
+    { href: '/#pricing',  label: t('nav.pricing'),  icon: BsCurrencyDollar },
+    { href: '/blog',      label: t('nav.blog'),      icon: BsFileText       },
+  ];
 
   const [first, ...rest] = brandName.split(' ');
 
@@ -86,20 +89,21 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
         </nav>
 
         {/* ── Auth buttons ──────────────────────── */}
-        <div className="hidden md:flex items-center gap-2.5">
+        <div className="hidden md:flex items-center gap-2">
+          <LangSwitcher />
           <Link
             href="/login"
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-[#94A3B8] hover:text-white border border-transparent hover:border-[rgba(139,92,246,0.22)] hover:bg-[rgba(139,92,246,0.08)] transition-all"
           >
             <BsBoxArrowInRight size={14} />
-            เข้าสู่ระบบ
+            {t('nav.login')}
           </Link>
           <Link
             href="/register"
             className="btn-primary flex items-center gap-2 px-5 py-2 text-sm"
           >
             <BsPersonPlus size={14} />
-            สมัครฟรี
+            {t('nav.register')}
           </Link>
         </div>
 
@@ -141,12 +145,15 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
           <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[rgba(139,92,246,0.10)] mt-2">
             <Link href="/login" onClick={() => setOpen(false)}
               className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-[#94A3B8] border border-[rgba(139,92,246,0.15)] hover:text-white hover:border-[rgba(139,92,246,0.30)] transition-all">
-              <BsBoxArrowInRight size={14} /> เข้าสู่ระบบ
+              <BsBoxArrowInRight size={14} /> {t('nav.login')}
             </Link>
             <Link href="/register" onClick={() => setOpen(false)}
               className="btn-primary flex items-center justify-center gap-2 py-3 text-sm">
-              <BsPersonPlus size={14} /> สมัครฟรี
+              <BsPersonPlus size={14} /> {t('nav.register')}
             </Link>
+          </div>
+          <div className="pt-2 flex justify-center">
+            <LangSwitcher />
           </div>
         </div>
       </div>

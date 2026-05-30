@@ -1,0 +1,90 @@
+{
+  "nav": {
+    "home": "หน้าแรก",
+    "services": "บริการ",
+    "pricing": "ราคา",
+    "blog": "บทความ",
+    "login": "เข้าสู่ระบบ",
+    "register": "สมัครฟรี"
+  },
+  "hero": {
+    "badge": "SMM Panel อันดับ 1 ในไทย",
+    "tagline": "บริการ SMM Panel คุณภาพสูง เร็ว เสถียร ราคาถูก",
+    "desc": "เพิ่มยอดผู้ติดตาม ยอดไลค์ และ engagement บนทุกแพลตฟอร์ม",
+    "cta": "เริ่มต้นใช้งานฟรี",
+    "viewServices": "ดูบริการทั้งหมด",
+    "stats": {
+      "orders": "ออเดอร์",
+      "users": "ลูกค้า",
+      "platforms": "แพลตฟอร์ม",
+      "uptime": "Uptime"
+    }
+  },
+  "features": {
+    "title": "ทำไมต้องเลือกเรา",
+    "fast": { "label": "เริ่มเร็ว", "desc": "ออเดอร์เริ่มประมวลผลภายใน 60 วินาที" },
+    "safe": { "label": "ปลอดภัย 100%", "desc": "ไม่ต้องให้รหัสผ่าน ใช้แค่ลิงก์สาธารณะ" },
+    "quality": { "label": "คุณภาพสูง", "desc": "follower จริง engagement จริง ไม่ drop" },
+    "support": { "label": "Support 24/7", "desc": "ทีมงานพร้อมช่วยตลอด ตอบในไม่กี่นาที" },
+    "payment": { "label": "ชำระง่าย", "desc": "รองรับ PromptPay, บัตร, TrueMoney" },
+    "global": { "label": "ทุกแพลตฟอร์ม", "desc": "10+ แพลตฟอร์ม ครบในที่เดียว" }
+  },
+  "platforms": {
+    "title": "บริการของเรา",
+    "subtitle": "รองรับทุกแพลตฟอร์มที่คุณต้องการ",
+    "tags": { "followers": "Followers", "likes": "Likes", "views": "Views" },
+    "viewAll": "ดูบริการทั้งหมด"
+  },
+  "pricing": {
+    "title": "ราคาและแพ็กเกจ",
+    "subtitle": "เติมเงินและใช้งานได้ทันที ไม่มีค่าสมัคร",
+    "popular": "ยอดนิยม",
+    "getStarted": "เริ่มใช้งาน",
+    "perK": "ต่อ 1,000",
+    "features": {
+      "allBasic": "ทุกบริการพื้นฐาน",
+      "autoSystem": "ระบบอัตโนมัติ",
+      "chatSupport": "Support ทาง Chat",
+      "allStarter": "ทุกอย่างใน Starter",
+      "bulkPrice": "ราคา Bulk พิเศษ",
+      "prioritySupport": "Priority Support",
+      "refillGuarantee": "Refill Guarantee",
+      "allPopular": "ทุกอย่างใน Popular",
+      "apiAccess": "API Access",
+      "accountManager": "Account Manager",
+      "customServices": "Custom Services"
+    }
+  },
+  "faq": {
+    "title": "คำถามที่พบบ่อย",
+    "q1": "บริการมีความปลอดภัยมั้ย?",
+    "a1": "ใช้ครับ เราไม่ขอรหัสผ่าน ใช้แค่ลิงก์สาธารณะเท่านั้น",
+    "q2": "เริ่มต้นได้เร็วแค่ไหน?",
+    "a2": "ส่วนใหญ่เริ่มภายใน 0–1 ชั่วโมงหลังชำระเงิน ขึ้นอยู่กับ service",
+    "q3": "ถ้าออเดอร์ไม่ครบ refill ได้มั้ย?",
+    "a3": "ได้ครับ service ที่รองรับ refill สามารถขอได้ผ่านหน้า My Orders",
+    "q4": "ยอด follower จะลดมั้ยหลังซื้อ?",
+    "a4": "Service ของเรามี lifetime guarantee สำหรับบาง service ที่ระบุไว้ชัดเจน"
+  },
+  "cta": {
+    "ready": "พร้อมเริ่มแล้วใช่มั้ย?",
+    "grow": "เพิ่มยอดของคุณ",
+    "today": "วันนี้เลย",
+    "subtitle": "สมัครฟรี ไม่มีค่าใช้จ่ายแรกเข้า เติมเงินแล้วใช้งานได้เลย"
+  },
+  "footer": {
+    "developer": "พัฒนาโดย",
+    "rights": "สงวนลิขสิทธิ์"
+  },
+  "auth": {
+    "login": "เข้าสู่ระบบ",
+    "register": "สมัครสมาชิก",
+    "noAccount": "ยังไม่มีบัญชี?",
+    "hasAccount": "มีบัญชีแล้ว?",
+    "forgotPassword": "ลืมรหัสผ่าน?",
+    "username": "Username หรือ Email",
+    "password": "รหัสผ่าน",
+    "submit": "เข้าสู่ระบบ",
+    "submitting": "กำลังเข้าสู่ระบบ..."
+  }
+}

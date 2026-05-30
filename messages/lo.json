@@ -1,0 +1,87 @@
+{
+  "nav": {
+    "home": "ໜ້າຫຼັກ",
+    "services": "ບໍລິການ",
+    "pricing": "ລາຄາ",
+    "blog": "ບົດຄວາມ",
+    "login": "ເຂົ້າສູ່ລະບົບ",
+    "register": "ສະໝັກຟຣີ"
+  },
+  "hero": {
+    "badge": "SMM Panel ອັນດັບ 1 ໃນ SEA",
+    "tagline": "ບໍລິການ SMM Panel ຄຸນນະພາບສູງ ໄວ ໝັ້ນຄົງ ລາຄາຖືກ",
+    "desc": "ເພີ່ມຜູ້ຕິດຕາມ, ຍອດໄລ້ ແລະ engagement ທຸກແພລດຟອມ",
+    "cta": "ເລີ່ມໃຊ້ງານຟຣີ",
+    "viewServices": "ເບິ່ງບໍລິການທັງໝົດ",
+    "stats": {
+      "orders": "ອໍເດີ",
+      "users": "ລູກຄ້າ",
+      "platforms": "ແພລດຟອມ",
+      "uptime": "Uptime"
+    }
+  },
+  "features": {
+    "title": "ເປັນຫຍັງຕ້ອງເລືອກພວກເຮົາ",
+    "fast": { "label": "ໄວ", "desc": "ອໍເດີເລີ່ມດໍາເນີນການພາຍໃນ 60 ວິນາທີ" },
+    "safe": { "label": "ປອດໄພ 100%", "desc": "ບໍ່ຕ້ອງໃຫ້ລະຫັດຜ່ານ ໃຊ້ແຕ່ລິ້ງສາທາລະນະ" },
+    "quality": { "label": "ຄຸນນະພາບສູງ", "desc": "ຜູ້ຕິດຕາມຈິງ engagement ຈິງ ບໍ່ drop" },
+    "support": { "label": "Support 24/7", "desc": "ທີມງານພ້ອມຊ່ວຍຕະຫຼອດ" },
+    "payment": { "label": "ຊໍາລະງ່າຍ", "desc": "ຮອງຮັບ PromptPay, ບັດ, TrueMoney" },
+    "global": { "label": "ທຸກແພລດຟອມ", "desc": "10+ ແພລດຟອມ ຄົບໃນທີ່ດຽວ" }
+  },
+  "platforms": {
+    "title": "ບໍລິການຂອງພວກເຮົາ",
+    "subtitle": "ຮອງຮັບທຸກແພລດຟອມທີ່ທ່ານຕ້ອງການ",
+    "tags": { "followers": "Followers", "likes": "Likes", "views": "Views" },
+    "viewAll": "ເບິ່ງບໍລິການທັງໝົດ"
+  },
+  "pricing": {
+    "title": "ລາຄາ ແລະ ແພັກເກດ",
+    "subtitle": "ເຕີມເງິນ ແລ້ວໃຊ້ງານໄດ້ທັນທີ ບໍ່ມີຄ່າສະໝັກ",
+    "popular": "ນິຍົມສູງ",
+    "getStarted": "ເລີ່ມໃຊ້ງານ",
+    "perK": "ຕໍ່ 1,000",
+    "features": {
+      "allBasic": "ທຸກບໍລິການພື້ນຖານ",
+      "autoSystem": "ລະບົບອັດຕະໂນມັດ",
+      "chatSupport": "Support ທາງ Chat",
+      "allStarter": "ທຸກຢ່າງໃນ Starter",
+      "bulkPrice": "ລາຄາ Bulk ພິເສດ",
+      "prioritySupport": "Priority Support",
+      "refillGuarantee": "Refill Guarantee",
+      "allPopular": "ທຸກຢ່າງໃນ Popular",
+      "apiAccess": "API Access",
+      "accountManager": "Account Manager",
+      "customServices": "Custom Services"
+    }
+  },
+  "faq": {
+    "title": "ຄໍາຖາມທີ່ພົບເລື້ອຍ",
+    "q1": "ບໍລິການມີຄວາມປອດໄພບໍ?",
+    "a1": "ມີ! ພວກເຮົາບໍ່ຂໍລະຫັດຜ່ານ ໃຊ້ແຕ່ລິ້ງສາທາລະນະເທົ່ານັ້ນ",
+    "q2": "ເລີ່ມຕົ້ນໄດ້ໄວປານໃດ?",
+    "a2": "ສ່ວນໃຫຍ່ເລີ່ມພາຍໃນ 0-1 ຊົ່ວໂມງຫຼັງຊໍາລະ",
+    "q3": "ຖ້າອໍເດີບໍ່ຄົບ refill ໄດ້ບໍ?",
+    "a3": "ໄດ້! service ທີ່ຮອງຮັບ refill ສາມາດຂໍໄດ້ຜ່ານ My Orders",
+    "q4": "ຜູ້ຕິດຕາມຈະ drop ຫຼັງຊື້ບໍ?",
+    "a4": "ບໍລິການຂອງພວກເຮົາມີ lifetime guarantee ສໍາລັບ service ທີ່ລະບຸ"
+  },
+  "cta": {
+    "ready": "ພ້ອມເລີ່ມແລ້ວບໍ?",
+    "grow": "ເພີ່ມຍອດ",
+    "today": "ຂອງທ່ານວັນນີ້",
+    "subtitle": "ສະໝັກຟຣີ ບໍ່ມີຄ່າໃຊ້ຈ່າຍ ເຕີມເງິນແລ້ວໃຊ້ໄດ້ທັນທີ"
+  },
+  "footer": { "developer": "ພັດທະນາໂດຍ", "rights": "ສະຫງວນລິຂະສິດ" },
+  "auth": {
+    "login": "ເຂົ້າສູ່ລະບົບ",
+    "register": "ສ້າງບັນຊີ",
+    "noAccount": "ຍັງບໍ່ມີບັນຊີ?",
+    "hasAccount": "ມີບັນຊີແລ້ວ?",
+    "forgotPassword": "ລືມລະຫັດຜ່ານ?",
+    "username": "Username ຫຼື Email",
+    "password": "ລະຫັດຜ່ານ",
+    "submit": "ເຂົ້າສູ່ລະບົບ",
+    "submitting": "ກຳລັງເຂົ້າສູ່ລະບົບ..."
+  }
+}
