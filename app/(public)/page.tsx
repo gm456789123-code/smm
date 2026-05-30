@@ -61,57 +61,98 @@ export default async function LandingPage() {
   return (
     <>
       {/* ── Hero ─────────────────────────────────────── */}
-      <section className="relative min-h-[90vh] flex items-center justify-center px-4 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#8B5CF6]/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#06B6D4]/8 rounded-full blur-3xl" />
+      <section className="hero-bg hero-grid relative min-h-[92vh] flex items-center justify-center px-4 overflow-hidden">
+
+        {/* Animated orbs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="orb-1 absolute -top-20 -left-20 w-[500px] h-[500px] bg-[#8B5CF6] opacity-[0.12] rounded-full blur-[120px]" />
+          <div className="orb-2 absolute top-10 right-0 w-[400px] h-[400px] bg-[#06B6D4] opacity-[0.10] rounded-full blur-[100px]" />
+          <div className="orb-3 absolute bottom-0 left-1/3 w-[350px] h-[350px] bg-[#7C3AED] opacity-[0.10] rounded-full blur-[90px]" />
+          <div className="orb-1 absolute bottom-10 right-10 w-[250px] h-[250px] bg-[#06B6D4] opacity-[0.08] rounded-full blur-[80px]" />
         </div>
-        <div className="relative text-center max-w-3xl mx-auto space-y-6">
-          <div className="inline-flex glass-tab px-4 py-1.5 text-xs text-[#8B5CF6] font-semibold uppercase tracking-widest">
+
+        {/* Horizontal glow line */}
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#8B5CF6]/20 to-transparent pointer-events-none" />
+
+        <div className="relative text-center max-w-4xl mx-auto space-y-7 py-20">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 badge-glow px-5 py-2 text-xs font-semibold uppercase tracking-widest text-[#c4b5fd]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#06B6D4] inline-block animate-pulse" />
             🚀 SMM Panel อันดับ 1 ในไทย
           </div>
-          <h1 className="font-[family-name:var(--font-jakarta)] text-5xl md:text-7xl font-extrabold leading-tight">
-            <span className="text-[#8B5CF6] text-glow-indigo">{brandFirst}</span>
-            {brandRest.length > 0 && <span className="text-white"> {brandRest.join(' ')}</span>}
+
+          {/* Headline */}
+          <h1 className="font-[family-name:var(--font-jakarta)] text-6xl md:text-8xl font-extrabold leading-none tracking-tight">
+            <span className="text-gradient-animated">{brandFirst}</span>
+            {brandRest.length > 0 && (
+              <span className="text-white drop-shadow-[0_0_40px_rgba(139,92,246,0.3)]"> {brandRest.join(' ')}</span>
+            )}
           </h1>
-          <p className="text-xl text-[#94A3B8] max-w-xl mx-auto leading-relaxed">{tagline}</p>
-          <p className="text-[#475569]">{desc}</p>
-          <div className="flex flex-wrap gap-3 justify-center pt-2">
-            <Link href="/register"
-              className="glass-tab glass-tab-active px-8 py-3 text-base font-semibold text-[#c4b5fd] hover:text-white transition-colors">
-              {cta}
+
+          {/* Tagline */}
+          <p className="text-xl md:text-2xl text-[#94A3B8] max-w-2xl mx-auto leading-relaxed font-light">
+            {tagline}
+          </p>
+          <p className="text-[#475569] text-base">{desc}</p>
+
+          {/* CTA buttons */}
+          <div className="flex flex-wrap gap-4 justify-center pt-2">
+            <Link href="/register" className="btn-primary text-base">
+              {cta} →
             </Link>
-            <Link href="/#services"
-              className="glass-tab px-8 py-3 text-base text-[#94A3B8] hover:text-[#F1F5F9] transition-colors">
-              ดูบริการ
+            <Link href="/#services" className="btn-secondary text-base">
+              ดูบริการทั้งหมด
             </Link>
           </div>
+
+          {/* Mini stats row */}
+          <div className="flex flex-wrap items-center justify-center gap-6 pt-4">
+            {[
+              { value: '50K+', label: 'ออเดอร์', color: 'text-[#8B5CF6]' },
+              { value: '10K+', label: 'ลูกค้า',  color: 'text-[#06B6D4]' },
+              { value: '10+',  label: 'แพลตฟอร์ม', color: 'text-violet-400' },
+              { value: '99.9%',label: 'Uptime',  color: 'text-emerald-400' },
+            ].map((s, i) => (
+              <div key={i} className="text-center">
+                <p className={`font-[family-name:var(--font-inter)] text-2xl font-bold ${s.color}`}>{s.value}</p>
+                <p className="text-[10px] text-[#475569] uppercase tracking-wider">{s.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#090D16] to-transparent pointer-events-none" />
       </section>
 
       {/* ── Stats ────────────────────────────────────── */}
+      <div className="section-divider mx-8" />
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'ออเดอร์ที่ผ่านมา', value: s.stat_orders    ?? '50,000+', icon: '📦' },
-            { label: 'ลูกค้า',            value: s.stat_users     ?? '10,000+', icon: '👥' },
-            { label: 'แพลตฟอร์ม',         value: s.stat_platforms ?? '10+',     icon: '🌐' },
-            { label: 'Uptime',            value: s.stat_uptime    ?? '99.9%',   icon: '⚡' },
+            { label: 'ออเดอร์ที่ผ่านมา', value: s.stat_orders    ?? '50,000+', icon: '📦', color: 'text-[#8B5CF6]', bg: 'from-[#8B5CF6]/10 to-transparent', border: 'border-[#8B5CF6]/20' },
+            { label: 'ลูกค้า',            value: s.stat_users     ?? '10,000+', icon: '👥', color: 'text-[#06B6D4]', bg: 'from-[#06B6D4]/10 to-transparent', border: 'border-[#06B6D4]/20' },
+            { label: 'แพลตฟอร์ม',         value: s.stat_platforms ?? '10+',     icon: '🌐', color: 'text-violet-400', bg: 'from-violet-500/10 to-transparent', border: 'border-violet-500/20' },
+            { label: 'Uptime',            value: s.stat_uptime    ?? '99.9%',   icon: '⚡', color: 'text-emerald-400', bg: 'from-emerald-500/10 to-transparent', border: 'border-emerald-500/20' },
           ].map((stat) => (
-            <div key={stat.label} className="glass p-5 text-center">
-              <div className="text-2xl mb-2">{stat.icon}</div>
-              <p className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-[#8B5CF6] text-glow-indigo">{stat.value}</p>
-              <p className="text-xs text-[#475569] mt-1">{stat.label}</p>
+            <div key={stat.label} className={`glow-card bg-gradient-to-br ${stat.bg} border ${stat.border} p-6 text-center group hover:scale-[1.03] transition-transform duration-200`}>
+              <div className="text-3xl mb-3">{stat.icon}</div>
+              <p className={`font-[family-name:var(--font-jakarta)] text-3xl font-extrabold ${stat.color}`}>{stat.value}</p>
+              <p className="text-xs text-[#475569] mt-1.5 uppercase tracking-wider">{stat.label}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Services ─────────────────────────────────── */}
+      <div className="section-divider mx-8" />
       <section id="services" className="py-16 px-4 scroll-mt-20">
         <div className="max-w-5xl mx-auto space-y-10">
-          <div className="text-center space-y-2">
-            <h2 className="font-[family-name:var(--font-jakarta)] text-3xl font-bold text-white">บริการของเรา</h2>
+          <div className="text-center space-y-3">
+            <p className="text-xs text-[#8B5CF6] uppercase tracking-[0.3em] font-semibold">Platforms</p>
+            <h2 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold text-white">
+              บริการ<span className="text-gradient-animated">ของเรา</span>
+            </h2>
             <p className="text-[#475569]">รองรับทุกแพลตฟอร์มที่คุณต้องการ</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -139,10 +180,14 @@ export default async function LandingPage() {
       </section>
 
       {/* ── Pricing ──────────────────────────────────── */}
+      <div className="section-divider mx-8" />
       <section id="pricing" className="py-16 px-4 scroll-mt-20">
         <div className="max-w-4xl mx-auto space-y-10">
-          <div className="text-center space-y-2">
-            <h2 className="font-[family-name:var(--font-jakarta)] text-3xl font-bold text-white">ราคาและแพ็กเกจ</h2>
+          <div className="text-center space-y-3">
+            <p className="text-xs text-[#06B6D4] uppercase tracking-[0.3em] font-semibold">Pricing</p>
+            <h2 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold">
+              <span className="text-white">ราคา</span><span className="text-shimmer">และแพ็กเกจ</span>
+            </h2>
             <p className="text-[#475569]">เติมเงินและใช้งานได้ทันที ไม่มีค่าสมัคร</p>
           </div>
           <div className="grid md:grid-cols-3 gap-4">
@@ -225,16 +270,27 @@ export default async function LandingPage() {
       )}
 
       {/* ── CTA bottom ───────────────────────────────── */}
-      <section className="py-20 px-4 text-center">
-        <div className="max-w-xl mx-auto space-y-6">
-          <h2 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold text-white">
-            พร้อมเริ่มแล้วใช่มั้ย?
+      <section className="relative py-24 px-4 text-center overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="orb-1 absolute top-0 left-1/4 w-[400px] h-[400px] bg-[#8B5CF6] opacity-[0.10] rounded-full blur-[100px]" />
+          <div className="orb-2 absolute bottom-0 right-1/4 w-[350px] h-[350px] bg-[#06B6D4] opacity-[0.08] rounded-full blur-[90px]" />
+        </div>
+        <div className="section-divider mb-20" />
+        <div className="relative max-w-2xl mx-auto space-y-6">
+          <p className="text-xs text-[#8B5CF6] uppercase tracking-[0.3em] font-semibold">Get Started</p>
+          <h2 className="font-[family-name:var(--font-jakarta)] text-5xl font-extrabold">
+            <span className="text-white">พร้อมเริ่มแล้ว</span>
+            <span className="text-gradient-animated">ใช่มั้ย?</span>
           </h2>
-          <p className="text-[#94A3B8]">สมัครฟรี ไม่มีค่าใช้จ่ายแรกเข้า เติมเงินแล้วใช้งานได้เลย</p>
-          <Link href="/register"
-            className="glass-tab glass-tab-active inline-block px-10 py-4 text-base font-bold text-[#c4b5fd] hover:text-white transition-colors">
-            {cta}
-          </Link>
+          <p className="text-[#94A3B8] text-lg">สมัครฟรี ไม่มีค่าใช้จ่ายแรกเข้า เติมเงินแล้วใช้งานได้เลย</p>
+          <div className="flex flex-wrap gap-4 justify-center pt-2">
+            <Link href="/register" className="btn-primary text-base px-10 py-4">
+              {cta} →
+            </Link>
+            <Link href="/login" className="btn-secondary text-base px-8 py-4">
+              เข้าสู่ระบบ
+            </Link>
+          </div>
         </div>
       </section>
     </>
