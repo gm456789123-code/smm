@@ -19,9 +19,13 @@ export default function RegisterPage() {
     username: '', email: '', phone: '',
     password: '', confirmPassword: '', referralCode: '',
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
+  const [success, setSuccess]   = useState(false);
+  const [otpStep, setOtpStep]   = useState(false);
+  const [otpRef, setOtpRef]     = useState('');
+  const [otpCode, setOtpCode]   = useState('');
+  const [otpDone, setOtpDone]   = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -50,12 +54,78 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error); return; }
-      setSuccess(true);
+      if (data.requireOtp) {
+        setOtpRef(data.ref ?? '');
+        setOtpStep(true);
+      } else {
+        setSuccess(true);
+      }
     } catch {
       setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleVerifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true); setError('');
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otp: otpCode, ref: otpRef }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error); return; }
+      setOtpDone(true);
+      setTimeout(() => { router.push('/dashboard'); router.refresh(); }, 1500);
+    } catch {
+      setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (otpDone) {
+    return (
+      <div className="glass w-full max-w-md p-8 text-center space-y-4">
+        <div className="text-5xl">✅</div>
+        <h2 className="font-[family-name:var(--font-jakarta)] text-xl font-bold text-white">ยืนยันสำเร็จ!</h2>
+        <p className="text-[#94A3B8] text-sm">กำลังพาเข้าสู่ Dashboard...</p>
+      </div>
+    );
+  }
+
+  if (otpStep) {
+    return (
+      <div className="glass w-full max-w-sm p-8 space-y-6">
+        <div>
+          <p className="font-[family-name:var(--font-jakarta)] text-2xl font-extrabold">
+            <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
+            <span className="text-white"> SMM</span>
+          </p>
+          <h1 className="text-white font-[family-name:var(--font-jakarta)] text-lg font-bold mt-1">ยืนยันเบอร์โทร</h1>
+          <p className="text-[#475569] text-sm mt-0.5">กรอกรหัส OTP ที่ส่งไปยัง <span className="text-[#F1F5F9]">{form.phone}</span></p>
+        </div>
+        <form onSubmit={handleVerifyOtp} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs text-[#475569] uppercase tracking-wider">รหัส OTP (6 หลัก)</label>
+            <input
+              type="text" inputMode="numeric" maxLength={6}
+              value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g,''))}
+              placeholder="000000" autoFocus
+              className="glass w-full px-3 py-3 text-center text-2xl font-mono font-bold text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] tracking-[0.5em] focus:border-[rgba(139,92,246,0.45)] transition-colors"
+            />
+          </div>
+          {error && <p className="text-sm text-red-400 bg-[rgba(239,68,68,0.08)] px-3 py-2 rounded-xl">{error}</p>}
+          <button type="submit" disabled={loading || otpCode.length < 6}
+            className="glass-tab glass-tab-active w-full py-3 text-sm font-semibold text-[#c4b5fd] hover:text-white disabled:opacity-50">
+            {loading ? 'กำลังตรวจสอบ...' : 'ยืนยัน OTP'}
+          </button>
+        </form>
+      </div>
+    );
   }
 
   if (success) {
