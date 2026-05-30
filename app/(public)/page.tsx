@@ -5,7 +5,7 @@ import {
   BsInstagram, BsTiktok, BsYoutube, BsFacebook,
   BsTwitterX, BsTelegram, BsSpotify,
   BsBoxSeam, BsPeopleFill, BsGrid, BsLightningChargeFill,
-  BsShieldCheckFill, BsArrowRight, BsCheck2Circle,
+  BsShieldFillCheck, BsArrowRight, BsCheck2Circle,
   BsRocketTakeoffFill, BsStarFill, BsHeadset,
   BsBarChartLineFill, BsCreditCard2BackFill,
   BsQuestionCircle, BsGlobe2, BsClockHistory,
@@ -41,7 +41,7 @@ const PLATFORMS = [
 
 const FEATURES = [
   { icon: BsLightningChargeFill, label: 'เริ่มเร็ว',     desc: 'ออเดอร์เริ่มประมวลผลภายใน 60 วินาที',       color: '#F59E0B', bg: 'rgba(245,158,11,0.10)',  border: 'rgba(245,158,11,0.25)' },
-  { icon: BsShieldCheckFill,     label: 'ปลอดภัย 100%',  desc: 'ไม่ต้องให้รหัสผ่าน ใช้แค่ลิงก์สาธารณะ',   color: '#10B981', bg: 'rgba(16,185,129,0.10)',  border: 'rgba(16,185,129,0.25)' },
+  { icon: BsShieldFillCheck,     label: 'ปลอดภัย 100%',  desc: 'ไม่ต้องให้รหัสผ่าน ใช้แค่ลิงก์สาธารณะ',   color: '#10B981', bg: 'rgba(16,185,129,0.10)',  border: 'rgba(16,185,129,0.25)' },
   { icon: BsBarChartLineFill,    label: 'คุณภาพสูง',     desc: 'follower จริง engagement จริง ไม่ drop',    color: '#8B5CF6', bg: 'rgba(139,92,246,0.10)',  border: 'rgba(139,92,246,0.25)' },
   { icon: BsHeadset,             label: 'Support 24/7',  desc: 'ทีมงานพร้อมช่วยตลอด ตอบในไม่กี่นาที',     color: '#06B6D4', bg: 'rgba(6,182,212,0.10)',   border: 'rgba(6,182,212,0.25)'  },
   { icon: BsCreditCard2BackFill, label: 'ชำระง่าย',      desc: 'รองรับ PromptPay, บัตร, TrueMoney',        color: '#EC4899', bg: 'rgba(236,72,153,0.10)',  border: 'rgba(236,72,153,0.25)' },
@@ -55,17 +55,100 @@ const FAQS = [
   { q: 'ยอด follower จะลดมั้ยหลังซื้อ?',     a: 'Service ของเรามี lifetime guarantee สำหรับบาง service ที่ระบุไว้ชัดเจน' },
 ];
 
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
+
+export async function generateMetadata() {
+  const s = await getSettings();
+  const brand   = s.brand_name    ?? 'AURA SMM';
+  const tagline = s.brand_tagline ?? 'บริการ SMM Panel คุณภาพสูง เร็ว เสถียร ราคาถูก';
+  const desc    = s.brand_desc    ?? 'เพิ่มยอดผู้ติดตาม ยอดไลค์ และ engagement บนทุกแพลตฟอร์ม';
+  return {
+    title: `${brand} — ${tagline}`,
+    description: desc,
+    alternates: { canonical: BASE },
+    openGraph: { url: BASE, title: `${brand} — ${tagline}`, description: desc },
+  };
+}
+
 export default async function LandingPage() {
   const s     = await getSettings();
   const posts = await getLatestPosts();
 
   const brand   = s.brand_name    ?? 'AURA SMM';
   const tagline = s.brand_tagline ?? 'บริการ SMM Panel คุณภาพสูง เร็ว เสถียร ราคาถูก';
+  const desc    = s.brand_desc    ?? 'เพิ่มยอดผู้ติดตาม ยอดไลค์ และ engagement บนทุกแพลตฟอร์ม';
   const cta     = s.hero_cta      ?? 'เริ่มต้นใช้งานฟรี';
   const [brandFirst, ...brandRest] = brand.split(' ');
 
+  // ── JSON-LD Structured Data ──────────────────────────────────────
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${BASE}/#organization`,
+        name: brand,
+        url: BASE,
+        logo: { '@type': 'ImageObject', url: `${BASE}/og-image.png` },
+        description: desc,
+        sameAs: [],
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${BASE}/#website`,
+        url: BASE,
+        name: brand,
+        description: tagline,
+        publisher: { '@id': `${BASE}/#organization` },
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: { '@type': 'EntryPoint', urlTemplate: `${BASE}/blog?q={search_term_string}` },
+          'query-input': 'required name=search_term_string',
+        },
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${BASE}/#webpage`,
+        url: BASE,
+        name: `${brand} — ${tagline}`,
+        description: desc,
+        isPartOf: { '@id': `${BASE}/#website` },
+        about: { '@id': `${BASE}/#organization` },
+        breadcrumb: { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'หน้าแรก', item: BASE }] },
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${BASE}/#faq`,
+        mainEntity: FAQS.map(({ q, a }) => ({
+          '@type': 'Question',
+          name: q,
+          acceptedAnswer: { '@type': 'Answer', text: a },
+        })),
+      },
+      {
+        '@type': 'Service',
+        '@id': `${BASE}/#service`,
+        name: `${brand} — SMM Panel`,
+        description: desc,
+        provider: { '@id': `${BASE}/#organization` },
+        areaServed: { '@type': 'Country', name: 'Thailand' },
+        serviceType: 'Social Media Marketing',
+        offers: {
+          '@type': 'AggregateOffer',
+          priceCurrency: 'THB',
+          lowPrice: '100',
+          offerCount: '3',
+        },
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* ══════════════════════════════════════════ HERO */}
       <section className="hero-bg hero-grid relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
         {/* Orbs */}

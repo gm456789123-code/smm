@@ -1,96 +1,155 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import {
+  BsGrid, BsCurrencyDollar, BsFileText,
+  BsPersonPlus, BsBoxArrowInRight,
+  BsHouseDoorFill, BsList, BsX,
+} from 'react-icons/bs';
 
-interface NavbarProps {
-  brandName?: string;
-}
+const NAV_ITEMS = [
+  { href: '/',          label: 'หน้าแรก',  icon: BsHouseDoorFill },
+  { href: '/#services', label: 'บริการ',   icon: BsGrid          },
+  { href: '/#pricing',  label: 'ราคา',     icon: BsCurrencyDollar },
+  { href: '/blog',      label: 'บทความ',   icon: BsFileText       },
+];
+
+interface NavbarProps { brandName?: string }
 
 export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
-  const [open, setOpen] = useState(false);
+  const path          = usePathname();
+  const [open, setOpen]     = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const [first, second] = brandName.includes(' ')
-    ? [brandName.split(' ')[0], brandName.split(' ').slice(1).join(' ')]
-    : [brandName, ''];
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const [first, ...rest] = brandName.split(' ');
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass-strong border-b border-[rgba(139,92,246,0.10)]">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Brand */}
-        <Link href="/" className="font-[family-name:var(--font-jakarta)] text-lg font-extrabold tracking-tight">
-          <span className="text-[#8B5CF6] text-glow-indigo">{first}</span>
-          {second && <span className="text-white"> {second}</span>}
+    <header
+      className={[
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+        scrolled
+          ? 'bg-[rgba(7,9,15,0.90)] backdrop-blur-2xl border-b border-[rgba(139,92,246,0.14)] shadow-[0_4px_40px_rgba(0,0,0,0.5)]'
+          : 'bg-transparent',
+      ].join(' ')}
+    >
+      {/* Top accent line */}
+      {scrolled && (
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(139,92,246,0.6)] to-transparent" />
+      )}
+
+      <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+
+        {/* ── Brand ─────────────────────────────── */}
+        <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center shadow-[0_0_16px_rgba(139,92,246,0.5)] group-hover:shadow-[0_0_24px_rgba(139,92,246,0.7)] transition-shadow">
+            <span className="text-white text-xs font-black tracking-tighter">
+              {first[0]}{rest[0]?.[0] ?? ''}
+            </span>
+          </div>
+          <span className="font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
+            <span className="text-gradient-animated">{first}</span>
+            {rest.length > 0 && <span className="text-white"> {rest.join(' ')}</span>}
+          </span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-1">
-          {[
-            { href: '/',        label: 'หน้าแรก' },
-            { href: '/#services', label: 'บริการ' },
-            { href: '/#pricing',  label: 'ราคา' },
-            { href: '/blog',    label: 'บทความ' },
-          ].map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="glass-tab px-4 py-2 text-sm text-[#94A3B8] hover:text-[#F1F5F9]"
-            >
-              {label}
-            </Link>
-          ))}
+        {/* ── Desktop nav ───────────────────────── */}
+        <nav className="hidden md:flex items-center gap-1 p-1 rounded-2xl bg-[rgba(139,92,246,0.05)] border border-[rgba(139,92,246,0.10)]">
+          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+            const active = path === href || (href !== '/' && path.startsWith(href));
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={[
+                  'relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
+                  active
+                    ? 'bg-gradient-to-r from-[rgba(139,92,246,0.25)] to-[rgba(6,182,212,0.10)] text-white border border-[rgba(139,92,246,0.35)] shadow-[0_0_16px_rgba(139,92,246,0.20),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                    : 'text-[#94A3B8] hover:text-white hover:bg-[rgba(139,92,246,0.10)] hover:border hover:border-[rgba(139,92,246,0.20)]',
+                ].join(' ')}
+              >
+                <Icon size={13} className={active ? 'text-[#a78bfa]' : 'text-[#475569]'} />
+                {label}
+                {active && (
+                  <span className="absolute -bottom-px left-1/2 -translate-x-1/2 w-8 h-px bg-gradient-to-r from-transparent via-[#8B5CF6] to-transparent" />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
-        {/* Auth buttons */}
-        <div className="hidden md:flex items-center gap-2">
-          <Link href="/login" className="glass-tab px-4 py-2 text-sm text-[#94A3B8] hover:text-[#F1F5F9]">
+        {/* ── Auth buttons ──────────────────────── */}
+        <div className="hidden md:flex items-center gap-2.5">
+          <Link
+            href="/login"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-[#94A3B8] hover:text-white border border-transparent hover:border-[rgba(139,92,246,0.22)] hover:bg-[rgba(139,92,246,0.08)] transition-all"
+          >
+            <BsBoxArrowInRight size={14} />
             เข้าสู่ระบบ
           </Link>
-          <Link href="/register" className="glass-tab glass-tab-active px-4 py-2 text-sm font-semibold text-[#c4b5fd] hover:text-white">
+          <Link
+            href="/register"
+            className="btn-primary flex items-center gap-2 px-5 py-2 text-sm"
+          >
+            <BsPersonPlus size={14} />
             สมัครฟรี
           </Link>
         </div>
 
-        {/* Mobile burger */}
+        {/* ── Mobile burger ─────────────────────── */}
         <button
           onClick={() => setOpen(!open)}
-          className="md:hidden glass-tab p-2 text-[#94A3B8]"
-          aria-label="menu"
+          className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl border border-[rgba(139,92,246,0.20)] bg-[rgba(139,92,246,0.08)] text-[#94A3B8] hover:text-white transition-colors"
+          aria-label="toggle menu"
         >
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            {open
-              ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />}
-          </svg>
+          {open ? <BsX size={18} /> : <BsList size={18} />}
         </button>
       </div>
 
-      {/* Mobile menu */}
-      {open && (
-        <div className="md:hidden border-t border-[rgba(139,92,246,0.10)] px-4 py-3 space-y-1 bg-[rgba(9,13,22,0.95)]">
-          {[
-            { href: '/', label: 'หน้าแรก' },
-            { href: '/#services', label: 'บริการ' },
-            { href: '/#pricing', label: 'ราคา' },
-            { href: '/blog', label: 'บทความ' },
-          ].map(({ href, label }) => (
-            <Link key={href} href={href} onClick={() => setOpen(false)}
-              className="block glass-tab px-4 py-2.5 text-sm text-[#94A3B8]">
-              {label}
-            </Link>
-          ))}
-          <div className="flex gap-2 pt-2">
+      {/* ── Mobile menu ───────────────────────── */}
+      <div className={[
+        'md:hidden overflow-hidden transition-all duration-300',
+        open ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0',
+      ].join(' ')}>
+        <div className="bg-[rgba(7,9,15,0.97)] backdrop-blur-2xl border-t border-[rgba(139,92,246,0.12)] px-5 py-4 space-y-1.5">
+          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+            const active = path === href || (href !== '/' && path.startsWith(href));
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setOpen(false)}
+                className={[
+                  'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all',
+                  active
+                    ? 'bg-gradient-to-r from-[rgba(139,92,246,0.20)] to-[rgba(6,182,212,0.08)] text-white border border-[rgba(139,92,246,0.30)]'
+                    : 'text-[#94A3B8] hover:bg-[rgba(139,92,246,0.08)] hover:text-white',
+                ].join(' ')}
+              >
+                <Icon size={15} className={active ? 'text-[#a78bfa]' : 'text-[#475569]'} />
+                {label}
+              </Link>
+            );
+          })}
+          <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[rgba(139,92,246,0.10)] mt-2">
             <Link href="/login" onClick={() => setOpen(false)}
-              className="flex-1 glass-tab text-center py-2.5 text-sm text-[#94A3B8]">
-              เข้าสู่ระบบ
+              className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-[#94A3B8] border border-[rgba(139,92,246,0.15)] hover:text-white hover:border-[rgba(139,92,246,0.30)] transition-all">
+              <BsBoxArrowInRight size={14} /> เข้าสู่ระบบ
             </Link>
             <Link href="/register" onClick={() => setOpen(false)}
-              className="flex-1 glass-tab glass-tab-active text-center py-2.5 text-sm font-semibold text-[#c4b5fd]">
-              สมัครฟรี
+              className="btn-primary flex items-center justify-center gap-2 py-3 text-sm">
+              <BsPersonPlus size={14} /> สมัครฟรี
             </Link>
           </div>
         </div>
-      )}
+      </div>
     </header>
   );
 }

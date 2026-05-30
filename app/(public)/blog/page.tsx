@@ -2,7 +2,14 @@ import Link from 'next/link';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 
-export const metadata = { title: 'บทความ | AURA SMM' };
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
+
+export const metadata = {
+  title: 'บทความ — เทคนิค SMM และอัปเดตแพลตฟอร์ม',
+  description: 'บทความ เทคนิค Social Media Marketing, วิธีเพิ่ม Followers, Likes, Views และอัปเดตข่าวสารแพลตฟอร์มต่างๆ',
+  alternates: { canonical: `${BASE}/blog` },
+  openGraph: { url: `${BASE}/blog`, title: 'บทความ AURA SMM', description: 'เทคนิค SMM และอัปเดตแพลตฟอร์ม' },
+};
 
 async function getPosts() {
   try {
