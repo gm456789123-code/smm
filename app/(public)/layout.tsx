@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
@@ -44,10 +45,10 @@ export default async function PublicLayout({ children }: { children: React.React
               <p className="text-xs text-[#334155] mt-1">© {new Date().getFullYear()} {name} · Developed by <span className="text-[#8B5CF6]">Saint</span></p>
             </div>
             <nav className="flex items-center gap-4 text-xs text-[#475569]">
-              <a href="/blog" className="hover:text-[#94A3B8] transition-colors">บทความ</a>
-              <a href="/#services" className="hover:text-[#94A3B8] transition-colors">บริการ</a>
-              <a href="/#pricing" className="hover:text-[#94A3B8] transition-colors">ราคา</a>
-              <a href="/register" className="hover:text-[#8B5CF6] transition-colors">สมัครสมาชิก</a>
+              <Link href="/blog" className="hover:text-[#94A3B8] transition-colors">บทความ</Link>
+              <Link href="/#services" className="hover:text-[#94A3B8] transition-colors">บริการ</Link>
+              <Link href="/#pricing" className="hover:text-[#94A3B8] transition-colors">ราคา</Link>
+              <Link href="/register" className="hover:text-[#8B5CF6] transition-colors">สมัครสมาชิก</Link>
             </nav>
           </div>
         </div>

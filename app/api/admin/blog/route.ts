@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/jwt';
 import db from '@/lib/db';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 async function checkAdmin(req: NextRequest) {
   const token = req.cookies.get('auth_token')?.value;
@@ -10,6 +11,9 @@ async function checkAdmin(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`admin-blog:get:${ip}`, 120, 10 * 60 * 1000);
+  if (!rl.ok) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   if (!await checkAdmin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const [rows] = await db.query<RowDataPacket[]>(
     'SELECT id,slug,title,published,published_at,created_at FROM blog_posts ORDER BY created_at DESC'
@@ -18,6 +22,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`admin-blog:post:${ip}`, 40, 10 * 60 * 1000);
+  if (!rl.ok) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   const admin = await checkAdmin(req);
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 

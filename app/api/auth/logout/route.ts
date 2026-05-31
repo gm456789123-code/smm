@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 
 export async function POST() {
   const res = NextResponse.json({ message: 'ออกจากระบบแล้ว' });
-  res.cookies.set('auth_token', '', { maxAge: 0, path: '/' });
+  res.cookies.set('auth_token', '', {
+    maxAge: 0,
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+  });
   return res;
 }
+

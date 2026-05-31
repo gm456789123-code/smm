@@ -1,14 +1,26 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
+import type { Metadata } from 'next';
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
 
-export const metadata = {
-  title: 'บทความ — เทคนิค SMM และอัปเดตแพลตฟอร์ม',
-  description: 'บทความ เทคนิค Social Media Marketing, วิธีเพิ่ม Followers, Likes, Views และอัปเดตข่าวสารแพลตฟอร์มต่างๆ',
+export const metadata: Metadata = {
+  title: 'AURA SMM Blog - Tips and Platform Updates',
+  description: 'Guides and updates on social media marketing, growth strategies, and platform trends.',
   alternates: { canonical: `${BASE}/blog` },
-  openGraph: { url: `${BASE}/blog`, title: 'บทความ AURA SMM', description: 'เทคนิค SMM และอัปเดตแพลตฟอร์ม' },
+  openGraph: {
+    type: 'website',
+    url: `${BASE}/blog`,
+    title: 'AURA SMM Blog',
+    description: 'Social media growth tips, SMM guides, and platform updates.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AURA SMM Blog',
+    description: 'Social media growth tips, SMM guides, and platform updates.',
+  },
 };
 
 async function getPosts() {
@@ -28,22 +40,31 @@ export default async function BlogPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 space-y-10">
       <div className="space-y-2">
-        <h1 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold text-white">บทความ</h1>
-        <p className="text-[#475569]">เทคนิค SMM, อัปเดตแพลตฟอร์ม และข่าวสาร</p>
+        <h1 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold text-white">Blog</h1>
+        <p className="text-[#475569]">Tips, platform updates, and practical SMM strategies</p>
       </div>
 
       {posts.length === 0 ? (
         <div className="glass p-12 text-center">
-          <p className="text-[#475569]">ยังไม่มีบทความ</p>
+          <p className="text-[#475569]">No posts yet</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {posts.map((post: RowDataPacket) => (
-            <Link key={post.slug} href={`/blog/${post.slug}`}
-              className="glass p-5 space-y-3 group hover:border-[rgba(139,92,246,0.3)] transition-colors">
+            <Link
+              key={post.slug}
+              href={`/blog/${post.slug}`}
+              className="glass p-5 space-y-3 group hover:border-[rgba(139,92,246,0.3)] transition-colors"
+            >
               {post.cover_image && (
                 <div className="aspect-video bg-[rgba(139,92,246,0.08)] rounded-lg overflow-hidden">
-                  <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <Image
+                    src={post.cover_image}
+                    alt={post.title}
+                    width={960}
+                    height={540}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
               )}
               <div className="space-y-1.5">

@@ -5,6 +5,7 @@ import { hashPassword, generateToken, generateReferralCode } from '@/lib/auth';
 import { sendVerificationEmail } from '@/lib/email';
 import { meSmS } from '@/lib/sms';
 import { signToken } from '@/lib/jwt';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 interface RegisterBody {
   username: string;
@@ -16,6 +17,12 @@ interface RegisterBody {
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const rl = checkRateLimit(`register:${ip}`, 5, 10 * 60 * 1000);
+    if (!rl.ok) {
+      return NextResponse.json({ error: 'คำขอมากเกินไป กรุณาลองใหม่ภายหลัง' }, { status: 429 });
+    }
+
     const body: RegisterBody = await req.json();
     const { username, email, phone, password, referralCode } = body;
 
@@ -92,7 +99,7 @@ export async function POST(req: NextRequest) {
       );
       res.cookies.set('auth_token', jwtToken, {
         httpOnly: true, secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/',
+        sameSite: 'strict', maxAge: 60 * 60 * 24 * 7, path: '/',
       });
       return res;
     }

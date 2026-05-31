@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useLocale } from './LocaleProvider';
 import {
   BsBoxSeam, BsPeopleFill, BsGlobe2, BsLightningChargeFill,
-  BsShieldFillCheck, BsArrowRight, BsCheck2Circle,
+  BsShieldCheck, BsArrowRight, BsCheck2Circle,
   BsRocketTakeoffFill, BsStarFill, BsHeadset,
   BsBarChartLineFill, BsCreditCard2BackFill, BsQuestionCircle,
 } from 'react-icons/bs';
@@ -22,7 +22,7 @@ export function HeroBadge() {
 
 export function HeroText({ brand }: { brand: string }) {
   const { t } = useLocale();
-  const [first, ...rest] = brand.split(' ');
+  void brand;
   return (
     <>
       <p className="text-xl md:text-2xl text-[#94A3B8] max-w-2xl mx-auto leading-relaxed font-light">
@@ -68,7 +68,7 @@ export function FeaturesSection() {
   const { t } = useLocale();
   const FEATURES = [
     { icon: BsLightningChargeFill, key: 'features.fast',    color: '#F59E0B', bg: 'rgba(245,158,11,0.10)',  border: 'rgba(245,158,11,0.25)' },
-    { icon: BsShieldFillCheck,     key: 'features.safe',    color: '#10B981', bg: 'rgba(16,185,129,0.10)',  border: 'rgba(16,185,129,0.25)' },
+    { icon: BsShieldCheck,          key: 'features.safe',    color: '#10B981', bg: 'rgba(16,185,129,0.10)',  border: 'rgba(16,185,129,0.25)' },
     { icon: BsBarChartLineFill,    key: 'features.quality', color: '#8B5CF6', bg: 'rgba(139,92,246,0.10)',  border: 'rgba(139,92,246,0.25)' },
     { icon: BsHeadset,             key: 'features.support', color: '#06B6D4', bg: 'rgba(6,182,212,0.10)',   border: 'rgba(6,182,212,0.25)'  },
     { icon: BsCreditCard2BackFill, key: 'features.payment', color: '#EC4899', bg: 'rgba(236,72,153,0.10)',  border: 'rgba(236,72,153,0.25)' },
@@ -91,6 +91,18 @@ export function FeaturesSection() {
   );
 }
 
+export function FeaturesTitle({ brand }: { brand: string }) {
+  const { t } = useLocale();
+  return (
+    <div className="text-center space-y-3">
+      <p className="section-label text-[#8B5CF6]">Why Choose Us</p>
+      <h2 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold text-white">
+        {t('features.title')}<span className="text-gradient-animated"> {brand}</span>
+      </h2>
+    </div>
+  );
+}
+
 export function PlatformsTitle() {
   const { t } = useLocale();
   return (
@@ -101,6 +113,26 @@ export function PlatformsTitle() {
         <span className="text-gradient-animated"> {t('platforms.title').includes('ของเรา') ? 'ของเรา' : ''}</span>
       </h2>
       <p className="text-[#475569]">{t('platforms.subtitle')}</p>
+    </div>
+  );
+}
+
+export function PricingTitle() {
+  const { t } = useLocale();
+  const title = t('pricing.title');
+  const parts = title.split('&');
+  return (
+    <div className="text-center space-y-3">
+      <p className="section-label text-[#F59E0B]">Pricing</p>
+      <h2 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold text-white">
+        {parts.length > 1 ? (
+          <>
+            {parts[0].trim()}<span className="text-shimmer">&nbsp;&amp; {parts.slice(1).join('&').trim()}</span>
+          </>
+        ) : (
+          <span className="text-shimmer">{title}</span>
+        )}
+      </h2>
     </div>
   );
 }

@@ -1,6 +1,10 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? 'change-me-in-production');
+const rawSecret = process.env.JWT_SECRET;
+if (!rawSecret || rawSecret.length < 32) {
+  throw new Error('JWT_SECRET must be set and at least 32 characters');
+}
+const SECRET = new TextEncoder().encode(rawSecret);
 
 export interface JWTPayload {
   userId: number;

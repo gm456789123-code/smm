@@ -1,12 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import stripe from '@/lib/stripe';
 import { verifyToken } from '@/lib/jwt';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const ipRl = checkRateLimit(`payment-intent-ip:${ip}`, 30, 10 * 60 * 1000);
+    if (!ipRl.ok) {
+      return NextResponse.json({ error: 'คำขอมากเกินไป กรุณาลองใหม่ภายหลัง' }, { status: 429 });
+    }
+
     const token = req.cookies.get('auth_token')?.value;
     const user = token ? await verifyToken(token) : null;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const userRl = checkRateLimit(`payment-intent-user:${user.userId}`, 15, 10 * 60 * 1000);
+    if (!userRl.ok) {
+      return NextResponse.json({ error: 'คำขอมากเกินไป กรุณาลองใหม่ภายหลัง' }, { status: 429 });
+    }
 
     const { amountThb } = await req.json();
     if (!amountThb || amountThb < 20) {

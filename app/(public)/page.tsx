@@ -1,4 +1,5 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
+import Image from 'next/image';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import {
@@ -10,7 +11,7 @@ import {
 import { SiThreads } from 'react-icons/si';
 import {
   HeroBadge, HeroText, HeroStats,
-  FeaturesSection, PlatformsTitle, PricingPlans,
+  FeaturesSection, FeaturesTitle, PlatformsTitle, PricingPlans, PricingTitle,
   FaqSection, CtaSection,
 } from '@/components/LandingClient';
 
@@ -41,48 +42,38 @@ const PLATFORMS = [
   { name: 'Threads',   icon: SiThreads,   bg: 'bg-gradient-to-br from-slate-500/15 via-slate-700/10 to-[#0B0E1A]',  glow: 'rgba(241,245,249,0.10)', iconColor: '#F1F5F9' },
 ];
 
-const FEATURES = [
-  { icon: BsLightningChargeFill, label: 'เริ่มเร็ว',     desc: 'ออเดอร์เริ่มประมวลผลภายใน 60 วินาที',       color: '#F59E0B', bg: 'rgba(245,158,11,0.10)',  border: 'rgba(245,158,11,0.25)' },
-  { icon: BsShieldFillCheck,     label: 'ปลอดภัย 100%',  desc: 'ไม่ต้องให้รหัสผ่าน ใช้แค่ลิงก์สาธารณะ',   color: '#10B981', bg: 'rgba(16,185,129,0.10)',  border: 'rgba(16,185,129,0.25)' },
-  { icon: BsBarChartLineFill,    label: 'คุณภาพสูง',     desc: 'follower จริง engagement จริง ไม่ drop',    color: '#8B5CF6', bg: 'rgba(139,92,246,0.10)',  border: 'rgba(139,92,246,0.25)' },
-  { icon: BsHeadset,             label: 'Support 24/7',  desc: 'ทีมงานพร้อมช่วยตลอด ตอบในไม่กี่นาที',     color: '#06B6D4', bg: 'rgba(6,182,212,0.10)',   border: 'rgba(6,182,212,0.25)'  },
-  { icon: BsCreditCard2BackFill, label: 'ชำระง่าย',      desc: 'รองรับ PromptPay, บัตร, TrueMoney',        color: '#EC4899', bg: 'rgba(236,72,153,0.10)',  border: 'rgba(236,72,153,0.25)' },
-  { icon: BsGlobe2,              label: 'ทุกแพลตฟอร์ม', desc: '10+ แพลตฟอร์ม ครบในที่เดียว',             color: '#6366F1', bg: 'rgba(99,102,241,0.10)',  border: 'rgba(99,102,241,0.25)' },
-];
-
 const FAQS = [
-  { q: 'บริการมีความปลอดภัยมั้ย?',          a: 'ใช้ครับ เราไม่ขอรหัสผ่าน ใช้แค่ลิงก์สาธารณะเท่านั้น' },
-  { q: 'เริ่มต้นได้เร็วแค่ไหน?',             a: 'ส่วนใหญ่เริ่มภายใน 0–1 ชั่วโมงหลังชำระเงิน ขึ้นอยู่กับ service' },
-  { q: 'ถ้าออเดอร์ไม่ครบ refill ได้มั้ย?',  a: 'ได้ครับ service ที่รองรับ refill สามารถขอได้ผ่านหน้า My Orders' },
-  { q: 'ยอด follower จะลดมั้ยหลังซื้อ?',     a: 'Service ของเรามี lifetime guarantee สำหรับบาง service ที่ระบุไว้ชัดเจน' },
+  { q: 'บริการมีความปลอดภัยไหม?', a: 'ปลอดภัยครับ เราไม่ขอรหัสผ่าน ใช้เพียงลิงก์สาธารณะเท่านั้น' },
+  { q: 'เริ่มต้นได้เร็วแค่ไหน?', a: 'ส่วนใหญ่เริ่มภายใน 0-1 ชั่วโมงหลังชำระเงิน ขึ้นอยู่กับบริการที่เลือก' },
+  { q: 'ถ้าออเดอร์ไม่ครบ ขอ refill ได้ไหม?', a: 'ได้ครับ บริการที่รองรับ refill สามารถกดขอได้ผ่านหน้า My Orders' },
+  { q: 'ยอด follower จะลดไหมหลังซื้อ?', a: 'บางบริการมีการรับประกันระยะยาวตามเงื่อนไขที่ระบุในแต่ละแพ็กเกจ' },
 ];
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
 
 export async function generateMetadata() {
   const s = await getSettings();
-  const brand   = s.brand_name    ?? 'AURA SMM';
-  const tagline = s.brand_tagline ?? 'บริการ SMM Panel คุณภาพสูง เร็ว เสถียร ราคาถูก';
-  const desc    = s.brand_desc    ?? 'เพิ่มยอดผู้ติดตาม ยอดไลค์ และ engagement บนทุกแพลตฟอร์ม';
+  const brand = s.brand_name ?? 'AURA SMM';
+  const tagline = s.brand_tagline ?? 'บริการ SMM Panel คุณภาพสูง เร็ว เสถียร ราคาคุ้มค่า';
+  const desc = s.brand_desc ?? 'เพิ่มยอดผู้ติดตาม ยอดไลก์ และ engagement บนทุกแพลตฟอร์ม';
   return {
-    title: `${brand} — ${tagline}`,
+    title: `${brand} - ${tagline}`,
     description: desc,
     alternates: { canonical: BASE },
-    openGraph: { url: BASE, title: `${brand} — ${tagline}`, description: desc },
+    openGraph: { url: BASE, title: `${brand} - ${tagline}`, description: desc },
   };
 }
 
 export default async function LandingPage() {
-  const s     = await getSettings();
+  const s = await getSettings();
   const posts = await getLatestPosts();
 
-  const brand   = s.brand_name    ?? 'AURA SMM';
-  const tagline = s.brand_tagline ?? 'บริการ SMM Panel คุณภาพสูง เร็ว เสถียร ราคาถูก';
-  const desc    = s.brand_desc    ?? 'เพิ่มยอดผู้ติดตาม ยอดไลค์ และ engagement บนทุกแพลตฟอร์ม';
-  const cta     = s.hero_cta      ?? 'เริ่มต้นใช้งานฟรี';
+  const brand = s.brand_name ?? 'AURA SMM';
+  const tagline = s.brand_tagline ?? 'บริการ SMM Panel คุณภาพสูง เร็ว เสถียร ราคาคุ้มค่า';
+  const desc = s.brand_desc ?? 'เพิ่มยอดผู้ติดตาม ยอดไลก์ และ engagement บนทุกแพลตฟอร์ม';
+  const cta = s.hero_cta ?? 'เริ่มต้นใช้งานฟรี';
   const [brandFirst, ...brandRest] = brand.split(' ');
 
-  // ── JSON-LD Structured Data ──────────────────────────────────────
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -112,11 +103,14 @@ export default async function LandingPage() {
         '@type': 'WebPage',
         '@id': `${BASE}/#webpage`,
         url: BASE,
-        name: `${brand} — ${tagline}`,
+        name: `${brand} - ${tagline}`,
         description: desc,
         isPartOf: { '@id': `${BASE}/#website` },
         about: { '@id': `${BASE}/#organization` },
-        breadcrumb: { '@type': 'BreadcrumbList', itemListElement: [{ '@type': 'ListItem', position: 1, name: 'หน้าแรก', item: BASE }] },
+        breadcrumb: {
+          '@type': 'BreadcrumbList',
+          itemListElement: [{ '@type': 'ListItem', position: 1, name: 'หน้าแรก', item: BASE }],
+        },
       },
       {
         '@type': 'FAQPage',
@@ -130,7 +124,7 @@ export default async function LandingPage() {
       {
         '@type': 'Service',
         '@id': `${BASE}/#service`,
-        name: `${brand} — SMM Panel`,
+        name: `${brand} - SMM Panel`,
         description: desc,
         provider: { '@id': `${BASE}/#organization` },
         areaServed: { '@type': 'Country', name: 'Thailand' },
@@ -151,20 +145,24 @@ export default async function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* ══════════════════════════════════════════ HERO */}
       <section className="hero-bg hero-grid relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
-        {/* Orbs */}
+        <div className="hero-light-beam" />
+        <div className="hero-ring hero-ring-a hidden md:block" />
+        <div className="hero-ring hero-ring-b hidden lg:block" />
+        <div className="hero-comet hidden md:block" />
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="orb-a absolute -top-32 -left-32 w-[600px] h-[600px] bg-[#8B5CF6] opacity-[0.13] rounded-full blur-[140px]" />
           <div className="orb-b absolute top-0 right-0 w-[450px] h-[450px] bg-[#06B6D4] opacity-[0.09] rounded-full blur-[120px]" />
           <div className="orb-c absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-[#7C3AED] opacity-[0.09] rounded-full blur-[110px]" />
+          <div className="hero-particle hero-particle-a hidden md:block" />
+          <div className="hero-particle hero-particle-b hidden md:block" />
+          <div className="hero-particle hero-particle-c hidden lg:block" />
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#07090F] to-transparent pointer-events-none" />
 
         <div className="relative text-center max-w-4xl mx-auto space-y-8 py-24">
           <HeroBadge />
 
-          {/* Headline */}
           <h1 className="font-[family-name:var(--font-jakarta)] text-6xl md:text-8xl font-extrabold leading-[1.05] tracking-tight">
             <span className="text-gradient-animated">{brandFirst}</span>
             {brandRest.length > 0 && (
@@ -179,29 +177,22 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════ FEATURES */}
       <div className="section-divider mx-10" />
       <section className="py-20 px-4">
         <div className="max-w-5xl mx-auto space-y-12">
-          <div className="text-center space-y-3">
-            <p className="section-label text-[#8B5CF6]">Why Choose Us</p>
-            <h2 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold text-white">
-              ทำไมต้องเลือก<span className="text-gradient-animated"> {brand}</span>
-            </h2>
-          </div>
+          <FeaturesTitle brand={brand} />
           <FeaturesSection />
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════ STATS */}
       <div className="section-divider mx-10" />
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { icon: BsBoxSeam,            label: 'ออเดอร์ที่ผ่านมา', value: s.stat_orders    ?? '50,000+', color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)',  border: 'rgba(139,92,246,0.20)' },
-            { icon: BsPeopleFill,          label: 'ลูกค้า',            value: s.stat_users     ?? '10,000+', color: '#06B6D4', bg: 'rgba(6,182,212,0.08)',   border: 'rgba(6,182,212,0.20)'  },
-            { icon: BsGlobe2,              label: 'แพลตฟอร์ม',         value: s.stat_platforms ?? '10+',     color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.20)'},
-            { icon: BsLightningChargeFill, label: 'Uptime',            value: s.stat_uptime    ?? '99.9%',   color: '#10B981', bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.20)' },
+            { icon: BsBoxSeam, label: 'ออเดอร์ทั้งหมด', value: s.stat_orders ?? '50,000+', color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.20)' },
+            { icon: BsPeopleFill, label: 'ลูกค้า', value: s.stat_users ?? '10,000+', color: '#06B6D4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.20)' },
+            { icon: BsGlobe2, label: 'แพลตฟอร์ม', value: s.stat_platforms ?? '10+', color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.20)' },
+            { icon: BsLightningChargeFill, label: 'Uptime', value: s.stat_uptime ?? '99.9%', color: '#10B981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.20)' },
           ].map(({ icon: Icon, label, value, color, bg, border }) => (
             <div key={label} className="stat-luxury p-6 text-center" style={{ background: `linear-gradient(135deg, ${bg} 0%, rgba(11,14,26,0.9) 70%)`, borderColor: border }}>
               <div className="flex justify-center mb-3">
@@ -216,7 +207,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════ PLATFORMS */}
       <div className="section-divider mx-10" />
       <section id="services" className="py-20 px-4 scroll-mt-20">
         <div className="max-w-5xl mx-auto space-y-12">
@@ -225,16 +215,16 @@ export default async function LandingPage() {
             {PLATFORMS.map(({ name, icon: Icon, bg, glow, iconColor }) => (
               <div key={name}
                 className={`platform-card ${bg} p-6 text-center space-y-3`}
-                style={{ boxShadow: `0 0 0 1px rgba(255,255,255,0.06)` }}>
+                style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06)' }}>
                 <div className="flex justify-center">
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                    style={{ background: `rgba(0,0,0,0.3)`, boxShadow: `0 0 20px ${glow}, inset 0 1px 0 rgba(255,255,255,0.08)` }}>
+                    style={{ background: 'rgba(0,0,0,0.3)', boxShadow: `0 0 20px ${glow}, inset 0 1px 0 rgba(255,255,255,0.08)` }}>
                     <Icon size={30} color={iconColor} />
                   </div>
                 </div>
                 <p className="text-sm font-bold text-[#F1F5F9]">{name}</p>
                 <div className="flex justify-center gap-1 flex-wrap">
-                  {['Followers','Likes','Views'].map(t => (
+                  {['Followers', 'Likes', 'Views'].map((t) => (
                     <span key={t} className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/5 text-[#475569]">{t}</span>
                   ))}
                 </div>
@@ -249,58 +239,14 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════ PRICING */}
       <div className="section-divider mx-10" />
       <section id="pricing" className="py-20 px-4 scroll-mt-20">
         <div className="max-w-4xl mx-auto space-y-12">
-          <div className="text-center space-y-3">
-            <p className="section-label text-[#F59E0B]">Pricing</p>
-            <h2 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold">
-              <span className="text-shimmer">Pricing</span>
-            </h2>
-          </div>
+          <PricingTitle />
           <PricingPlans />
-          <div className="grid md:grid-cols-3 gap-5 hidden">
-            {[
-              { name: 'x', price: '', perK: '', highlight: false, features: [] },
-            ].map(plan => (
-              <div key={plan.name}
-                className={`luxury-card p-7 space-y-5 ${plan.highlight ? 'ring-1 ring-[rgba(139,92,246,0.50)] shadow-[0_0_50px_rgba(139,92,246,0.15)]' : ''}`}>
-                {plan.highlight && (
-                  <div className="flex justify-center -mt-1">
-                    <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full bg-[rgba(139,92,246,0.20)] border border-[rgba(139,92,246,0.45)] text-[#c4b5fd]">
-                      <BsStarFill size={9} className="text-[#F59E0B]" /> ยอดนิยม
-                    </span>
-                  </div>
-                )}
-                <div className="text-center">
-                  <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-white text-lg">{plan.name}</p>
-                  <p className={`text-4xl font-extrabold mt-2 font-[family-name:var(--font-jakarta)] ${plan.highlight ? 'text-gradient-animated' : 'text-white'}`}>{plan.price}</p>
-                  <p className="text-xs text-[#475569] mt-1">{plan.perK}</p>
-                </div>
-                <ul className="space-y-2.5">
-                  {plan.features.map(f => (
-                    <li key={f} className="flex items-center gap-2.5 text-sm text-[#94A3B8]">
-                      <BsCheck2Circle size={15} className={plan.highlight ? 'text-[#8B5CF6] shrink-0' : 'text-[#06B6D4] shrink-0'} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/register"
-                  className={`block text-center py-3 rounded-xl text-sm font-bold transition-all ${
-                    plan.highlight
-                      ? 'btn-primary'
-                      : 'btn-secondary'
-                  }`}>
-                  เริ่มใช้งาน
-                </Link>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════ FAQ */}
       <div className="section-divider mx-10" />
       <section className="py-20 px-4">
         <div className="max-w-2xl mx-auto space-y-10">
@@ -311,7 +257,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════ BLOG */}
       {posts.length > 0 && (
         <>
           <div className="section-divider mx-10" />
@@ -331,7 +276,13 @@ export default async function LandingPage() {
                   <Link key={post.slug} href={`/blog/${post.slug}`} className="luxury-card p-5 space-y-3 group">
                     {post.cover_image && (
                       <div className="aspect-video rounded-xl overflow-hidden bg-[rgba(139,92,246,0.08)]">
-                        <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <Image
+                          src={post.cover_image}
+                          alt={post.title}
+                          width={960}
+                          height={540}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
                       </div>
                     )}
                     <p className="font-[family-name:var(--font-jakarta)] font-bold text-[#F1F5F9] text-sm line-clamp-2 group-hover:text-[#c4b5fd] transition-colors">{post.title}</p>
@@ -339,7 +290,7 @@ export default async function LandingPage() {
                     {post.published_at && (
                       <div className="flex items-center gap-1.5 text-[10px] text-[#334155]">
                         <BsClockHistory size={10} />
-                        {new Date(post.published_at).toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' })}
+                        {new Date(post.published_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
                       </div>
                     )}
                   </Link>
@@ -350,7 +301,6 @@ export default async function LandingPage() {
         </>
       )}
 
-      {/* ══════════════════════════════════════════ CTA BOTTOM */}
       <section className="relative py-28 px-4 text-center overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="orb-a absolute top-0 left-1/3 w-[500px] h-[500px] bg-[#8B5CF6] opacity-[0.09] rounded-full blur-[130px]" />

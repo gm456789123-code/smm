@@ -10,11 +10,13 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 function SuccessContent() {
   const params = useSearchParams();
-  const [status, setStatus] = useState<'loading' | 'success' | 'failed'>('loading');
+  const clientSecret = params.get('payment_intent_client_secret');
+  const [status, setStatus] = useState<'loading' | 'success' | 'failed'>(
+    clientSecret ? 'loading' : 'failed'
+  );
 
   useEffect(() => {
-    const clientSecret = params.get('payment_intent_client_secret');
-    if (!clientSecret) { setStatus('failed'); return; }
+    if (!clientSecret) return;
 
     stripePromise.then((stripe) => {
       if (!stripe) return;
@@ -22,7 +24,7 @@ function SuccessContent() {
         setStatus(paymentIntent?.status === 'succeeded' ? 'success' : 'failed');
       });
     });
-  }, [params]);
+  }, [clientSecret]);
 
   if (status === 'loading') {
     return <p className="text-[#94A3B8] text-sm animate-pulse">กำลังตรวจสอบ...</p>;

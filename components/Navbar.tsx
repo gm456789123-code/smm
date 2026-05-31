@@ -10,6 +10,7 @@ import {
 } from 'react-icons/bs';
 import { useLocale } from './LocaleProvider';
 import LangSwitcher from './LangSwitcher';
+import AuthModal from './auth/AuthModal';
 
 interface NavbarProps { brandName?: string }
 
@@ -18,6 +19,8 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
   const { t }             = useLocale();
   const [open, setOpen]   = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -35,14 +38,15 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
   const [first, ...rest] = brandName.split(' ');
 
   return (
-    <header
-      className={[
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        scrolled
-          ? 'bg-[rgba(7,9,15,0.90)] backdrop-blur-2xl border-b border-[rgba(139,92,246,0.14)] shadow-[0_4px_40px_rgba(0,0,0,0.5)]'
-          : 'bg-transparent',
-      ].join(' ')}
-    >
+    <>
+      <header
+        className={[
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+          scrolled
+            ? 'bg-[rgba(7,9,15,0.90)] backdrop-blur-2xl border-b border-[rgba(139,92,246,0.14)] shadow-[0_4px_40px_rgba(0,0,0,0.5)]'
+            : 'bg-transparent',
+        ].join(' ')}
+      >
       {/* Top accent line */}
       {scrolled && (
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(139,92,246,0.6)] to-transparent" />
@@ -143,11 +147,15 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
             );
           })}
           <div className="grid grid-cols-2 gap-2 pt-3 border-t border-[rgba(139,92,246,0.10)] mt-2">
-            <Link href="/login" onClick={() => setOpen(false)}
+            <Link
+              href="/login"
+              onClick={() => setOpen(false)}
               className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-[#94A3B8] border border-[rgba(139,92,246,0.15)] hover:text-white hover:border-[rgba(139,92,246,0.30)] transition-all">
               <BsBoxArrowInRight size={14} /> {t('nav.login')}
             </Link>
-            <Link href="/register" onClick={() => setOpen(false)}
+            <Link
+              href="/register"
+              onClick={() => setOpen(false)}
               className="btn-primary flex items-center justify-center gap-2 py-3 text-sm">
               <BsPersonPlus size={14} /> {t('nav.register')}
             </Link>
@@ -157,6 +165,13 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
           </div>
         </div>
       </div>
-    </header>
+      </header>
+      <AuthModal
+        open={authOpen}
+        view={authView}
+        onChangeView={setAuthView}
+        onClose={() => setAuthOpen(false)}
+      />
+    </>
   );
 }

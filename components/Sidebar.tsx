@@ -79,9 +79,13 @@ export default function Sidebar({ role, username }: SidebarProps) {
   const router = useRouter();
 
   async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
-    router.refresh();
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      window.location.href = '/';
+    }
   }
 
   function NavItem({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
@@ -161,16 +165,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
         ออกจากระบบ
       </button>
 
-      {/* Credits */}
-      <div className="px-2 pt-3 mt-1 border-t border-[rgba(139,92,246,0.08)] space-y-1.5">
-        <p className="text-[10px] text-[#334155] uppercase tracking-widest">Developer</p>
-        <p className="text-xs font-semibold text-[#8B5CF6]">Saint</p>
-        <div className="flex flex-wrap gap-1 pt-0.5">
-          {['Claude','GPT','Gemini','Grok','Kimi','Copilot','Meta AI','Cursor'].map((ai) => (
-            <span key={ai} className="text-[9px] px-1.5 py-0.5 rounded-md bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.12)] text-[#475569]">{ai}</span>
-          ))}
-        </div>
-      </div>
+
     </aside>
   );
 }

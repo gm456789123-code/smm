@@ -3,12 +3,20 @@ import { verifyToken } from '@/lib/jwt';
 import { meSmS } from '@/lib/sms';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const ipRl = checkRateLimit(`verify-otp-ip:${ip}`, 15, 10 * 60 * 1000);
+    if (!ipRl.ok) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+
     const token = req.cookies.get('auth_token')?.value;
     const user  = token ? await verifyToken(token) : null;
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const userRl = checkRateLimit(`verify-otp-user:${user.userId}`, 8, 10 * 60 * 1000);
+    if (!userRl.ok) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
     const { otp, ref } = await req.json();
     if (!otp || !ref) return NextResponse.json({ error: 'กรุณากรอก OTP' }, { status: 400 });

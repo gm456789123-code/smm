@@ -7,30 +7,26 @@ const PROTECTED = [
   '/topup', '/balance', '/profile', '/admin',
 ];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const res = NextResponse.next();
 
-  // ── Locale detection ───────────────────────────────────
   if (!pathname.startsWith('/api') && !pathname.startsWith('/_next')) {
     const cookieLocale = req.cookies.get('locale')?.value as Locale | undefined;
-    const validLocale  = cookieLocale && (LOCALES as readonly string[]).includes(cookieLocale);
+    const validLocale = cookieLocale && (LOCALES as readonly string[]).includes(cookieLocale);
 
     if (!validLocale) {
       const acceptLang = req.headers.get('accept-language') ?? 'th';
-      const detected   = detectLocale(acceptLang);
+      const detected = detectLocale(acceptLang);
       res.cookies.set('locale', detected, {
-        maxAge: 60 * 60 * 24 * 365, // 1 year
+        maxAge: 60 * 60 * 24 * 365,
         path: '/',
         sameSite: 'lax',
       });
     }
   }
 
-  // ── Auth guard ─────────────────────────────────────────
-  const isProtected = PROTECTED.some(
-    (p) => pathname === p || pathname.startsWith(p + '/')
-  );
+  const isProtected = PROTECTED.some((p) => pathname === p || pathname.startsWith(p + '/'));
   if (!isProtected) return res;
 
   const token = req.cookies.get('auth_token')?.value;
@@ -39,7 +35,13 @@ export async function middleware(req: NextRequest) {
   const user = await verifyToken(token);
   if (!user) {
     const redirect = NextResponse.redirect(new URL('/login', req.url));
-    redirect.cookies.set('auth_token', '', { maxAge: 0, path: '/' });
+    redirect.cookies.set('auth_token', '', {
+      maxAge: 0,
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
     return redirect;
   }
 
@@ -53,3 +55,4 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
 };
+

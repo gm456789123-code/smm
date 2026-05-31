@@ -1,23 +1,18 @@
 import type { Metadata, Viewport } from 'next';
-import { Plus_Jakarta_Sans, Inter } from 'next/font/google';
 import { cookies } from 'next/headers';
+import type { CSSProperties } from 'react';
 import './globals.css';
 import LocaleProvider from '@/components/LocaleProvider';
 import { getMessages, LOCALES, type Locale } from '@/lib/i18n';
 
-const jakarta = Plus_Jakarta_Sans({
-  variable: '--font-jakarta',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  display: 'swap',
-});
-const inter = Inter({
-  variable: '--font-inter',
-  subsets: ['latin'],
-  display: 'swap',
-});
-
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
+const fontVars = {
+  '--font-jakarta': 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+  '--font-inter': 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+} as CSSProperties;
+const localeAlternates = Object.fromEntries(
+  LOCALES.map((l) => [l, `${BASE}/?lang=${l}`])
+);
 
 export const viewport: Viewport = {
   themeColor: '#8B5CF6',
@@ -63,7 +58,7 @@ export const metadata: Metadata = {
     images: ['/og-image.png'],
     creator: '@aurasmm',
   },
-  alternates: { canonical: BASE },
+  alternates: { canonical: BASE, languages: localeAlternates },
   category: 'technology',
 };
 
@@ -76,7 +71,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages(locale);
 
   return (
-    <html lang={locale} className={`${jakarta.variable} ${inter.variable} h-full`}>
+    <html
+      lang={locale}
+      className="h-full"
+      style={fontVars}
+    >
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />

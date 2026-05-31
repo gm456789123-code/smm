@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import stripe from '@/lib/stripe';
 import db from '@/lib/db';
 import Stripe from 'stripe';
-
-export const config = { api: { bodyParser: false } };
+import { RowDataPacket } from 'mysql2';
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -28,20 +27,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing metadata' }, { status: 400 });
     }
 
-    // เพิ่ม balance อัตโนมัติ
+    const [existing] = await db.query<RowDataPacket[]>(
+      'SELECT id FROM transactions WHERE ref = ? LIMIT 1',
+      [intent.id]
+    );
+    if (existing.length > 0) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+
+    // Increment user balance
     await db.query(
       'UPDATE users SET balance = balance + ? WHERE id = ?',
       [amountThb, Number(userId)]
     );
 
-    // บันทึก transaction
+    // Record transaction
     await db.query(
       `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note)
        VALUES (?, 'topup', ?, ?, 'completed', ?)`,
-      [Number(userId), amountThb, intent.id, `Stripe top-up ฿${amountThb}`]
+      [Number(userId), amountThb, intent.id, `Stripe top-up THB ${amountThb}`]
     );
 
-    console.log(`✅ Top-up: user ${userId} +฿${amountThb} (${intent.id})`);
+    console.log(`Top-up completed: user ${userId} +THB ${amountThb} (${intent.id})`);
   }
 
   return NextResponse.json({ received: true });
