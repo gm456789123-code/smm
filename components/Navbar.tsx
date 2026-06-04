@@ -52,73 +52,78 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[rgba(139,92,246,0.6)] to-transparent" />
       )}
 
-      <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-6xl mx-auto px-5 h-16 flex items-center gap-3">
 
-        {/* ── Brand ─────────────────────────────── */}
+        {/* ── Mobile: burger (left) ─────────────── */}
+        <button
+          onClick={() => setOpen(!open)}
+          className="md:hidden shrink-0 w-9 h-9 flex items-center justify-center rounded-xl border border-[rgba(139,92,246,0.20)] bg-[rgba(139,92,246,0.08)] text-[#94A3B8] hover:text-white transition-colors"
+          aria-label="toggle menu"
+        >
+          {open ? <BsX size={18} /> : <BsList size={18} />}
+        </button>
+
+        {/* ── Brand: icon always, name desktop-only ─ */}
         <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center shadow-[0_0_16px_rgba(139,92,246,0.5)] group-hover:shadow-[0_0_24px_rgba(139,92,246,0.7)] transition-shadow">
             <span className="text-white text-xs font-black tracking-tighter">
               {first[0]}{rest[0]?.[0] ?? ''}
             </span>
           </div>
-          <span className="font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
+          <span className="hidden md:block font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
             <span className="text-gradient-animated">{first}</span>
             {rest.length > 0 && <span className="text-white"> {rest.join(' ')}</span>}
           </span>
         </Link>
 
-        {/* ── Desktop nav ───────────────────────── */}
-        <nav className="hidden md:flex items-center gap-1 p-1 rounded-2xl bg-[rgba(139,92,246,0.05)] border border-[rgba(139,92,246,0.10)]">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-            const active = path === href || (href !== '/' && path.startsWith(href));
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={[
-                  'relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
-                  active
-                    ? 'bg-gradient-to-r from-[rgba(139,92,246,0.25)] to-[rgba(6,182,212,0.10)] text-white border border-[rgba(139,92,246,0.35)] shadow-[0_0_16px_rgba(139,92,246,0.20),inset_0_1px_0_rgba(255,255,255,0.08)]'
-                    : 'text-[#94A3B8] hover:text-white hover:bg-[rgba(139,92,246,0.10)] hover:border hover:border-[rgba(139,92,246,0.20)]',
-                ].join(' ')}
-              >
-                <Icon size={13} className={active ? 'text-[#a78bfa]' : 'text-[#475569]'} />
-                {label}
-                {active && (
-                  <span className="absolute -bottom-px left-1/2 -translate-x-1/2 w-8 h-px bg-gradient-to-r from-transparent via-[#8B5CF6] to-transparent" />
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+        {/* ── Desktop nav (centered) ────────────── */}
+        <div className="hidden md:flex flex-1 justify-center">
+          <nav className="flex items-center gap-1 p-1 rounded-2xl bg-[rgba(139,92,246,0.05)] border border-[rgba(139,92,246,0.10)]">
+            {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+              const active = path === href || (href !== '/' && path.startsWith(href));
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={[
+                    'relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200',
+                    active
+                      ? 'bg-gradient-to-r from-[rgba(139,92,246,0.25)] to-[rgba(6,182,212,0.10)] text-white border border-[rgba(139,92,246,0.35)] shadow-[0_0_16px_rgba(139,92,246,0.20),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                      : 'text-[#94A3B8] hover:text-white hover:bg-[rgba(139,92,246,0.10)] hover:border hover:border-[rgba(139,92,246,0.20)]',
+                  ].join(' ')}
+                >
+                  <Icon size={13} className={active ? 'text-[#a78bfa]' : 'text-[#475569]'} />
+                  {label}
+                  {active && (
+                    <span className="absolute -bottom-px left-1/2 -translate-x-1/2 w-8 h-px bg-gradient-to-r from-transparent via-[#8B5CF6] to-transparent" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
 
-        {/* ── Auth buttons ──────────────────────── */}
-        <div className="hidden md:flex items-center gap-2">
-          <LangSwitcher />
+        {/* ── Mobile spacer ─────────────────────── */}
+        <div className="flex-1 md:hidden" />
+
+        {/* ── Auth buttons (desktop full, mobile compact) ── */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden md:block"><LangSwitcher /></div>
           <Link
             href="/login"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-[#94A3B8] hover:text-white border border-transparent hover:border-[rgba(139,92,246,0.22)] hover:bg-[rgba(139,92,246,0.08)] transition-all"
+            className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-xs md:text-sm font-medium text-[#94A3B8] hover:text-white border border-[rgba(139,92,246,0.18)] hover:border-[rgba(139,92,246,0.35)] hover:bg-[rgba(139,92,246,0.08)] transition-all"
           >
-            <BsBoxArrowInRight size={14} />
+            <BsBoxArrowInRight size={13} />
             {t('nav.login')}
           </Link>
           <Link
             href="/register"
-            className="btn-primary flex items-center gap-2 px-5 py-2 text-sm"
+            className="btn-primary flex items-center gap-1.5 px-3 md:px-5 py-1.5 md:py-2 text-xs md:text-sm"
           >
-            <BsPersonPlus size={14} />
+            <BsPersonPlus size={13} />
             {t('nav.register')}
           </Link>
         </div>
-
-        {/* ── Mobile burger ─────────────────────── */}
-        <button
-          onClick={() => setOpen(!open)}
-          className="md:hidden w-9 h-9 flex items-center justify-center rounded-xl border border-[rgba(139,92,246,0.20)] bg-[rgba(139,92,246,0.08)] text-[#94A3B8] hover:text-white transition-colors"
-          aria-label="toggle menu"
-        >
-          {open ? <BsX size={18} /> : <BsList size={18} />}
-        </button>
       </div>
 
       {/* ── Mobile menu ───────────────────────── */}

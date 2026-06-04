@@ -16,10 +16,17 @@ export function checkRateLimit(key: string, limit: number, windowMs: number) {
   return { ok: true, remaining: limit - bucket.count, resetAt: bucket.resetAt };
 }
 
-export function getClientIp(req: Request) {
+const VALID_IP = /^[\d.:a-fA-F]+$/;
+
+export function getClientIp(req: Request): string {
   const forwarded = req.headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0]?.trim() || 'unknown';
-  return req.headers.get('x-real-ip') || 'unknown';
+  if (forwarded) {
+    const ip = forwarded.split(',')[0]?.trim() ?? '';
+    if (VALID_IP.test(ip)) return ip;
+  }
+  const real = (req.headers.get('x-real-ip') ?? '').trim();
+  if (VALID_IP.test(real)) return real;
+  return 'unknown';
 }
 
 export function getLoginLockState(key: string) {

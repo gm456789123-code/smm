@@ -20,18 +20,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'คำขอมากเกินไป กรุณาลองใหม่ภายหลัง' }, { status: 429 });
     }
 
-    const { amountThb } = await req.json();
-    if (!amountThb || amountThb < 20) {
-      return NextResponse.json({ error: 'จำนวนเงินขั้นต่ำ ฿20' }, { status: 400 });
+    const { amountThb, paymentMethod } = await req.json();
+    if (!amountThb || typeof amountThb !== 'number' || amountThb < 20 || amountThb > 50000) {
+      return NextResponse.json({ error: 'จำนวนเงิน ฿20 – ฿50,000 เท่านั้น' }, { status: 400 });
     }
 
+    // Map channel key → Stripe payment_method_types
+    const METHOD_MAP: Record<string, string[]> = {
+      promptpay: ['promptpay'],
+      truemoney: ['truemoney'],
+      card:      ['card'],
+      link:      ['link', 'card'],
+    };
+    const methodTypes = METHOD_MAP[paymentMethod as string];
+
     const intent = await stripe.paymentIntents.create({
-      amount: Math.round(amountThb * 100), // satang
+      amount:   Math.round(amountThb * 100),
       currency: 'thb',
-      automatic_payment_methods: { enabled: true },
+      ...(methodTypes
+        ? { payment_method_types: methodTypes as any }
+        : { automatic_payment_methods: { enabled: true } }),
       metadata: {
-        userId: String(user.userId),
-        username: user.username,
+        userId:    String(user.userId),
+        username:  user.username,
         amountThb: String(amountThb),
       },
     });

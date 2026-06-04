@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { smmApi } from '@/lib/smm-api';
+import { verifyToken } from '@/lib/jwt';
 
 // POST /api/smm/cancel
 // body: { orders: ["1","2","3"] }
 export async function POST(req: NextRequest) {
+  const token = req.cookies.get('auth_token')?.value;
+  if (!token || !await verifyToken(token)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const body = await req.json();
     const { orders } = body;

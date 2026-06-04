@@ -4,6 +4,9 @@ const rawSecret = process.env.JWT_SECRET;
 if (!rawSecret || rawSecret.length < 32) {
   throw new Error('JWT_SECRET must be set and at least 32 characters');
 }
+if (rawSecret === 'change-this-to-a-random-secret-string') {
+  console.warn('[SECURITY] JWT_SECRET is the default placeholder — change it before production!');
+}
 const SECRET = new TextEncoder().encode(rawSecret);
 
 export interface JWTPayload {

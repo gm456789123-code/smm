@@ -230,12 +230,58 @@ body {
   pointer-events: none;
 }
 
+/* ─── Cinematic hero extras ───────────────────────────── */
+@keyframes cursor-blink {
+  0%, 49%, 100% { opacity: 1; }
+  50%           { opacity: 0; }
+}
+@keyframes word-reveal {
+  from { opacity: 0; transform: translateY(42px); filter: blur(8px); }
+  to   { opacity: 1; transform: translateY(0);    filter: blur(0);   }
+}
+@keyframes anim-fade-up-kf {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.hero-grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='256' height='256' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  mix-blend-mode: overlay;
+  z-index: 1;
+}
+.word-reveal   { display: inline-block; animation: word-reveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.word-reveal-1 { animation-delay: 0.05s; }
+.word-reveal-2 { animation-delay: 0.26s; }
+.anim-fade-up  { animation: anim-fade-up-kf 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.anim-fade-up-1 { animation-delay: 0.45s; }
+.anim-fade-up-2 { animation-delay: 0.60s; }
+.anim-fade-up-3 { animation-delay: 0.78s; }
+.cursor-blink {
+  display: inline-block;
+  width: 2px; height: 0.78em;
+  background: #8B5CF6;
+  margin-left: 3px;
+  vertical-align: middle;
+  border-radius: 1px;
+  box-shadow: 0 0 10px rgba(139,92,246,0.9);
+  animation: cursor-blink 1s step-end infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .orb-a, .orb-b, .orb-c,
   .hero-ring-a, .hero-ring-b, .hero-comet,
   .hero-particle-a, .hero-particle-b, .hero-particle-c,
-  .hero-grid > .hero-light-beam {
+  .hero-grid > .hero-light-beam,
+  .word-reveal, .anim-fade-up, .cursor-blink {
     animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
   }
 }
 

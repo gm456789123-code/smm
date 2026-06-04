@@ -38,6 +38,9 @@ export async function POST(req: NextRequest) {
     if (password.length < 6)
       return NextResponse.json({ error: 'password ต้องอย่างน้อย 6 ตัวอักษร' }, { status: 400 });
 
+    if (password.length > 128)
+      return NextResponse.json({ error: 'password ยาวเกินไป (สูงสุด 128 ตัวอักษร)' }, { status: 400 });;
+
     // Check duplicate
     const [existing] = await db.query<RowDataPacket[]>(
       'SELECT id FROM users WHERE username = ? OR email = ?',

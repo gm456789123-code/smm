@@ -1,0 +1,133 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyToken } from '@/lib/jwt';
+import { smmApi, Service } from '@/lib/smm-api';
+import db from '@/lib/db';
+import { RowDataPacket } from 'mysql2';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+
+// In-process cache — refresh every 10 min
+let _svcCache: { data: Service[]; exp: number } | null = null;
+async function getCachedServices(): Promise<Service[]> {
+  if (_svcCache && _svcCache.exp > Date.now()) return _svcCache.data;
+  const data = await smmApi.services();
+  _svcCache = { data, exp: Date.now() + 10 * 60 * 1000 };
+  return data;
+}
+
+const EXCHANGE_RATE = Number(process.env.SMM_EXCHANGE_RATE ?? 36);
+const MARKUP        = Number(process.env.SMM_MARKUP ?? 1.3);
+
+function calcCostThb(quantity: number, rateUsd: number): number {
+  return Math.ceil((quantity / 1000) * rateUsd * EXCHANGE_RATE * MARKUP * 100) / 100;
+}
+
+// POST /api/orders — place SMM order
+export async function POST(req: NextRequest) {
+  const token = req.cookies.get('auth_token')?.value;
+  const user  = token ? await verifyToken(token) : null;
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`order:${user.userId}`, 10, 60 * 1000);
+  if (!rl.ok) return NextResponse.json({ error: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
+
+  const body       = await req.json();
+  const serviceId  = Number(body.serviceId);
+  const link       = String(body.link ?? '').trim();
+  const quantity   = Math.floor(Number(body.quantity));
+
+  if (!serviceId || !link || !quantity) {
+    return NextResponse.json({ error: 'service, link, quantity จำเป็น' }, { status: 400 });
+  }
+  if (quantity <= 0) {
+    return NextResponse.json({ error: 'quantity ต้องมากกว่า 0' }, { status: 400 });
+  }
+  try { new URL(link); } catch {
+    return NextResponse.json({ error: 'link ไม่ถูกต้อง กรุณาใส่ URL เต็ม' }, { status: 400 });
+  }
+
+  // Fetch service info (cached)
+  const services = await getCachedServices();
+  const service  = services.find(s => s.service === serviceId);
+  if (!service) {
+    return NextResponse.json({ error: 'ไม่พบบริการ' }, { status: 404 });
+  }
+
+  const min = Number(service.min);
+  const max = Number(service.max);
+  if (quantity < min || quantity > max) {
+    return NextResponse.json({
+      error: `จำนวนต้องอยู่ระหว่าง ${min.toLocaleString()} – ${max.toLocaleString()}`,
+    }, { status: 400 });
+  }
+
+  const costThb = calcCostThb(quantity, Number(service.rate));
+
+  // Transaction: check balance → create SMM order → deduct → record
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [rows] = await conn.query<RowDataPacket[]>(
+      'SELECT balance FROM users WHERE id = ? FOR UPDATE',
+      [user.userId]
+    );
+    const balance = Number(rows[0]?.balance ?? 0);
+    if (balance < costThb) {
+      await conn.rollback();
+      return NextResponse.json({
+        error: `ยอดเงินไม่เพียงพอ (มี ฿${balance.toFixed(2)} ต้องการ ฿${costThb.toFixed(2)}) กรุณาเติมเงิน`,
+      }, { status: 402 });
+    }
+
+    // Call external SMM API
+    const smmResult = await smmApi.addOrder({
+      service:  String(serviceId),
+      link,
+      quantity: String(quantity),
+    });
+
+    await conn.query(
+      'UPDATE users SET balance = balance - ? WHERE id = ?',
+      [costThb, user.userId]
+    );
+    await conn.query(
+      `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note)
+       VALUES (?, 'spend', ?, ?, 'pending', ?)`,
+      [user.userId, costThb, String(smmResult.order), `${service.name} | ${link}`]
+    );
+
+    await conn.commit();
+
+    return NextResponse.json({
+      success:  true,
+      orderId:  smmResult.order,
+      cost:     costThb,
+      balance:  Math.round((balance - costThb) * 100) / 100,
+    }, { status: 201 });
+
+  } catch (e) {
+    await conn.rollback();
+    console.error('[orders/POST]', e);
+    return NextResponse.json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' }, { status: 500 });
+  } finally {
+    conn.release();
+  }
+}
+
+// GET /api/orders — user's SMM orders (spend transactions)
+export async function GET(req: NextRequest) {
+  const token = req.cookies.get('auth_token')?.value;
+  const user  = token ? await verifyToken(token) : null;
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const [rows] = await db.query<RowDataPacket[]>(
+    `SELECT id, amount, ref, tx_status, note, created_at
+     FROM transactions
+     WHERE user_id = ? AND tx_type = 'spend'
+     ORDER BY created_at DESC
+     LIMIT 20`,
+    [user.userId]
+  );
+  return NextResponse.json(rows);
+}

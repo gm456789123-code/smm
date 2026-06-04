@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import { signToken } from '@/lib/jwt';
+import { hashPassword } from '@/lib/auth';
 import crypto from 'crypto';
 
 export async function GET(request: Request) {
@@ -55,40 +56,47 @@ export async function GET(request: Request) {
     const name = userData.name || email.split('@')[0];
 
     // 3. Find or Create User in DB
-    const [rows] = await db.query<RowDataPacket[]>('SELECT * FROM users WHERE email = ?', [email]);
+    const [rows] = await db.query<RowDataPacket[]>(
+      'SELECT id, username, email, role, email_verified FROM users WHERE email = ?',
+      [email]
+    );
     let user = rows[0];
 
     if (!user) {
-      // Create new user
-      const username = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '') + Math.floor(Math.random() * 1000);
-      const referralCode = crypto.randomBytes(4).toString('hex').toUpperCase();
-      const randomPassword = crypto.randomBytes(16).toString('hex'); // Users can't login via password unless they reset it
-      
-      const [insertResult] = await db.query(
+      const base          = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+      const username      = base + crypto.randomBytes(2).toString('hex');
+      const referralCode  = crypto.randomBytes(4).toString('hex').toUpperCase();
+      const passwordHash  = await hashPassword(crypto.randomBytes(24).toString('hex'));
+
+      await db.query(
         'INSERT INTO users (username, email, password_hash, referral_code, email_verified) VALUES (?, ?, ?, ?, 1)',
-        [username, email, randomPassword, referralCode]
+        [username, email, passwordHash, referralCode]
       );
-      
-      const [newRows] = await db.query<RowDataPacket[]>('SELECT * FROM users WHERE email = ?', [email]);
+
+      const [newRows] = await db.query<RowDataPacket[]>(
+        'SELECT id, username, email, role, email_verified FROM users WHERE email = ?',
+        [email]
+      );
       user = newRows[0];
     }
 
     // 4. Generate JWT Token
     const token = await signToken({
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      role: user.role,
+      userId:        user.id,
+      username:      user.username,
+      email:         user.email,
+      role:          user.role ?? 'user',
+      emailVerified: Boolean(user.email_verified),
     });
 
     // 5. Set Cookie and Redirect to Dashboard
     const res = NextResponse.redirect(new URL('/dashboard', request.url));
     res.cookies.set('auth_token', token, {
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure:   process.env.NODE_ENV === 'production',
       sameSite: 'lax',
+      maxAge:   60 * 60 * 24 * 7,
+      path:     '/',
     });
 
     return res;
