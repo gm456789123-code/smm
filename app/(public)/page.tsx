@@ -10,7 +10,7 @@ import {
 } from 'react-icons/bs';
 import { SiThreads } from 'react-icons/si';
 import {
-  HeroBadge, HeroText, HeroStats,
+  HeroDashboardCard,
   FeaturesSection, FeaturesTitle, PlatformsTitle, PricingPlans, PricingTitle,
   FaqSection, CtaSection,
 } from '@/components/LandingClient';
@@ -72,7 +72,6 @@ export default async function LandingPage() {
   const tagline = s.brand_tagline ?? 'บริการ SMM Panel คุณภาพสูง เร็ว เสถียร ราคาคุ้มค่า';
   const desc = s.brand_desc ?? 'เพิ่มยอดผู้ติดตาม ยอดไลก์ และ engagement บนทุกแพลตฟอร์ม';
   const cta = s.hero_cta ?? 'เริ่มต้นใช้งานฟรี';
-  const [brandFirst, ...brandRest] = brand.split(' ');
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -145,35 +144,80 @@ export default async function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <section className="hero-bg hero-grid relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+      <section className="hero-bg hero-grid relative min-h-screen flex items-center px-6 md:px-12 overflow-hidden">
         <div className="hero-light-beam" />
-        <div className="hero-ring hero-ring-a hidden md:block" />
-        <div className="hero-ring hero-ring-b hidden lg:block" />
-        <div className="hero-comet hidden md:block" />
+        <div className="hero-grain" />
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="orb-a absolute -top-32 -left-32 w-[600px] h-[600px] bg-[#8B5CF6] opacity-[0.13] rounded-full blur-[140px]" />
-          <div className="orb-b absolute top-0 right-0 w-[450px] h-[450px] bg-[#06B6D4] opacity-[0.09] rounded-full blur-[120px]" />
-          <div className="orb-c absolute bottom-0 left-1/3 w-[400px] h-[400px] bg-[#7C3AED] opacity-[0.09] rounded-full blur-[110px]" />
-          <div className="hero-particle hero-particle-a hidden md:block" />
-          <div className="hero-particle hero-particle-b hidden md:block" />
-          <div className="hero-particle hero-particle-c hidden lg:block" />
+          <div className="orb-b absolute -top-20 right-0 w-[560px] h-[560px] bg-[#8B5CF6] opacity-[0.07] rounded-full blur-[150px]" />
+          <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-[#06B6D4] opacity-[0.05] rounded-full blur-[130px]" />
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#07090F] to-transparent pointer-events-none" />
 
-        <div className="relative text-center max-w-4xl mx-auto space-y-8 py-24">
-          <HeroBadge />
+        <div className="relative z-10 w-full max-w-6xl mx-auto grid lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px] gap-12 xl:gap-20 items-center py-32 lg:min-h-screen lg:py-0">
 
-          <h1 className="font-[family-name:var(--font-jakarta)] text-6xl md:text-8xl font-extrabold leading-[1.05] tracking-tight">
-            <span className="text-gradient-animated">{brandFirst}</span>
-            {brandRest.length > 0 && (
-              <span className="text-white drop-shadow-[0_2px_40px_rgba(139,92,246,0.25)]">
-                {' '}{brandRest.join(' ')}
+          {/* Left: copy */}
+          <div className="space-y-8 lg:space-y-9">
+
+            {/* Brand label */}
+            <div className="word-reveal word-reveal-1 flex items-center gap-3">
+              <span className="w-5 h-px bg-[#8B5CF6]" />
+              <span className="text-[11px] font-bold tracking-[0.22em] text-[#8B5CF6] uppercase">{brand} · SMM Panel</span>
+            </div>
+
+            {/* Headline */}
+            <h1 className="font-[family-name:var(--font-jakarta)] font-black leading-[0.92] tracking-tight">
+              <span className="word-reveal word-reveal-1 block text-white text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5rem]">
+                เพิ่มยอด
               </span>
-            )}
-          </h1>
+              <span className="word-reveal word-reveal-2 block text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5rem]"
+                    style={{
+                      background: 'linear-gradient(120deg,#8B5CF6 0%,#c4b5fd 50%,#06B6D4 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                    }}>
+                ผู้ติดตาม
+              </span>
+              <span className="word-reveal word-reveal-2 block text-[#CBD5E1] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] mt-1">
+                ทุกแพลตฟอร์ม
+              </span>
+            </h1>
 
-          <HeroText brand={brand} />
-          <HeroStats />
+            {/* Tagline */}
+            <p className="anim-fade-up anim-fade-up-1 text-[#64748B] text-base md:text-[1.05rem] leading-relaxed max-w-md">
+              {desc}
+            </p>
+
+            {/* CTAs */}
+            <div className="anim-fade-up anim-fade-up-2 flex flex-wrap gap-4 items-center">
+              <Link href="/register" className="btn-primary text-sm font-bold px-8 py-3.5 inline-flex items-center gap-2">
+                {cta} <BsArrowRight size={14} />
+              </Link>
+              <Link href="/#services"
+                    className="text-sm text-[#475569] hover:text-[#94A3B8] transition-colors inline-flex items-center gap-1.5 font-medium">
+                ดูบริการทั้งหมด <BsArrowRight size={12} />
+              </Link>
+            </div>
+
+            {/* Inline stats */}
+            <div className="anim-fade-up anim-fade-up-3 flex items-center gap-8 pt-5 border-t border-white/[0.05]">
+              {[
+                { value: s.stat_orders   ?? '50K+',  label: 'ออเดอร์',  color: '#8B5CF6' },
+                { value: s.stat_users    ?? '10K+',  label: 'ลูกค้า',   color: '#06B6D4' },
+                { value: s.stat_uptime   ?? '99.9%', label: 'Uptime',   color: '#10B981' },
+              ].map(({ value, label, color }) => (
+                <div key={label}>
+                  <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tabular-nums" style={{ color }}>{value}</p>
+                  <p className="text-[9px] text-[#1E293B] uppercase tracking-[0.2em] mt-0.5">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: dashboard preview */}
+          <div className="hidden lg:block anim-fade-up anim-fade-up-1">
+            <HeroDashboardCard />
+          </div>
         </div>
       </section>
 
