@@ -10,13 +10,16 @@ export async function GET(request: Request) {
   const code = url.searchParams.get('code');
   const error = url.searchParams.get('error');
 
+  const BASE = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '');
+  const redirect = (path: string) => NextResponse.redirect(`${BASE}${path}`);
+
   if (error || !code) {
-    return NextResponse.redirect(new URL('/login?error=GoogleAuthFailed', request.url));
+    return redirect('/login?error=GoogleAuthFailed');
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/google/callback`;
+  const redirectUri = `${BASE}/api/auth/google/callback`;
 
   if (!clientId || !clientSecret) {
     return NextResponse.json({ error: 'Google OAuth credentials missing (Client Secret is required)' }, { status: 500 });
@@ -39,7 +42,7 @@ export async function GET(request: Request) {
     const tokenData = await tokenRes.json();
     if (!tokenRes.ok) {
       console.error('Google Token Error:', tokenData);
-      return NextResponse.redirect(new URL('/login?error=GoogleTokenError', request.url));
+      return redirect('/login?error=GoogleTokenError');
     }
 
     // 2. Fetch user profile
@@ -49,7 +52,7 @@ export async function GET(request: Request) {
     const userData = await userRes.json();
 
     if (!userData.email) {
-      return NextResponse.redirect(new URL('/login?error=NoEmailProvided', request.url));
+      return redirect('/login?error=NoEmailProvided');
     }
 
     const email = userData.email;
@@ -90,7 +93,7 @@ export async function GET(request: Request) {
     });
 
     // 5. Set Cookie and Redirect to Dashboard
-    const res = NextResponse.redirect(new URL('/dashboard', request.url));
+    const res = NextResponse.redirect(`${BASE}/dashboard`);
     res.cookies.set('auth_token', token, {
       httpOnly: true,
       secure:   process.env.NODE_ENV === 'production',
@@ -103,6 +106,6 @@ export async function GET(request: Request) {
 
   } catch (error) {
     console.error('Google Auth Catch Error:', error);
-    return NextResponse.redirect(new URL('/login?error=InternalServerError', request.url));
+    return redirect('/login?error=InternalServerError');
   }
 }
