@@ -93,8 +93,8 @@ export default function Sidebar({ role, username }: SidebarProps) {
     return (
       <Link href={href}
         className={['glass-tab flex items-center gap-3 px-4 py-3 text-base font-medium',
-          active ? 'glass-tab-active' : 'text-[#CBD5E1] hover:text-white'].join(' ')}>
-        <span className={active ? 'text-[#a78bfa]' : 'text-[#94A3B8]'}>{icon}</span>
+          active ? 'glass-tab-active' : 'text-white hover:text-white'].join(' ')}>
+        <span className={active ? 'text-[#a78bfa]' : 'text-[#CBD5E1]'}>{icon}</span>
         {label}
       </Link>
     );
@@ -137,8 +137,8 @@ export default function Sidebar({ role, username }: SidebarProps) {
                 className={['glass-tab flex items-center gap-3 px-4 py-3 text-base font-medium border-[rgba(251,191,36,0.15)]',
                   path === item.href || (item.href !== '/admin' && path.startsWith(item.href))
                     ? 'glass-tab-active !border-[rgba(251,191,36,0.4)] !bg-[rgba(251,191,36,0.12)]'
-                    : 'text-[#CBD5E1] hover:text-white'].join(' ')}>
-                <span className={path.startsWith(item.href) ? 'text-yellow-400' : 'text-[#94A3B8]'}>
+                    : 'text-white hover:text-white'].join(' ')}>
+                <span className={path.startsWith(item.href) ? 'text-yellow-400' : 'text-[#CBD5E1]'}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -158,7 +158,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
 
       {/* Logout */}
       <button onClick={handleLogout}
-        className="glass-tab flex items-center gap-3 px-4 py-3 text-base text-[#94A3B8] hover:text-red-400 transition-colors mt-1">
+        className="glass-tab flex items-center gap-3 px-4 py-3 text-base text-[#CBD5E1] hover:text-red-400 transition-colors mt-1">
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
           <path strokeLinecap="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
         </svg>
