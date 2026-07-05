@@ -2,32 +2,38 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Service } from '@/lib/smm-api';
+import {
+  BsFacebook, BsInstagram, BsTiktok, BsYoutube, BsTwitterX,
+  BsTwitch, BsCart3, BsGrid, BsStars,
+} from 'react-icons/bs';
 
-const PLATFORMS = ['ทั้งหมด', 'Instagram', 'TikTok', 'YouTube', 'Facebook', 'Twitter', 'Telegram', 'Spotify'];
-
-// Word-boundary regex — จับทั้งชื่อเต็มและชื่อย่อ (FB, IG, TG, YT, X, TT)
-const PLATFORM_RE: Record<string, RegExp> = {
-  Instagram: /instagram|\big\b/i,
-  TikTok:    /tiktok|tik[\s-]?tok|\btt\b/i,
-  YouTube:   /youtube|\byt\b/i,
-  Facebook:  /facebook|\bfb\b/i,
-  Twitter:   /twitter|\bx\b|tweet/i,
-  Telegram:  /telegram|\btg\b/i,
-  Spotify:   /spotify/i,
-};
-
-function matchPlatform(name: string, category: string, platform: string): boolean {
-  if (platform === 'ทั้งหมด') return true;
-  const text = `${name} ${category}`;
-  return PLATFORM_RE[platform]?.test(text) ?? false;
+interface Platform {
+  label: string;
+  icon: React.ReactNode;
+  match: (cat: string) => boolean;
 }
+
+const PLATFORMS: Platform[] = [
+  { label: 'ทั้งหมด',   icon: <BsGrid />,      match: () => true },
+  { label: 'Facebook',  icon: <BsFacebook />,   match: c => c.includes('แอปฟ้า') },
+  { label: 'Instagram', icon: <BsInstagram />,  match: c => c.includes('แอปชมพู') },
+  { label: 'TikTok',    icon: <BsTiktok />,     match: c => c.includes('ติ๊กต็อก') },
+  { label: 'YouTube',   icon: <BsYoutube />,    match: c => c.includes('Youtube') || c.includes('YouTube') },
+  { label: 'Twitter/X', icon: <BsTwitterX />,   match: c => c.includes('ทวิตเตอร์') || c.includes('Twitter') },
+  { label: 'Twitch',    icon: <BsTwitch />,     match: c => c.includes('Twitch') },
+  { label: 'Shopee',    icon: <BsCart3 />,      match: c => c.includes('Shopee') || c.includes('ช้อปปี้') },
+  { label: 'อื่นๆ',     icon: <BsStars />,      match: c =>
+      !c.includes('แอปฟ้า') && !c.includes('แอปชมพู') && !c.includes('ติ๊กต็อก') &&
+      !c.includes('Youtube') && !c.includes('YouTube') && !c.includes('ทวิตเตอร์') &&
+      !c.includes('Twitter') && !c.includes('Twitch') && !c.includes('Shopee') && !c.includes('ช้อปปี้')
+  },
+];
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [search,   setSearch]   = useState('');
   const [platform, setPlatform] = useState('ทั้งหมด');
-  const [category, setCategory] = useState('ทั้งหมด');
 
   useEffect(() => {
     fetch('/api/smm/services')
@@ -36,27 +42,22 @@ export default function ServicesPage() {
       .catch(() => setLoading(false));
   }, []);
 
-  // Count per platform tab
   const platformCounts = useMemo(() => {
-    const counts: Record<string, number> = { 'ทั้งหมด': services.length };
-    for (const p of PLATFORMS.slice(1)) {
-      counts[p] = services.filter(s => matchPlatform(s.name, s.category, p)).length;
+    const counts: Record<string, number> = {};
+    for (const p of PLATFORMS) {
+      counts[p.label] = services.filter(s => p.match(s.category)).length;
     }
     return counts;
   }, [services]);
 
-  // Real categories from API
-  const categories = useMemo(() => {
-    const cats = [...new Set(services.map(s => s.category))].sort();
-    return ['ทั้งหมด', ...cats];
-  }, [services]);
-
-  const filtered = useMemo(() => services.filter(s => {
-    const okPlatform = matchPlatform(s.name, s.category, platform);
-    const okCat      = category === 'ทั้งหมด' || s.category === category;
-    const okSearch   = !search || s.name.toLowerCase().includes(search.toLowerCase());
-    return okPlatform && okCat && okSearch;
-  }), [services, platform, category, search]);
+  const filtered = useMemo(() => {
+    const p = PLATFORMS.find(p => p.label === platform) ?? PLATFORMS[0];
+    return services.filter(s => {
+      const okPlatform = p.match(s.category);
+      const okSearch   = !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.category.toLowerCase().includes(search.toLowerCase());
+      return okPlatform && okSearch;
+    });
+  }, [services, platform, search]);
 
   return (
     <main className="flex-1 p-6 space-y-6">
@@ -65,51 +66,41 @@ export default function ServicesPage() {
         <p className="text-[#475569] text-sm mt-0.5">{services.length} บริการ</p>
       </div>
 
-      {/* Filters */}
       <div className="glass p-4 space-y-3">
         <input
           value={search}
-          onChange={e => { setSearch(e.target.value); setPlatform('ทั้งหมด'); setCategory('ทั้งหมด'); }}
+          onChange={e => { setSearch(e.target.value); setPlatform('ทั้งหมด'); }}
           placeholder="ค้นหาบริการ..."
           className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors"
         />
 
-        {/* Platform tabs + count badge */}
+        {/* Platform tabs */}
         <div className="flex flex-wrap gap-2">
           {PLATFORMS.map(p => {
-            const count = platformCounts[p] ?? 0;
-            const active = platform === p;
+            const count  = platformCounts[p.label] ?? 0;
+            const active = platform === p.label;
             return (
               <button
-                key={p}
-                onClick={() => { setPlatform(p); setCategory('ทั้งหมด'); }}
+                key={p.label}
+                onClick={() => setPlatform(p.label)}
                 className={[
                   'glass-tab flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all',
-                  active ? 'glass-tab-active text-[#c4b5fd]' : count === 0 ? 'text-[#334155] opacity-50' : 'text-[#94A3B8]',
+                  active
+                    ? 'glass-tab-active text-[#c4b5fd]'
+                    : count === 0
+                      ? 'text-[#334155] opacity-40 cursor-default'
+                      : 'text-[#94A3B8] hover:text-white',
                 ].join(' ')}
+                disabled={count === 0 && p.label !== 'ทั้งหมด'}
               >
-                {p}
-                {p !== 'ทั้งหมด' && (
-                  <span className={`text-[9px] px-1 py-0.5 rounded ${active ? 'bg-[rgba(139,92,246,0.25)] text-[#c4b5fd]' : count === 0 ? 'bg-[rgba(71,85,105,0.15)] text-[#334155]' : 'bg-[rgba(139,92,246,0.10)] text-[#475569]'}`}>
-                    {count}
-                  </span>
-                )}
+                <span className="text-sm">{p.icon}</span>
+                {p.label}
+                <span className={`text-[9px] px-1 py-0.5 rounded ${active ? 'bg-[rgba(139,92,246,0.25)] text-[#c4b5fd]' : 'bg-[rgba(139,92,246,0.10)] text-[#475569]'}`}>
+                  {count}
+                </span>
               </button>
             );
           })}
-        </div>
-
-        {/* Category filter — real categories from API */}
-        <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
-          {categories.map(c => (
-            <button
-              key={c}
-              onClick={() => setCategory(c)}
-              className={['glass-tab-cyan glass-tab px-3 py-1 text-xs', category === c ? 'glass-tab-cyan-active text-[#67e8f9]' : 'text-[#94A3B8]'].join(' ')}
-            >
-              {c}
-            </button>
-          ))}
         </div>
       </div>
 
@@ -119,11 +110,7 @@ export default function ServicesPage() {
           <p className="py-10 text-center text-[#475569] animate-pulse">กำลังโหลดบริการ...</p>
         ) : filtered.length === 0 ? (
           <div className="py-12 text-center space-y-2">
-            <p className="text-[#475569] text-sm">
-              {platform !== 'ทั้งหมด'
-                ? `API ไม่มีบริการ ${platform} หรือใช้ชื่อหมวดหมู่ต่างออกไป`
-                : 'ไม่พบบริการที่ตรงกัน'}
-            </p>
+            <p className="text-[#475569] text-sm">ไม่พบบริการที่ตรงกัน</p>
             <p className="text-[#334155] text-xs">ลองเลือก "ทั้งหมด" หรือค้นหาด้วยคำอื่น</p>
           </div>
         ) : (
@@ -149,7 +136,9 @@ export default function ServicesPage() {
                       <p className="truncate">{s.name}</p>
                       <p className="text-[10px] text-[#475569]">{s.type}</p>
                     </td>
-                    <td className="py-2.5 pr-3 text-xs text-[#94A3B8]">{s.category}</td>
+                    <td className="py-2.5 pr-3 text-xs text-[#94A3B8] max-w-[160px]">
+                      <p className="truncate">{s.category}</p>
+                    </td>
                     <td className="py-2.5 pr-3 text-[#06B6D4] font-mono font-semibold">${s.rate}</td>
                     <td className="py-2.5 pr-3 text-xs text-[#94A3B8]">{Number(s.min).toLocaleString()}</td>
                     <td className="py-2.5 pr-3 text-xs text-[#94A3B8]">{Number(s.max).toLocaleString()}</td>
