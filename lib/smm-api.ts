@@ -43,6 +43,9 @@ function createSmmApi(apiUrl: string, apiKey: string, provider: string) {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
+      next: params.action === 'services' || params.action === 'balance'
+        ? { revalidate: 300 }
+        : undefined,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();

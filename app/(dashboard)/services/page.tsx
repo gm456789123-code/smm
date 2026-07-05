@@ -34,6 +34,8 @@ export default function ServicesPage() {
   const [loading,  setLoading]  = useState(true);
   const [search,   setSearch]   = useState('');
   const [platform, setPlatform] = useState('ทั้งหมด');
+  const [page,     setPage]     = useState(1);
+  const PAGE_SIZE = 50;
 
   useEffect(() => {
     fetch('/api/smm/services')
@@ -59,6 +61,9 @@ export default function ServicesPage() {
     });
   }, [services, platform, search]);
 
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
   return (
     <main className="flex-1 p-6 space-y-6">
       <div>
@@ -69,7 +74,7 @@ export default function ServicesPage() {
       <div className="glass p-4 space-y-3">
         <input
           value={search}
-          onChange={e => { setSearch(e.target.value); setPlatform('ทั้งหมด'); }}
+          onChange={e => { setSearch(e.target.value); setPlatform('ทั้งหมด'); setPage(1); }}
           placeholder="ค้นหาบริการ..."
           className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors"
         />
@@ -82,7 +87,7 @@ export default function ServicesPage() {
             return (
               <button
                 key={p.label}
-                onClick={() => setPlatform(p.label)}
+                onClick={() => { setPlatform(p.label); setPage(1); }}
                 className={[
                   'glass-tab flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all',
                   active
@@ -115,7 +120,9 @@ export default function ServicesPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <p className="text-[10px] text-[#334155] mb-3">แสดง {filtered.length} รายการ</p>
+            <p className="text-[10px] text-[#334155] mb-3">
+              แสดง {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} จาก {filtered.length} รายการ
+            </p>
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[10px] text-[#475569] uppercase tracking-widest border-b border-[rgba(139,92,246,0.10)]">
@@ -129,8 +136,8 @@ export default function ServicesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[rgba(139,92,246,0.05)]">
-                {filtered.map(s => (
-                  <tr key={s.service} className="hover:bg-[rgba(139,92,246,0.04)] transition-colors">
+                {paginated.map(s => (
+                  <tr key={`${s.provider}-${s.service}`} className="hover:bg-[rgba(139,92,246,0.04)] transition-colors">
                     <td className="py-2.5 pr-3 font-mono text-xs text-[#475569]">{s.service}</td>
                     <td className="py-2.5 pr-3 text-[#F1F5F9] max-w-[280px]">
                       <p className="truncate">{s.name}</p>
@@ -151,6 +158,27 @@ export default function ServicesPage() {
                 ))}
               </tbody>
             </table>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-[rgba(139,92,246,0.10)]">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="glass-tab px-3 py-1.5 text-xs text-[#94A3B8] disabled:opacity-30"
+                >
+                  ←
+                </button>
+                <span className="text-xs text-[#475569]">หน้า {page} / {totalPages}</span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="glass-tab px-3 py-1.5 text-xs text-[#94A3B8] disabled:opacity-30"
+                >
+                  →
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
