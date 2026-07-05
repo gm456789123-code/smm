@@ -1,317 +1,234 @@
 'use client';
 
-import { useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { useState, useRef } from 'react';
+import Link from 'next/link';
 import {
-  BsQrCodeScan, BsWallet2, BsCreditCard2FrontFill,
-  BsApple, BsPhone, BsLink45Deg, BsCheckCircleFill,
+  BsBank2, BsQrCodeScan, BsUpload, BsCheckCircleFill,
+  BsExclamationCircleFill, BsArrowRight, BsShieldCheck,
 } from 'react-icons/bs';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+const BANK_NAME    = process.env.NEXT_PUBLIC_BANK_NAME           ?? 'ธนาคาร';
+const ACCOUNT_NAME = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME   ?? 'ชื่อบัญชี';
+const ACCOUNT_NO   = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? 'xxx-x-xxxxx-x';
+const PROMPTPAY    = process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER     ?? '';
 
-const AMOUNTS = [100, 300, 500, 1000, 2000, 5000];
-
-const CHANNELS = [
-  {
-    key:    'promptpay',
-    label:  'PromptPay',
-    sub:    'พร้อมเพย์',
-    desc:   'รองรับทุกธนาคารในไทย สแกน QR จ่ายได้เลย',
-    Icon:   BsQrCodeScan,
-    color:  '#1B6EBE',
-    bg:     'rgba(27,110,190,0.12)',
-    border: 'rgba(27,110,190,0.30)',
-    glow:   '0 8px 32px rgba(27,110,190,0.25)',
-    badge:  'ยอดนิยม',
-  },
-  {
-    key:    'truemoney',
-    label:  'TrueMoney',
-    sub:    'วอลเล็ท',
-    desc:   'ชำระด้วยเบอร์โทร TrueMoney Wallet',
-    Icon:   BsWallet2,
-    color:  '#FF6B00',
-    bg:     'rgba(255,107,0,0.12)',
-    border: 'rgba(255,107,0,0.30)',
-    glow:   '0 8px 32px rgba(255,107,0,0.25)',
-    badge:  null,
-  },
-  {
-    key:    'card',
-    label:  'บัตรเครดิต',
-    sub:    'Credit / Debit',
-    desc:   'Visa · Mastercard · JCB · Amex',
-    Icon:   BsCreditCard2FrontFill,
-    color:  '#8B5CF6',
-    bg:     'rgba(139,92,246,0.12)',
-    border: 'rgba(139,92,246,0.30)',
-    glow:   '0 8px 32px rgba(139,92,246,0.25)',
-    badge:  null,
-  },
-  {
-    key:    'card',
-    label:  'Apple Pay',
-    sub:    'iOS & macOS',
-    desc:   'Safari บน iPhone / Mac',
-    Icon:   BsApple,
-    color:  '#F1F5F9',
-    bg:     'rgba(241,245,249,0.08)',
-    border: 'rgba(241,245,249,0.18)',
-    glow:   '0 8px 32px rgba(241,245,249,0.12)',
-    badge:  null,
-  },
-  {
-    key:    'card',
-    label:  'Google Pay',
-    sub:    'Android & Chrome',
-    desc:   'บัญชี Google ทุกอุปกรณ์',
-    Icon:   BsPhone,
-    color:  '#34A853',
-    bg:     'rgba(52,168,83,0.12)',
-    border: 'rgba(52,168,83,0.30)',
-    glow:   '0 8px 32px rgba(52,168,83,0.20)',
-    badge:  null,
-  },
-  {
-    key:    'link',
-    label:  'Stripe Link',
-    sub:    'Fast Checkout',
-    desc:   'บันทึกข้อมูลชำระอัตโนมัติ',
-    Icon:   BsLink45Deg,
-    color:  '#635BFF',
-    bg:     'rgba(99,91,255,0.12)',
-    border: 'rgba(99,91,255,0.30)',
-    glow:   '0 8px 32px rgba(99,91,255,0.20)',
-    badge:  null,
-  },
-] as const;
-
-const appearance = {
-  theme: 'night' as const,
-  variables: {
-    colorPrimary: '#8B5CF6',
-    colorBackground: '#0D1221',
-    colorText: '#F1F5F9',
-    colorDanger: '#ef4444',
-    colorTextPlaceholder: '#475569',
-    borderRadius: '10px',
-    fontFamily: 'Inter, system-ui, sans-serif',
-  },
-  rules: {
-    '.Input':          { border: '1px solid rgba(139,92,246,0.18)', backgroundColor: 'rgba(13,18,33,0.8)' },
-    '.Input:focus':    { border: '1px solid rgba(139,92,246,0.5)', boxShadow: '0 0 0 3px rgba(139,92,246,0.12)' },
-    '.Tab':            { border: '1px solid rgba(139,92,246,0.12)', backgroundColor: 'rgba(139,92,246,0.06)' },
-    '.Tab:hover':      { border: '1px solid rgba(139,92,246,0.3)' },
-    '.Tab--selected':  { border: '1px solid rgba(139,92,246,0.5)', backgroundColor: 'rgba(139,92,246,0.18)' },
-    '.Label':          { color: '#94A3B8' },
-  },
-};
-
-function CheckoutForm({ amountThb, channelLabel }: { amountThb: number; channelLabel: string }) {
-  const stripe   = useStripe();
-  const elements = useElements();
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState('');
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!stripe || !elements) return;
-    setLoading(true);
-    setError('');
-    const { error: stripeError } = await stripe.confirmPayment({
-      elements,
-      confirmParams: { return_url: `${window.location.origin}/topup/success` },
-    });
-    if (stripeError) {
-      setError(stripeError.message ?? 'การชำระเงินล้มเหลว');
-      setLoading(false);
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-[#475569] uppercase tracking-widest">ชำระผ่าน {channelLabel}</p>
-        <p className="text-[#06B6D4] font-bold font-mono">฿{amountThb.toLocaleString()}</p>
-      </div>
-      <PaymentElement options={{ layout: 'tabs' }} />
-      {error && (
-        <p className="text-sm text-red-400 bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)] px-3 py-2.5 rounded-xl">
-          {error}
-        </p>
-      )}
-      <button
-        type="submit"
-        disabled={!stripe || loading}
-        className="btn-primary w-full py-3.5 text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
-      >
-        {loading
-          ? <span className="flex items-center justify-center gap-2"><span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full inline-block" /> กำลังดำเนินการ...</span>
-          : `ชำระเงิน ฿${amountThb.toLocaleString()}`
-        }
-      </button>
-    </form>
-  );
-}
+const AMOUNTS = [50, 100, 300, 500, 1000, 2000, 5000];
 
 export default function TopupPage() {
-  const [activeChannel, setActiveChannel] = useState<number | null>(null);
-  const [selectedAmt,   setSelectedAmt]   = useState<number | null>(null);
-  const [clientSecret,  setClientSecret]  = useState('');
-  const [loading,       setLoading]       = useState(false);
-  const [error,         setError]         = useState('');
+  const [amount,   setAmount]   = useState<number | null>(null);
+  const [custom,   setCustom]   = useState('');
+  const [file,     setFile]     = useState<File | null>(null);
+  const [preview,  setPreview]  = useState<string | null>(null);
+  const [loading,  setLoading]  = useState(false);
+  const [result,   setResult]   = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  const channel = activeChannel !== null ? CHANNELS[activeChannel] : null;
+  function pickFile(f: File) {
+    setFile(f);
+    setPreview(URL.createObjectURL(f));
+    setResult(null);
+  }
 
-  async function selectAmount(amt: number) {
-    if (activeChannel === null) return;
-    setSelectedAmt(amt);
-    setClientSecret('');
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (f) pickFile(f);
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault();
+    const f = e.dataTransfer.files?.[0];
+    if (f) pickFile(f);
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!file) return;
     setLoading(true);
-    setError('');
+    setResult(null);
+
+    const form = new FormData();
+    form.append('file', file);
+
     try {
-      const res = await fetch('/api/payment/create-intent', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          amountThb:     amt,
-          paymentMethod: CHANNELS[activeChannel].key,
-        }),
-      });
+      const res  = await fetch('/api/payment/verify-slip', { method: 'POST', body: form });
       const data = await res.json();
-      if (!res.ok) { setError(data.error); return; }
-      setClientSecret(data.clientSecret);
+
+      if (!res.ok) {
+        setResult({ type: 'error', text: data.error ?? 'เกิดข้อผิดพลาด' });
+      } else {
+        setResult({
+          type: 'success',
+          text: `เติมเงินสำเร็จ ฿${Number(data.amount).toLocaleString()} (Ref: ${data.ref})`,
+        });
+        setFile(null);
+        setPreview(null);
+        setAmount(null);
+        setCustom('');
+      }
     } catch {
-      setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+      setResult({ type: 'error', text: 'เชื่อมต่อไม่ได้ กรุณาลองใหม่' });
     } finally {
       setLoading(false);
     }
   }
 
-  function selectChannel(idx: number) {
-    setActiveChannel(idx);
-    setSelectedAmt(null);
-    setClientSecret('');
-    setError('');
-  }
-
   return (
-    <main className="flex-1 p-6 space-y-6 max-w-2xl mx-auto w-full">
+    <main className="flex-1 p-4 lg:p-6 max-w-2xl mx-auto w-full space-y-5">
       <div>
         <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">เติมเงิน</h1>
-        <p className="text-[#475569] text-sm mt-0.5">เลือกช่องทางชำระเงิน → เลือกจำนวน → ชำระ</p>
+        <p className="text-[#475569] text-sm mt-0.5">โอนเงินเข้าบัญชีด้านล่าง แล้วอัปโหลดสลิป</p>
       </div>
 
-      {/* Step 1: Channel selection */}
-      <div className="glass p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-[rgba(139,92,246,0.2)] border border-[rgba(139,92,246,0.4)] text-[#c4b5fd] text-xs font-bold flex items-center justify-center">1</span>
-            <p className="text-sm font-semibold text-[#F1F5F9]">เลือกช่องทางชำระเงิน</p>
-          </div>
-          <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">Powered by Stripe</span>
+      {/* Bank account info */}
+      <div className="glass p-5 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="w-6 h-6 rounded-full bg-[rgba(139,92,246,0.2)] border border-[rgba(139,92,246,0.4)] text-[#c4b5fd] text-xs font-bold flex items-center justify-center">1</span>
+          <p className="text-sm font-semibold text-white">โอนเงินเข้าบัญชีนี้</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {CHANNELS.map((ch, idx) => {
-            const isActive = activeChannel === idx;
-            return (
-              <button
-                key={`${ch.label}-${idx}`}
-                onClick={() => selectChannel(idx)}
-                className="relative rounded-2xl p-4 flex flex-col gap-3 text-left transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
-                style={{
-                  background: isActive
-                    ? `linear-gradient(135deg, ${ch.bg} 0%, rgba(11,14,26,0.8) 100%)`
-                    : `linear-gradient(135deg, rgba(11,14,26,0.6) 0%, rgba(11,14,26,0.95) 100%)`,
-                  border:     isActive ? `2px solid ${ch.color}` : `1px solid ${ch.border}`,
-                  boxShadow:  isActive ? ch.glow : 'none',
-                }}
-              >
-                {/* Selected checkmark */}
-                {isActive && (
-                  <span className="absolute top-2.5 right-2.5">
-                    <BsCheckCircleFill size={16} color={ch.color} />
-                  </span>
-                )}
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Account details */}
+          <div className="flex-1 glass rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[rgba(139,92,246,0.15)] flex items-center justify-center">
+                <BsBank2 size={18} className="text-[#a78bfa]" />
+              </div>
+              <div>
+                <p className="text-xs text-[#475569]">ธนาคาร</p>
+                <p className="text-sm font-semibold text-white">{BANK_NAME}</p>
+              </div>
+            </div>
+            <div className="border-t border-[rgba(139,92,246,0.08)] pt-3 space-y-2">
+              <div>
+                <p className="text-[10px] text-[#475569] uppercase tracking-widest">ชื่อบัญชี</p>
+                <p className="text-sm text-white font-medium mt-0.5">{ACCOUNT_NAME}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#475569] uppercase tracking-widest">เลขบัญชี</p>
+                <p className="text-base font-bold font-mono text-[#06B6D4] tracking-widest mt-0.5">{ACCOUNT_NO}</p>
+              </div>
+            </div>
+          </div>
 
-                {/* Badge */}
-                {ch.badge && !isActive && (
-                  <span className="absolute top-2.5 right-2.5 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full"
-                    style={{ background: ch.bg, color: ch.color, border: `1px solid ${ch.border}` }}>
-                    {ch.badge}
-                  </span>
-                )}
+          {/* PromptPay QR placeholder */}
+          {PROMPTPAY && (
+            <div className="flex flex-col items-center gap-2 glass rounded-xl p-4 w-full sm:w-40 shrink-0">
+              <div className="flex items-center gap-1.5">
+                <BsQrCodeScan size={13} className="text-[#475569]" />
+                <p className="text-[10px] text-[#475569] uppercase tracking-widest">พร้อมเพย์</p>
+              </div>
+              <div className="w-24 h-24 rounded-xl bg-white flex items-center justify-center">
+                <p className="text-[8px] text-black text-center px-1 font-mono">{PROMPTPAY}</p>
+              </div>
+              <p className="text-[10px] text-[#475569] text-center">{PROMPTPAY}</p>
+            </div>
+          )}
+        </div>
 
-                {/* Icon */}
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-all"
-                  style={{
-                    background:  isActive ? ch.bg : 'rgba(255,255,255,0.03)',
-                    border:      `1px solid ${isActive ? ch.border : 'rgba(255,255,255,0.06)'}`,
-                  }}>
-                  <ch.Icon size={24} color={isActive ? ch.color : '#475569'} />
-                </div>
-
-                {/* Text */}
-                <div>
-                  <p className="font-[family-name:var(--font-jakarta)] font-bold text-sm leading-tight"
-                    style={{ color: isActive ? '#F1F5F9' : '#94A3B8' }}>
-                    {ch.label}
-                  </p>
-                  <p className="text-[11px] font-medium mt-0.5" style={{ color: isActive ? ch.color : '#334155' }}>
-                    {ch.sub}
-                  </p>
-                  <p className="text-[10px] text-[#334155] mt-1 leading-snug">{ch.desc}</p>
-                </div>
-              </button>
-            );
-          })}
+        <div className="flex items-start gap-2 text-[11px] text-[#475569] bg-[rgba(6,182,212,0.04)] border border-[rgba(6,182,212,0.12)] rounded-xl px-3 py-2.5">
+          <BsShieldCheck size={13} className="text-[#06B6D4] shrink-0 mt-0.5" />
+          ระบบจะยืนยันสลิปอัตโนมัติผ่าน EasySlip และเติมยอดเงินทันที ใช้เวลาไม่เกิน 1 นาที
         </div>
       </div>
 
-      {/* Step 2: Amount — shows only after channel selected */}
-      {activeChannel !== null && (
-        <div className="glass p-5 space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-full bg-[rgba(139,92,246,0.2)] border border-[rgba(139,92,246,0.4)] text-[#c4b5fd] text-xs font-bold flex items-center justify-center">2</span>
-            <p className="text-sm font-semibold text-[#F1F5F9]">เลือกจำนวนเงิน</p>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {AMOUNTS.map(amt => (
-              <button
-                key={amt}
-                onClick={() => selectAmount(amt)}
-                disabled={loading && selectedAmt === amt}
-                className={[
-                  'glass-tab py-3.5 text-sm font-semibold transition-all',
-                  selectedAmt === amt ? 'glass-tab-active text-[#c4b5fd]' : 'text-[#94A3B8]',
-                ].join(' ')}
-              >
-                {loading && selectedAmt === amt
-                  ? <span className="animate-pulse text-xs">กำลังโหลด...</span>
-                  : `฿${amt.toLocaleString()}`}
-              </button>
-            ))}
-          </div>
+      {/* Amount selector (optional reference) */}
+      <div className="glass p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-[rgba(139,92,246,0.2)] border border-[rgba(139,92,246,0.4)] text-[#c4b5fd] text-xs font-bold flex items-center justify-center">2</span>
+          <p className="text-sm font-semibold text-white">จำนวนเงินที่โอน <span className="text-[#334155] font-normal text-xs">(สำหรับอ้างอิง)</span></p>
         </div>
-      )}
-
-      {error && (
-        <p className="text-sm text-red-400 bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)] px-3 py-2.5 rounded-xl">
-          {error}
-        </p>
-      )}
-
-      {/* Step 3: Stripe Payment Element */}
-      {clientSecret && selectedAmt && channel && (
-        <div className="glass p-6 space-y-1"
-          style={{ borderColor: channel.border }}>
-          <Elements stripe={stripePromise} options={{ clientSecret, appearance }}>
-            <CheckoutForm amountThb={selectedAmt} channelLabel={channel.label} />
-          </Elements>
+        <div className="grid grid-cols-4 gap-2">
+          {AMOUNTS.map(a => (
+            <button key={a} type="button" onClick={() => { setAmount(a); setCustom(''); }}
+              className={[
+                'glass-tab py-2.5 text-sm font-semibold transition-all',
+                amount === a && !custom ? 'glass-tab-active text-[#c4b5fd]' : 'text-[#94A3B8]',
+              ].join(' ')}>
+              ฿{a.toLocaleString()}
+            </button>
+          ))}
         </div>
-      )}
+        <input
+          type="number" value={custom}
+          onChange={e => { setCustom(e.target.value); setAmount(null); }}
+          placeholder="หรือกรอกจำนวนเอง..."
+          className="w-full glass px-4 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] transition-colors"
+        />
+      </div>
+
+      {/* Slip upload */}
+      <form onSubmit={submit} className="glass p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="w-6 h-6 rounded-full bg-[rgba(139,92,246,0.2)] border border-[rgba(139,92,246,0.4)] text-[#c4b5fd] text-xs font-bold flex items-center justify-center">3</span>
+          <p className="text-sm font-semibold text-white">อัปโหลดสลิปโอนเงิน</p>
+        </div>
+
+        {/* Drop zone */}
+        <div
+          onClick={() => fileRef.current?.click()}
+          onDrop={onDrop}
+          onDragOver={e => e.preventDefault()}
+          className="relative border-2 border-dashed border-[rgba(139,92,246,0.25)] hover:border-[rgba(139,92,246,0.5)] rounded-xl transition-colors cursor-pointer overflow-hidden"
+          style={{ minHeight: 160 }}
+        >
+          {preview ? (
+            <img src={preview} alt="slip preview" className="w-full max-h-64 object-contain p-2" />
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-3 py-10 px-4">
+              <div className="w-12 h-12 rounded-2xl bg-[rgba(139,92,246,0.08)] flex items-center justify-center">
+                <BsUpload size={22} className="text-[#475569]" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-[#CBD5E1]">คลิกหรือลากไฟล์มาวางที่นี่</p>
+                <p className="text-xs text-[#334155] mt-0.5">PNG, JPG, WEBP — ไม่เกิน 5MB</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <input ref={fileRef} type="file" accept="image/*" onChange={onFileChange} className="hidden" />
+
+        {file && (
+          <div className="flex items-center justify-between text-xs text-[#475569] bg-[rgba(139,92,246,0.06)] rounded-xl px-3 py-2">
+            <span className="truncate">{file.name}</span>
+            <button type="button" onClick={() => { setFile(null); setPreview(null); }}
+              className="text-[#475569] hover:text-rose-400 ml-2 shrink-0 transition-colors">✕</button>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={!file || loading}
+          className="btn-primary w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+        >
+          {loading ? (
+            <><span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" /> กำลังตรวจสอบ...</>
+          ) : (
+            <><BsShieldCheck size={15} /> ยืนยันสลิป</>
+          )}
+        </button>
+
+        {result && (
+          <div className={[
+            'flex items-start gap-2.5 px-4 py-3 rounded-xl text-sm border',
+            result.type === 'success'
+              ? 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400'
+              : 'bg-rose-500/8 border-rose-500/20 text-rose-400',
+          ].join(' ')}>
+            {result.type === 'success'
+              ? <BsCheckCircleFill size={15} className="shrink-0 mt-0.5" />
+              : <BsExclamationCircleFill size={15} className="shrink-0 mt-0.5" />}
+            <div>
+              {result.text}
+              {result.type === 'success' && (
+                <Link href="/dashboard" className="ml-2 underline text-emerald-300 text-xs hover:text-emerald-200 inline-flex items-center gap-1">
+                  ไปหน้าหลัก <BsArrowRight size={10} />
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+      </form>
     </main>
   );
 }
