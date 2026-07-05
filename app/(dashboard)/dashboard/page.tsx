@@ -63,10 +63,12 @@ export default function DashboardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Derived values
+  // serviceId format: "provider:id" e.g. "24social:123"
+  const [selProvider, selId] = serviceId.includes(':') ? serviceId.split(':') : ['24social', serviceId];
+
   const selectedService = useMemo(
-    () => services.find(s => String(s.service) === serviceId),
-    [services, serviceId]
+    () => services.find(s => s.provider === selProvider && String(s.service) === selId),
+    [services, selProvider, selId]
   );
 
   const filteredServices = useMemo(
@@ -117,7 +119,7 @@ export default function DashboardPage() {
       const res = await fetch('/api/orders', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ serviceId: Number(serviceId), link, quantity: Number(quantity) }),
+        body:    JSON.stringify({ serviceId: Number(selId), provider: selProvider, link, quantity: Number(quantity) }),
       });
       const data = await res.json();
 
@@ -247,7 +249,7 @@ export default function DashboardPage() {
             >
               <option value="" className="bg-[#0D1221]">-- เลือกบริการ --</option>
               {filteredServices.map(s => (
-                <option key={s.service} value={String(s.service)} className="bg-[#0D1221]">
+                <option key={`${s.provider}-${s.service}`} value={`${s.provider}:${s.service}`} className="bg-[#0D1221]">
                   [{s.service}] {s.name}
                 </option>
               ))}
