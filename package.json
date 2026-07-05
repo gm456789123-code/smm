@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prakrit_m/tmn-voucher": "^2.0.0",
     "@stripe/react-stripe-js": "^6.5.0",
     "@stripe/stripe-js": "^9.7.0",
     "@types/bcryptjs": "^2.4.6",
