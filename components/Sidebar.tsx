@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 const NAV = [
   {
@@ -77,6 +78,10 @@ interface SidebarProps {
 export default function Sidebar({ role, username }: SidebarProps) {
   const path = usePathname();
   const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  // ปิด sidebar เมื่อเปลี่ยนหน้า
+  useEffect(() => { setOpen(false); }, [path]);
 
   async function handleLogout() {
     try {
@@ -101,14 +106,45 @@ export default function Sidebar({ role, username }: SidebarProps) {
   }
 
   return (
-    <aside className="glass-strong w-72 min-h-screen flex flex-col px-4 py-6 gap-1 shrink-0">
+    <>
+      {/* Hamburger button — mobile only */}
+      <button
+        onClick={() => setOpen(true)}
+        className="lg:hidden fixed top-4 left-4 z-50 glass p-2.5 rounded-xl text-white"
+        aria-label="เปิดเมนู"
+      >
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      {/* Backdrop — mobile only */}
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      <aside className={[
+        'glass-strong w-72 min-h-screen flex flex-col px-4 py-6 gap-1 shrink-0',
+        'fixed lg:static inset-y-0 left-0 z-50 transition-transform duration-300',
+        open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+      ].join(' ')}>
       {/* Logo */}
-      <div className="px-3 pb-5 mb-1 border-b border-[rgba(139,92,246,0.10)]">
-        <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
-          <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
-          <span className="text-white"> SMM</span>
-        </p>
-        <p className="text-xs text-[#475569] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
+      <div className="px-3 pb-5 mb-1 border-b border-[rgba(139,92,246,0.10)] flex items-start justify-between">
+        <div>
+          <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
+            <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
+            <span className="text-white"> SMM</span>
+          </p>
+          <p className="text-xs text-[#475569] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
+        </div>
+        <button onClick={() => setOpen(false)} className="lg:hidden text-[#475569] hover:text-white p-1">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
       {/* User info */}
@@ -166,6 +202,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
       </button>
 
 
-    </aside>
+      </aside>
+    </>
   );
 }
