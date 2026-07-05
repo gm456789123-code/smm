@@ -1,10 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import QRCode from 'react-qr-code';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const generatePayload = require('promptpay-qr');
 import {
   BsBank2, BsQrCodeScan, BsUpload, BsCheckCircleFill,
   BsExclamationCircleFill, BsArrowRight, BsShieldCheck, BsWallet2,
@@ -27,6 +24,7 @@ const SLIP_TYPES: { key: SlipType; label: string; sub: string; icon: React.React
 
 export default function TopupPage() {
   const [slipType, setSlipType] = useState<SlipType>('bank');
+  const [qrImg,    setQrImg]    = useState<string | null>(null);
   const [amount,   setAmount]   = useState<number | null>(null);
   const [custom,   setCustom]   = useState('');
   const [file,     setFile]     = useState<File | null>(null);
@@ -34,6 +32,14 @@ export default function TopupPage() {
   const [loading,  setLoading]  = useState(false);
   const [result,   setResult]   = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!PROMPTPAY) return;
+    fetch('/api/payment/qr')
+      .then(r => r.json())
+      .then(d => { if (d.dataUrl) setQrImg(d.dataUrl); })
+      .catch(() => null);
+  }, []);
 
   function pickFile(f: File) {
     setFile(f);
@@ -170,13 +176,11 @@ export default function TopupPage() {
                   <BsQrCodeScan size={13} className="text-[#475569]" />
                   <p className="text-[10px] text-[#475569] uppercase tracking-widest">พร้อมเพย์</p>
                 </div>
-                <div className="p-2 bg-white rounded-xl">
-                  <QRCode
-                    value={generatePayload(PROMPTPAY, { amount: undefined })}
-                    size={128}
-                    bgColor="#ffffff"
-                    fgColor="#000000"
-                  />
+                <div className="p-2 bg-white rounded-xl w-36 h-36 flex items-center justify-center">
+                  {qrImg
+                    ? <img src={qrImg} alt="PromptPay QR" className="w-full h-full object-contain" />
+                    : <div className="w-full h-full bg-gray-100 animate-pulse rounded" />
+                  }
                 </div>
                 <p className="text-[10px] text-[#475569] text-center font-mono">{PROMPTPAY}</p>
               </div>
