@@ -317,7 +317,7 @@ export default function OrderPage() {
       </div>
 
       {/* Platform tabs */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex flex-wrap gap-1.5">
         {PLATFORMS.map(p => (
           <button key={p.label} onClick={() => setPlatform(p.label)}
             className={[
