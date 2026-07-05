@@ -107,16 +107,22 @@ export default function Sidebar({ role, username }: SidebarProps) {
 
   return (
     <>
-      {/* Hamburger button — mobile only */}
-      <button
-        onClick={() => setOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 glass p-2.5 rounded-xl text-white"
-        aria-label="เปิดเมนู"
-      >
-        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
+      {/* Mobile top bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 glass-strong h-16 flex items-center px-4 gap-3 border-b border-[rgba(139,92,246,0.15)]">
+        <button
+          onClick={() => setOpen(true)}
+          className="glass p-2.5 rounded-xl text-white shrink-0"
+          aria-label="เปิดเมนู"
+        >
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
+          <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
+          <span className="text-white"> SMM</span>
+        </p>
+      </div>
 
       {/* Backdrop — mobile only */}
       {open && (
