@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Service } from '@/lib/smm-api';
 import {
   BsFacebook, BsInstagram, BsTiktok, BsYoutube, BsTwitterX,
@@ -29,13 +29,15 @@ const PLATFORMS: Platform[] = [
   },
 ];
 
+const PAGE_SIZE = 50;
+
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [search,   setSearch]   = useState('');
   const [platform, setPlatform] = useState('ทั้งหมด');
-  const [page,     setPage]     = useState(1);
-  const PAGE_SIZE = 50;
+  const [visible,  setVisible]  = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch('/api/smm/services')
@@ -61,8 +63,27 @@ export default function ServicesPage() {
     });
   }, [services, platform, search]);
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const displayed = filtered.slice(0, visible);
+  const hasMore   = visible < filtered.length;
+
+  // Reset visible count when filter/search changes
+  useEffect(() => { setVisible(PAGE_SIZE); }, [platform, search]);
+
+  // Infinite scroll via IntersectionObserver
+  const loadMore = useCallback(() => {
+    setVisible(v => Math.min(v + PAGE_SIZE, filtered.length));
+  }, [filtered.length]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      entries => { if (entries[0].isIntersecting) loadMore(); },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   return (
     <main className="flex-1 p-6 space-y-6">
@@ -74,12 +95,11 @@ export default function ServicesPage() {
       <div className="glass p-4 space-y-3">
         <input
           value={search}
-          onChange={e => { setSearch(e.target.value); setPlatform('ทั้งหมด'); setPage(1); }}
+          onChange={e => { setSearch(e.target.value); setPlatform('ทั้งหมด'); }}
           placeholder="ค้นหาบริการ..."
           className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors"
         />
 
-        {/* Platform tabs */}
         <div className="flex flex-wrap gap-2">
           {PLATFORMS.map(p => {
             const count  = platformCounts[p.label] ?? 0;
@@ -87,7 +107,7 @@ export default function ServicesPage() {
             return (
               <button
                 key={p.label}
-                onClick={() => { setPlatform(p.label); setPage(1); }}
+                onClick={() => setPlatform(p.label)}
                 className={[
                   'glass-tab flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all',
                   active
@@ -109,7 +129,6 @@ export default function ServicesPage() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="glass p-4">
         {loading ? (
           <p className="py-10 text-center text-[#475569] animate-pulse">กำลังโหลดบริการ...</p>
@@ -121,7 +140,7 @@ export default function ServicesPage() {
         ) : (
           <div className="overflow-x-auto">
             <p className="text-[10px] text-[#334155] mb-3">
-              แสดง {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} จาก {filtered.length} รายการ
+              แสดง {displayed.length} จาก {filtered.length} รายการ
             </p>
             <table className="w-full text-sm">
               <thead>
@@ -136,7 +155,7 @@ export default function ServicesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[rgba(139,92,246,0.05)]">
-                {paginated.map(s => (
+                {displayed.map(s => (
                   <tr key={`${s.provider}-${s.service}`} className="hover:bg-[rgba(139,92,246,0.04)] transition-colors">
                     <td className="py-2.5 pr-3 font-mono text-xs text-[#475569]">{s.service}</td>
                     <td className="py-2.5 pr-3 text-[#F1F5F9] max-w-[280px]">
@@ -159,25 +178,10 @@ export default function ServicesPage() {
               </tbody>
             </table>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-4 pt-4 border-t border-[rgba(139,92,246,0.10)]">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="glass-tab px-3 py-1.5 text-xs text-[#94A3B8] disabled:opacity-30"
-                >
-                  ←
-                </button>
-                <span className="text-xs text-[#475569]">หน้า {page} / {totalPages}</span>
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="glass-tab px-3 py-1.5 text-xs text-[#94A3B8] disabled:opacity-30"
-                >
-                  →
-                </button>
-              </div>
+            {/* Sentinel for infinite scroll */}
+            <div ref={sentinelRef} className="h-4" />
+            {hasMore && (
+              <p className="text-center text-[10px] text-[#334155] py-2 animate-pulse">กำลังโหลดเพิ่ม...</p>
             )}
           </div>
         )}
