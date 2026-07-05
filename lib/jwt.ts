@@ -1,13 +1,12 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const rawSecret = process.env.JWT_SECRET;
-if (!rawSecret || rawSecret.length < 32) {
-  throw new Error('JWT_SECRET must be set and at least 32 characters');
+function getSecret(): Uint8Array {
+  const rawSecret = process.env.JWT_SECRET;
+  if (!rawSecret || rawSecret.length < 32) {
+    throw new Error('JWT_SECRET must be set and at least 32 characters');
+  }
+  return new TextEncoder().encode(rawSecret);
 }
-if (rawSecret === 'change-this-to-a-random-secret-string') {
-  console.warn('[SECURITY] JWT_SECRET is the default placeholder — change it before production!');
-}
-const SECRET = new TextEncoder().encode(rawSecret);
 
 export interface JWTPayload {
   userId: number;
@@ -22,12 +21,12 @@ export async function signToken(payload: JWTPayload): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(SECRET);
+    .sign(getSecret());
 }
 
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, getSecret());
     return payload as unknown as JWTPayload;
   } catch {
     return null;
