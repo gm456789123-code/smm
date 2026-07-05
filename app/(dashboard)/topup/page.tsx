@@ -2,6 +2,9 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
+import QRCode from 'react-qr-code';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const generatePayload = require('promptpay-qr');
 import {
   BsBank2, BsQrCodeScan, BsUpload, BsCheckCircleFill,
   BsExclamationCircleFill, BsArrowRight, BsShieldCheck, BsWallet2,
@@ -162,15 +165,20 @@ export default function TopupPage() {
               </div>
             </div>
             {PROMPTPAY && (
-              <div className="flex flex-col items-center gap-2 glass rounded-xl p-4 w-full sm:w-40 shrink-0">
+              <div className="flex flex-col items-center gap-2 glass rounded-xl p-4 w-full sm:w-44 shrink-0">
                 <div className="flex items-center gap-1.5">
                   <BsQrCodeScan size={13} className="text-[#475569]" />
                   <p className="text-[10px] text-[#475569] uppercase tracking-widest">พร้อมเพย์</p>
                 </div>
-                <div className="w-24 h-24 rounded-xl bg-white flex items-center justify-center">
-                  <p className="text-[8px] text-black text-center px-1 font-mono">{PROMPTPAY}</p>
+                <div className="p-2 bg-white rounded-xl">
+                  <QRCode
+                    value={generatePayload(PROMPTPAY, { amount: undefined })}
+                    size={128}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                  />
                 </div>
-                <p className="text-[10px] text-[#475569] text-center">{PROMPTPAY}</p>
+                <p className="text-[10px] text-[#475569] text-center font-mono">{PROMPTPAY}</p>
               </div>
             )}
           </div>
