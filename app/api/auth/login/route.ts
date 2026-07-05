@@ -46,10 +46,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'รหัสผ่านไม่ถูกต้อง' }, { status: 401 });
     }
 
-    if (!user.email_verified) {
-      return NextResponse.json({ error: 'กรุณายืนยัน email ก่อนเข้าสู่ระบบ' }, { status: 403 });
-    }
-
     const token = await signToken({
       userId: user.id,
       username: user.username,

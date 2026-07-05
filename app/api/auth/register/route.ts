@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import db from '@/lib/db';
-import { hashPassword, generateToken, generateReferralCode } from '@/lib/auth';
-import { sendVerificationEmail } from '@/lib/email';
-import { meSmS } from '@/lib/sms';
+import { hashPassword, generateReferralCode } from '@/lib/auth';
 import { signToken } from '@/lib/jwt';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
@@ -63,59 +61,20 @@ export async function POST(req: NextRequest) {
     const myReferralCode = generateReferralCode(username);
 
     const [result] = await db.query<ResultSetHeader>(
-      `INSERT INTO users (username, email, phone, password_hash, referral_code, referred_by)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO users (username, email, phone, password_hash, referral_code, referred_by, email_verified)
+       VALUES (?, ?, ?, ?, ?, ?, 1)`,
       [username, email, phone ?? null, passwordHash, myReferralCode, referredById]
     );
 
     const userId = result.insertId;
 
-    // Email verification token
-    const token     = generateToken(48);
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await db.query(
-      'INSERT INTO email_verifications (user_id, token, expires_at) VALUES (?, ?, ?)',
-      [userId, token, expiresAt]
-    );
-
-    // ถ้ามีเบอร์โทร → ส่ง OTP ผ่าน ME-SMS และ auto-login เพื่อให้ verify ต่อได้
-    if (phone) {
-      const msisdn = phone.replace(/[-\s]/g, '');
-      let otpRef: string | null = null;
-      try {
-        const otpResult = await meSmS.sendOTP(msisdn);
-        otpRef = otpResult.data.ref;
-        const expiresAt = new Date(otpResult.data.expiredAt);
-        await db.query(
-          'INSERT INTO otp_verifications (user_id, phone, ref_code, expires_at) VALUES (?,?,?,?)',
-          [userId, msisdn, otpRef, expiresAt]
-        );
-      } catch (err) {
-        console.error('[sms-otp] send failed:', err);
-      }
-
-      // Auto-login token เพื่อให้ verify-otp route ใช้งานได้
-      const jwtToken = await signToken({ userId, username, email, role: 'user', emailVerified: false });
-      const res = NextResponse.json(
-        { message: 'สมัครสำเร็จ กรุณายืนยัน OTP ที่ส่งไปยังเบอร์โทร', requireOtp: true, ref: otpRef },
-        { status: 201 }
-      );
-      res.cookies.set('auth_token', jwtToken, {
-        httpOnly: true, secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict', maxAge: 60 * 60 * 24 * 7, path: '/',
-      });
-      return res;
-    }
-
-    // ไม่มีเบอร์โทร → ส่ง email แบบ non-blocking
-    sendVerificationEmail(email, token).catch((err) =>
-      console.error('[email] verification send failed:', err?.message)
-    );
-
-    return NextResponse.json(
-      { message: 'สมัครสมาชิกสำเร็จ กรุณาตรวจสอบ email เพื่อยืนยัน' },
-      { status: 201 }
-    );
+    const jwtToken = await signToken({ userId, username, email, role: 'user', emailVerified: true });
+    const res = NextResponse.json({ message: 'สมัครสมาชิกสำเร็จ' }, { status: 201 });
+    res.cookies.set('auth_token', jwtToken, {
+      httpOnly: true, secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict', maxAge: 60 * 60 * 24 * 7, path: '/',
+    });
+    return res;
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error('[register]', msg);
