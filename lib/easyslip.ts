@@ -1,34 +1,43 @@
-export interface EasySlipResult {
+export interface BankSlipResponse {
   success: boolean;
   data?: {
-    ref:         string;
-    date:        string;
-    countryCode: string;
-    amount: { amount: number; local: { amount: number; currency: string } };
-    sender: {
-      bank:    { id: string; name: string; short: string };
-      account: { name: { th: string; en: string }; bank: { account?: string } };
-    };
-    receiver: {
-      bank:       { id: string; name: string; short: string };
-      account:    { name: { th: string; en: string }; bank: { account?: string } };
-      merchantId?: string;
+    isDuplicate:    boolean;
+    amountInSlip:   number;
+    matchedAccount: null | object;
+    rawSlip: {
+      transRef:    string;
+      date:        string;
+      countryCode: string;
+      amount:      { amount: number; local: { amount: number; currency: string } };
+      fee:         number;
+      sender: {
+        bank:    { id: string; name: string; short: string };
+        account: { name: { th?: string; en?: string } };
+      };
+      receiver: {
+        bank:       { id: string; name: string; short: string };
+        account:    { name: { th?: string; en?: string } };
+        merchantId?: string | null;
+      };
     };
   };
   error?: { code: string; message: string };
 }
 
-export interface TrueWalletResult {
-  status: number;
+export interface TrueWalletResponse {
+  success: boolean;
   data?: {
-    ref:    string;
-    date:   string;
-    amount: number;
-    sender:   { name: string; mobile?: string };
-    receiver: { name: string; mobile?: string };
-    type?:  string; // 'transfer' | 'angpao' etc.
+    isDuplicate:  boolean;
+    amountInSlip: number;
+    rawSlip: {
+      transactionId: string;
+      date:          string;
+      amount:        number;
+      sender:        { name: string };
+      receiver:      { name: string; phone: string };
+    };
   };
-  message?: string;
+  error?: { code: string; message: string };
 }
 
 function getKey() {
@@ -37,10 +46,12 @@ function getKey() {
   return k;
 }
 
-// v2 — Thai bank transfer slips (18+ banks)
-export async function verifyBankSlip(file: Blob, filename = 'slip.jpg'): Promise<EasySlipResult> {
+// v2 — Thai bank transfer slips (18+ banks + PromptPay)
+export async function verifyBankSlip(file: Blob, filename = 'slip.jpg'): Promise<BankSlipResponse> {
   const form = new FormData();
-  form.append('file', file, filename);
+  form.append('image', file, filename);          // field name must be "image"
+  form.append('checkDuplicate', 'true');
+
   const res = await fetch('https://api.easyslip.com/v2/verify/bank', {
     method:  'POST',
     headers: { Authorization: `Bearer ${getKey()}` },
@@ -49,11 +60,13 @@ export async function verifyBankSlip(file: Blob, filename = 'slip.jpg'): Promise
   return res.json();
 }
 
-// v1 — TrueMoney Wallet + Angpao slips
-export async function verifyTrueWallet(file: Blob, filename = 'slip.jpg'): Promise<TrueWalletResult> {
+// v2 — TrueMoney Wallet + Angpao slips
+export async function verifyTrueWallet(file: Blob, filename = 'slip.jpg'): Promise<TrueWalletResponse> {
   const form = new FormData();
-  form.append('file', file, filename);
-  const res = await fetch('https://api.easyslip.com/v1/verify/truewallet', {
+  form.append('image', file, filename);          // field name must be "image"
+  form.append('checkDuplicate', 'true');
+
+  const res = await fetch('https://api.easyslip.com/v2/verify/truewallet', {
     method:  'POST',
     headers: { Authorization: `Bearer ${getKey()}` },
     body:    form,
