@@ -321,10 +321,10 @@ export default function OrderPage() {
         {PLATFORMS.map(p => (
           <button key={p.label} onClick={() => setPlatform(p.label)}
             className={[
-              'glass-tab flex items-center gap-1.5 px-3 py-2 text-xs font-medium whitespace-nowrap shrink-0 transition-all',
+              'glass-tab flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap shrink-0 transition-all',
               platform === p.label ? 'glass-tab-active text-[#c4b5fd]' : 'text-[#94A3B8]',
             ].join(' ')}>
-            <span className="text-base leading-none">{p.icon}</span>
+            <span className="text-xl leading-none">{p.icon}</span>
             {p.label}
           </button>
         ))}

@@ -117,7 +117,7 @@ export default function ServicesPage() {
                 key={p.label}
                 onClick={() => setPlatform(p.label)}
                 className={[
-                  'glass-tab flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-all',
+                  'glass-tab flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all',
                   active
                     ? 'glass-tab-active text-[#c4b5fd]'
                     : count === 0
@@ -126,7 +126,7 @@ export default function ServicesPage() {
                 ].join(' ')}
                 disabled={count === 0 && p.label !== 'ทั้งหมด'}
               >
-                <span className="text-sm">{p.icon}</span>
+                <span className="text-xl leading-none">{p.icon}</span>
                 {p.label}
                 <span className={`text-[9px] px-1 py-0.5 rounded ${active ? 'bg-[rgba(139,92,246,0.25)] text-[#c4b5fd]' : 'bg-[rgba(139,92,246,0.10)] text-[#475569]'}`}>
                   {count}
