@@ -149,21 +149,19 @@ export default function TopupPage() {
 
         {slipType === 'bank' ? (
           <div className="flex flex-col sm:flex-row gap-4">
-            {PROMPTPAY && (
-              <div className="flex flex-col items-center gap-2 glass rounded-xl p-4 w-full sm:w-44 shrink-0">
-                <div className="flex items-center gap-1.5">
-                  <BsQrCodeScan size={13} className="text-[#475569]" />
-                  <p className="text-[10px] text-[#475569] uppercase tracking-widest">พร้อมเพย์</p>
-                </div>
-                <div className="p-2 bg-white rounded-xl w-36 h-36 flex items-center justify-center">
-                  {qrImg
-                    ? <img src={qrImg} alt="PromptPay QR" className="w-full h-full object-contain" />
-                    : <div className="w-full h-full bg-gray-100 animate-pulse rounded" />
-                  }
-                </div>
-                <p className="text-[10px] text-[#475569] text-center font-mono">{PROMPTPAY}</p>
+            <div className="flex flex-col items-center gap-2 glass rounded-xl p-4 w-full sm:w-44 shrink-0">
+              <div className="flex items-center gap-1.5">
+                <BsQrCodeScan size={13} className="text-[#475569]" />
+                <p className="text-[10px] text-[#475569] uppercase tracking-widest">พร้อมเพย์</p>
               </div>
-            )}
+              <div className="p-2 bg-white rounded-xl w-36 h-36 flex items-center justify-center">
+                {qrImg
+                  ? <img src={qrImg} alt="PromptPay QR" className="w-full h-full object-contain" />
+                  : <div className="w-full h-full bg-gray-100 animate-pulse rounded" />
+                }
+              </div>
+              {PROMPTPAY && <p className="text-[10px] text-[#475569] text-center font-mono">{PROMPTPAY}</p>}
+            </div>
             <div className="flex-1 glass rounded-xl p-4 space-y-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-[rgba(139,92,246,0.15)] flex items-center justify-center">
