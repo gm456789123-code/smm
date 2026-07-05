@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Service } from '@/lib/smm-api';
 import {
   BsFacebook, BsInstagram, BsTiktok, BsYoutube, BsTwitterX,
-  BsTwitch, BsCart3, BsGrid, BsStars,
+  BsTwitch, BsCart3, BsGrid, BsStars, BsTelegram, BsSpotify,
+  BsDiscord, BsLinkedin, BsWhatsapp,
 } from 'react-icons/bs';
 
 interface Platform {
@@ -13,19 +14,26 @@ interface Platform {
   match: (cat: string) => boolean;
 }
 
+const has = (c: string, ...words: string[]) => words.some(w => c.toLowerCase().includes(w.toLowerCase()));
+
 const PLATFORMS: Platform[] = [
   { label: 'ทั้งหมด',   icon: <BsGrid />,      match: () => true },
-  { label: 'Facebook',  icon: <BsFacebook />,   match: c => c.includes('แอปฟ้า') },
-  { label: 'Instagram', icon: <BsInstagram />,  match: c => c.includes('แอปชมพู') },
-  { label: 'TikTok',    icon: <BsTiktok />,     match: c => c.includes('ติ๊กต็อก') },
-  { label: 'YouTube',   icon: <BsYoutube />,    match: c => c.includes('Youtube') || c.includes('YouTube') },
-  { label: 'Twitter/X', icon: <BsTwitterX />,   match: c => c.includes('ทวิตเตอร์') || c.includes('Twitter') },
-  { label: 'Twitch',    icon: <BsTwitch />,     match: c => c.includes('Twitch') },
-  { label: 'Shopee',    icon: <BsCart3 />,      match: c => c.includes('Shopee') || c.includes('ช้อปปี้') },
+  { label: 'Facebook',  icon: <BsFacebook />,   match: c => has(c, 'แอปฟ้า', 'facebook') },
+  { label: 'Instagram', icon: <BsInstagram />,  match: c => has(c, 'แอปชมพู', 'instagram') },
+  { label: 'TikTok',    icon: <BsTiktok />,     match: c => has(c, 'ติ๊กต็อก', 'tiktok') },
+  { label: 'YouTube',   icon: <BsYoutube />,    match: c => has(c, 'youtube') },
+  { label: 'Twitter/X', icon: <BsTwitterX />,   match: c => has(c, 'ทวิตเตอร์', 'twitter') },
+  { label: 'Telegram',  icon: <BsTelegram />,   match: c => has(c, 'telegram') },
+  { label: 'Spotify',   icon: <BsSpotify />,    match: c => has(c, 'spotify') },
+  { label: 'Discord',   icon: <BsDiscord />,    match: c => has(c, 'discord') },
+  { label: 'LinkedIn',  icon: <BsLinkedin />,   match: c => has(c, 'linkedin') },
+  { label: 'WhatsApp',  icon: <BsWhatsapp />,   match: c => has(c, 'whatsapp') },
+  { label: 'Twitch',    icon: <BsTwitch />,     match: c => has(c, 'twitch') },
+  { label: 'Shopee',    icon: <BsCart3 />,      match: c => has(c, 'shopee', 'ช้อปปี้') },
   { label: 'อื่นๆ',     icon: <BsStars />,      match: c =>
-      !c.includes('แอปฟ้า') && !c.includes('แอปชมพู') && !c.includes('ติ๊กต็อก') &&
-      !c.includes('Youtube') && !c.includes('YouTube') && !c.includes('ทวิตเตอร์') &&
-      !c.includes('Twitter') && !c.includes('Twitch') && !c.includes('Shopee') && !c.includes('ช้อปปี้')
+      !has(c, 'แอปฟ้า','facebook','แอปชมพู','instagram','ติ๊กต็อก','tiktok',
+              'youtube','ทวิตเตอร์','twitter','telegram','spotify','discord',
+              'linkedin','whatsapp','twitch','shopee','ช้อปปี้')
   },
 ];
 
