@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# AURA SMM
 
-## Getting Started
+โปรเจกต์นี้เป็นเว็บ SMM Panel ที่พัฒนาด้วย Next.js สำหรับใช้งานฝั่งหน้าบ้านและหลังบ้านในระบบเดียว มีทั้งหน้าแสดงบริการ หน้าล็อกอิน พื้นที่แอดมิน และการเชื่อมต่อฐานข้อมูล MySQL
 
-First, run the development server:
+## ใช้เทคโนโลยีอะไรบ้าง
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- MySQL
+- next-intl
+- Stripe
+
+## ความสามารถหลักของระบบ
+
+- หน้าเว็บไซต์สาธารณะสำหรับแสดงบริการ
+- ระบบล็อกอินและแยกส่วนการใช้งาน
+- หน้าแดชบอร์ดและหลังบ้าน
+- ระบบบทความ Blog
+- เชื่อมต่อฐานข้อมูล MySQL
+- รองรับการชำระเงินและเครื่องมือที่เกี่ยวข้องกับ top-up
+
+## เริ่มใช้งานในเครื่อง
+
+ติดตั้งแพ็กเกจก่อน
+
+```bash
+npm install
+```
+
+จากนั้นรันโหมดพัฒนา
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+เมื่อรันสำเร็จแล้ว ให้เปิด `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## การใช้งานฐานข้อมูล
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+โปรเจกต์นี้มี `docker-compose.yml` สำหรับเปิด MySQL และ phpMyAdmin
 
-## Learn More
+รันคำสั่งนี้เพื่อเปิดฐานข้อมูล
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+docker compose up -d
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+ค่าพื้นฐานที่ใช้ในไฟล์ docker มีดังนี้
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- MySQL: `localhost:3306`
+- Database: `smm`
+- Username: `root`
+- Password: `root`
+- phpMyAdmin: `http://localhost:8081`
 
-## Deploy on Vercel
+## Environment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+ในโปรเจกต์นี้มีการใช้งานไฟล์ environment เช่น `.env` และ `.env.local` ดังนั้นก่อนรันจริงควรตรวจสอบค่าต่อไปนี้ให้เรียบร้อย
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- การเชื่อมต่อฐานข้อมูล
+- คีย์ของ Stripe
+- ค่าที่ใช้สำหรับ auth หรือ token
+- อีเมลหรือ service ที่ใช้ส่งข้อความจากระบบ
+
+## คำสั่งที่ใช้บ่อย
+
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+```
+
+## โครงสร้างโดยรวมของโปรเจกต์
+
+- `app/` เก็บ routes และ layout ของระบบ
+- `components/` เก็บ UI components
+- `lib/` เก็บ utility และ logic ที่ใช้ร่วมกัน
+- `database/` เก็บไฟล์ที่เกี่ยวกับฐานข้อมูล
+- `public/` เก็บไฟล์ static
+
+## หมายเหตุ
+
+README นี้เขียนไว้เพื่อช่วยให้เปิดโปรเจกต์ขึ้นมาทำงานต่อได้เร็ว ถ้าจะนำขึ้น production แนะนำให้เช็กค่า environment, ความปลอดภัยของฐานข้อมูล, และการตั้งค่า deployment ให้ครบอีกครั้ง
