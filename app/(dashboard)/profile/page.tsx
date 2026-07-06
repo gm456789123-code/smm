@@ -59,8 +59,8 @@ export default function ProfilePage() {
       </div>
 
       {/* Avatar + info */}
-      <div className="glass p-6 flex items-center gap-5">
-        <div className="w-16 h-16 rounded-2xl bg-[rgba(139,92,246,0.2)] flex items-center justify-center text-2xl font-bold text-[#a78bfa]">
+      <div className="glass border-t-2 border-t-[#8B5CF6]/60 p-6 flex items-center gap-5">
+        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center text-2xl font-bold text-white shadow-lg shadow-purple-500/20">
           {user.username[0]?.toUpperCase()}
         </div>
         <div>

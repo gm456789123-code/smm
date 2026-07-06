@@ -37,13 +37,13 @@ export default function BalancePage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'ยอดคงเหลือ',  value: `฿${summary?.balance.toFixed(2) ?? '0.00'}`,        color: 'text-[#06B6D4] text-glow-cyan' },
-          { label: 'เติมเงินรวม', value: `฿${summary?.total_topup.toFixed(2) ?? '0.00'}`,    color: 'text-[#8B5CF6] text-glow-indigo' },
-          { label: 'ใช้จ่ายรวม',  value: `฿${summary?.total_spent.toFixed(2) ?? '0.00'}`,    color: 'text-rose-400' },
-          { label: 'ธุรกรรมทั้งหมด', value: summary?.tx_count ?? 0,                         color: 'text-violet-400' },
+          { label: 'ยอดคงเหลือ',     value: `฿${summary?.balance.toFixed(2) ?? '0.00'}`,     color: 'text-[#06B6D4] text-glow-cyan',   border: 'border-t-[#06B6D4]/60' },
+          { label: 'เติมเงินรวม',   value: `฿${summary?.total_topup.toFixed(2) ?? '0.00'}`, color: 'text-emerald-400',                border: 'border-t-emerald-400/60' },
+          { label: 'ใช้จ่ายรวม',    value: `฿${summary?.total_spent.toFixed(2) ?? '0.00'}`, color: 'text-rose-400',                   border: 'border-t-rose-400/60' },
+          { label: 'ธุรกรรมทั้งหมด', value: summary?.tx_count ?? 0,                        color: 'text-[#8B5CF6] text-glow-indigo', border: 'border-t-[#8B5CF6]/60' },
         ].map(s => (
-          <div key={s.label} className="glass p-5">
-            <p className="text-[10px] text-[#475569] uppercase tracking-widest">{s.label}</p>
+          <div key={s.label} className={`glass border-t-2 ${s.border} p-5`}>
+            <p className="text-[10px] text-[#64748b] uppercase tracking-widest">{s.label}</p>
             <p className={`font-[family-name:var(--font-inter)] text-xl font-bold mt-1.5 ${s.color}`}>{s.value}</p>
           </div>
         ))}

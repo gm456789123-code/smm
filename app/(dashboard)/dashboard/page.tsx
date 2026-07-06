@@ -153,7 +153,9 @@ export default function DashboardPage() {
       label: 'ยอดคงเหลือ',
       value: loading ? '...' : `฿${Number(user?.balance ?? 0).toFixed(2)}`,
       color: 'text-[#06B6D4]', glow: 'text-glow-cyan',
-      iconBg: 'bg-[rgba(6,182,212,0.10)]', iconColor: '#06B6D4',
+      iconBg: 'bg-[rgba(6,182,212,0.18)]', iconColor: '#06B6D4',
+      border: 'border-t-[#06B6D4]/60',
+      shadow: 'hover:shadow-[0_8px_32px_rgba(6,182,212,0.18)]',
       href: '/topup',
     },
     {
@@ -161,7 +163,9 @@ export default function DashboardPage() {
       label: 'ออเดอร์ทั้งหมด',
       value: loading ? '...' : String(totalOrders),
       color: 'text-[#8B5CF6]', glow: 'text-glow-indigo',
-      iconBg: 'bg-[rgba(139,92,246,0.10)]', iconColor: '#8B5CF6',
+      iconBg: 'bg-[rgba(139,92,246,0.18)]', iconColor: '#8B5CF6',
+      border: 'border-t-[#8B5CF6]/60',
+      shadow: 'hover:shadow-[0_8px_32px_rgba(139,92,246,0.20)]',
       href: '/orders',
     },
     {
@@ -169,7 +173,9 @@ export default function DashboardPage() {
       label: 'กำลังดำเนินการ',
       value: loading ? '...' : String(activeOrders),
       color: 'text-amber-400', glow: '',
-      iconBg: 'bg-amber-500/10', iconColor: '#f59e0b',
+      iconBg: 'bg-amber-500/20', iconColor: '#f59e0b',
+      border: 'border-t-amber-400/60',
+      shadow: 'hover:shadow-[0_8px_32px_rgba(245,158,11,0.18)]',
       href: '/orders',
     },
     {
@@ -177,7 +183,9 @@ export default function DashboardPage() {
       label: 'สำเร็จแล้ว',
       value: loading ? '...' : String(completedOrders),
       color: 'text-emerald-400', glow: '',
-      iconBg: 'bg-emerald-500/10', iconColor: '#10b981',
+      iconBg: 'bg-emerald-500/20', iconColor: '#10b981',
+      border: 'border-t-emerald-400/60',
+      shadow: 'hover:shadow-[0_8px_32px_rgba(16,185,129,0.18)]',
       href: '/orders',
     },
   ];
@@ -195,10 +203,10 @@ export default function DashboardPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {STATS.map(({ icon: Icon, label, value, color, glow, iconBg, iconColor, href }) => (
-          <Link key={label} href={href} className="glass p-5 hover:bg-[rgba(139,92,246,0.06)] transition-colors group">
+        {STATS.map(({ icon: Icon, label, value, color, glow, iconBg, iconColor, border, shadow, href }) => (
+          <Link key={label} href={href} className={`glass border-t-2 ${border} p-5 transition-all duration-300 ${shadow} group`}>
             <div className="flex items-start justify-between mb-3">
-              <p className="text-[10px] text-[#475569] uppercase tracking-widest">{label}</p>
+              <p className="text-[10px] text-[#64748b] uppercase tracking-widest">{label}</p>
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${iconBg}`}>
                 <Icon size={15} color={iconColor} />
               </div>

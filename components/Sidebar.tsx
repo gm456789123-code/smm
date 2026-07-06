@@ -164,7 +164,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
 
       {/* User info */}
       <div className="px-3 py-3 mb-1 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-[rgba(139,92,246,0.25)] flex items-center justify-center text-sm font-bold text-[#a78bfa]">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center text-sm font-bold text-white shadow-md shadow-purple-500/25">
           {username[0]?.toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">

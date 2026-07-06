@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server';
+import { clearAuthCookie } from '@/lib/auth';
 
 export async function POST() {
-  const res = NextResponse.json({ message: 'ออกจากระบบแล้ว' });
-  res.cookies.set('auth_token', '', {
-    maxAge: 0,
-    path: '/',
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-  });
+  const res = NextResponse.json({ message: 'Logged out successfully.' });
+  clearAuthCookie(res);
   return res;
 }
-

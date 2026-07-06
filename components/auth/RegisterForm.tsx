@@ -28,6 +28,12 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [otpStep, setOtpStep] = useState(false);
+  const [otpRef, setOtpRef] = useState('');
+  const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
+  const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
+  const [otpDone, setOtpDone] = useState(false);
 
   useEffect(() => {
     const handlePageShow = (e: PageTransitionEvent) => {
@@ -39,13 +45,6 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
     return () => window.removeEventListener('pageshow', handlePageShow);
   }, []);
 
-  const [success, setSuccess] = useState(false);
-  const [otpStep, setOtpStep] = useState(false);
-  const [otpRef, setOtpRef] = useState('');
-  const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
-  const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
-  const [otpDone, setOtpDone] = useState(false);
-
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
     setError('');
@@ -53,9 +52,9 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
 
   function handleOtpChange(index: number, val: string) {
     if (!/^\d*$/.test(val)) return;
-    const newOtp = [...otpCode];
-    newOtp[index] = val;
-    setOtpCode(newOtp);
+    const nextOtp = [...otpCode];
+    nextOtp[index] = val;
+    setOtpCode(nextOtp);
     if (val && index < 5) otpInputs.current[index + 1]?.focus();
   }
 
@@ -71,6 +70,7 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
       setError('รหัสผ่านไม่ตรงกัน');
       return;
     }
+
     setLoading(true);
     setError('');
     try {
@@ -86,7 +86,10 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
         }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error); return; }
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
       if (data.requireOtp) {
         setOtpRef(data.ref ?? '');
         setOtpStep(true);
@@ -111,7 +114,10 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
         body: JSON.stringify({ otp: otpCode.join(''), ref: otpRef }),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error); return; }
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
       setOtpDone(true);
       setTimeout(() => {
         if (inModal) {
@@ -132,7 +138,7 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
   if (otpDone) {
     return (
       <div className="glass relative w-full max-w-md p-8 text-center space-y-4">
-        <div className="text-5xl">✅</div>
+        <div className="text-5xl">OK</div>
         <h2 className="font-[family-name:var(--font-jakarta)] text-xl font-bold text-white">ยืนยันสำเร็จ!</h2>
         <p className="text-[#94A3B8] text-sm">กำลังพาเข้าสู่ระบบ...</p>
       </div>
@@ -142,8 +148,8 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
   if (otpStep) {
     return (
       <div className="glass relative w-full max-w-sm p-8 space-y-6">
-        <button onClick={onSuccess} className="absolute top-4 right-4 text-[#475569] hover:text-white transition-colors">
-            <BsX size={24} />
+        <button type="button" onClick={onSuccess} className="absolute top-4 right-4 text-[#475569] hover:text-white transition-colors">
+          <BsX size={24} />
         </button>
         <div>
           <p className="font-[family-name:var(--font-jakarta)] text-2xl font-extrabold">
@@ -181,8 +187,8 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
   if (success) {
     return (
       <div className="glass w-full max-w-md p-8 text-center space-y-4">
-        <div className="text-5xl">📧</div>
-        <h2 className="font-[family-name:var(--font-jakarta)] text-xl font-bold text-white">ตรวจสอบ Email ของคุณ</h2>
+        <div className="text-5xl">EMAIL</div>
+        <h2 className="font-[family-name:var(--font-jakarta)] text-xl font-bold text-white">ตรวจสอบอีเมลของคุณ</h2>
         <p className="text-[#94A3B8] text-sm leading-relaxed">
           เราส่งลิงก์ยืนยันไปที่ <strong className="text-[#F1F5F9]">{form.email}</strong> แล้ว
         </p>
@@ -292,4 +298,3 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
     </div>
   );
 }
-

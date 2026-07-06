@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/jwt';
+import { getRequestUser } from '@/lib/auth';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 async function checkAdmin(req: NextRequest) {
-  const token = req.cookies.get('auth_token')?.value;
-  const user  = token ? await verifyToken(token) : null;
+  const user = await getRequestUser(req);
   return user?.role === 'admin' ? user : null;
 }
 

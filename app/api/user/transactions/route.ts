@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/jwt';
+import { getRequestUser } from '@/lib/auth';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 
 export async function GET(req: NextRequest) {
-  const token = req.cookies.get('auth_token')?.value;
-  const user  = token ? await verifyToken(token) : null;
+  const user = await getRequestUser(req);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const [rows] = await db.query<RowDataPacket[]>(

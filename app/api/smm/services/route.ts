@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getRequestUser } from '@/lib/auth';
 import { smmApi, kmApi } from '@/lib/smm-api';
-import { verifyToken } from '@/lib/jwt';
-
 export async function GET(req: NextRequest) {
-  const token = req.cookies.get('auth_token')?.value;
-  if (!token || !await verifyToken(token)) {
+  const user = await getRequestUser(req);
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   try {
@@ -14,7 +13,7 @@ export async function GET(req: NextRequest) {
       ...(s2.status === 'fulfilled' ? s2.value : []),
     ];
     return NextResponse.json(services);
-  } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }

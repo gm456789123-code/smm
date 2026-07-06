@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { comparePassword, signToken } from '@/lib/auth';
+import { comparePassword, setAuthCookie, signToken } from '@/lib/auth';
 import { RowDataPacket } from 'mysql2';
 import {
   checkRateLimit,
@@ -16,17 +16,17 @@ export async function POST(req: NextRequest) {
 
     const lock = getLoginLockState(`login-lock:${ip}`);
     if (lock.locked) {
-      return NextResponse.json({ error: 'ลองผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many failed attempts. Please try again later.' }, { status: 429 });
     }
 
     const rl = checkRateLimit(`login:${ip}`, 10, 10 * 60 * 1000);
     if (!rl.ok) {
-      return NextResponse.json({ error: 'คำขอมากเกินไป กรุณารอสักครู่' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
     const { login, password } = await req.json();
     if (!login || !password) {
-      return NextResponse.json({ error: 'กรุณากรอก username/email และ password' }, { status: 400 });
+      return NextResponse.json({ error: 'Please provide username/email and password.' }, { status: 400 });
     }
 
     const [rows] = await db.query<RowDataPacket[]>(
@@ -36,14 +36,14 @@ export async function POST(req: NextRequest) {
 
     if (rows.length === 0) {
       recordLoginFailure(`login-lock:${ip}`);
-      return NextResponse.json({ error: 'ไม่พบผู้ใช้งาน' }, { status: 401 });
+      return NextResponse.json({ error: 'User not found.' }, { status: 401 });
     }
 
     const user = rows[0];
     const valid = await comparePassword(password, user.password_hash);
     if (!valid) {
       recordLoginFailure(`login-lock:${ip}`);
-      return NextResponse.json({ error: 'รหัสผ่านไม่ถูกต้อง' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
     }
 
     const token = await signToken({
@@ -56,17 +56,11 @@ export async function POST(req: NextRequest) {
 
     clearLoginFailures(`login-lock:${ip}`);
 
-    const res = NextResponse.json({ message: 'เข้าสู่ระบบสำเร็จ' });
-    res.cookies.set('auth_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7,
-      path: '/',
-    });
+    const res = NextResponse.json({ message: 'Login successful.' });
+    setAuthCookie(res, token);
     return res;
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' }, { status: 500 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }

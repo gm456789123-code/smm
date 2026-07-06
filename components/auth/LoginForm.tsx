@@ -11,25 +11,25 @@ interface LoginFormProps {
   onSuccess?: () => void;
 }
 
+function getAuthErrorMessage(urlError: string | null) {
+  if (!urlError) return '';
+  if (urlError === 'GoogleAuthFailed') return 'การยืนยันตัวตนกับ Google ล้มเหลว';
+  if (urlError === 'GoogleTokenError') return 'ไม่สามารถขอรับข้อมูลจาก Google ได้';
+  if (urlError === 'NoEmailProvided') return 'บัญชี Google นี้ไม่มีอีเมลให้ระบบใช้งาน';
+  if (urlError === 'InternalServerError') return 'เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่';
+  return `เกิดข้อผิดพลาดในการเข้าสู่ระบบ: ${urlError}`;
+}
+
 export default function LoginForm({ inModal = false, onSwitchToRegister, onSuccess }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [form, setForm] = useState({ login: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const displayError = error || getAuthErrorMessage(searchParams.get('error'));
 
   useEffect(() => {
-    const urlError = searchParams.get('error');
-    if (urlError) {
-      if (urlError === 'GoogleAuthFailed') setError('การยืนยันตัวตนกับ Google ล้มเหลว');
-      else if (urlError === 'GoogleTokenError') setError('ไม่สามารถขอรับข้อมูลจาก Google ได้');
-      else if (urlError === 'InternalServerError') setError('เกิดข้อผิดพลาดในระบบฐานข้อมูล');
-      else setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ: ' + urlError);
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    // แก้ปัญหาเวลากดย้อนกลับ (Back) แล้วปุ่มต่างๆ บนหน้าเว็บค้าง
+    // Reload when restoring from back-forward cache so auth UI stays in sync.
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
         window.location.reload();
@@ -55,7 +55,10 @@ export default function LoginForm({ inModal = false, onSwitchToRegister, onSucce
         body: JSON.stringify(form),
       });
       const data = await res.json();
-      if (!res.ok) { setError(data.error); return; }
+      if (!res.ok) {
+        setError(data.error);
+        return;
+      }
       router.push('/dashboard');
       router.refresh();
       if (inModal) onSuccess?.();
@@ -126,9 +129,9 @@ export default function LoginForm({ inModal = false, onSwitchToRegister, onSucce
           />
         </div>
 
-        {error && (
+        {displayError && (
           <div className="glass border-[rgba(239,68,68,0.3)] bg-[rgba(239,68,68,0.08)] px-3 py-2.5 text-sm text-red-400 rounded-xl">
-            {error}
+            {displayError}
           </div>
         )}
 

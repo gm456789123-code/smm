@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import db from '@/lib/db';
-import { hashPassword, generateReferralCode } from '@/lib/auth';
+import { generateReferralCode, hashPassword, setAuthCookie } from '@/lib/auth';
 import { signToken } from '@/lib/jwt';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
@@ -18,46 +18,52 @@ export async function POST(req: NextRequest) {
     const ip = getClientIp(req);
     const rl = checkRateLimit(`register:${ip}`, 5, 10 * 60 * 1000);
     if (!rl.ok) {
-      return NextResponse.json({ error: 'คำขอมากเกินไป กรุณาลองใหม่ภายหลัง' }, { status: 429 });
+      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
     const body: RegisterBody = await req.json();
     const { username, email, phone, password, referralCode } = body;
 
-    if (!username || !email || !password)
-      return NextResponse.json({ error: 'username, email, password จำเป็น' }, { status: 400 });
+    if (!username || !email || !password) {
+      return NextResponse.json({ error: 'username, email, and password are required.' }, { status: 400 });
+    }
 
-    if (username.length < 3 || username.length > 30)
-      return NextResponse.json({ error: 'username ต้อง 3–30 ตัวอักษร' }, { status: 400 });
+    if (username.length < 3 || username.length > 30) {
+      return NextResponse.json({ error: 'username must be 3-30 characters.' }, { status: 400 });
+    }
 
-    if (!/^[a-zA-Z0-9_]+$/.test(username))
-      return NextResponse.json({ error: 'username ใช้ได้เฉพาะ a-z, 0-9, _' }, { status: 400 });
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return NextResponse.json({ error: 'username may contain only a-z, 0-9, and _.' }, { status: 400 });
+    }
 
-    if (password.length < 6)
-      return NextResponse.json({ error: 'password ต้องอย่างน้อย 6 ตัวอักษร' }, { status: 400 });
+    if (password.length < 6) {
+      return NextResponse.json({ error: 'password must be at least 6 characters.' }, { status: 400 });
+    }
 
-    if (password.length > 128)
-      return NextResponse.json({ error: 'password ยาวเกินไป (สูงสุด 128 ตัวอักษร)' }, { status: 400 });;
+    if (password.length > 128) {
+      return NextResponse.json({ error: 'password is too long (max 128 characters).' }, { status: 400 });
+    }
 
-    // Check duplicate
     const [existing] = await db.query<RowDataPacket[]>(
       'SELECT id FROM users WHERE username = ? OR email = ?',
       [username, email]
     );
-    if (existing.length > 0)
-      return NextResponse.json({ error: 'username หรือ email นี้มีผู้ใช้แล้ว' }, { status: 409 });
+    if (existing.length > 0) {
+      return NextResponse.json({ error: 'This username or email is already in use.' }, { status: 409 });
+    }
 
-    // Resolve referral
     let referredById: number | null = null;
     if (referralCode) {
       const [refRows] = await db.query<RowDataPacket[]>(
         'SELECT id FROM users WHERE referral_code = ?',
         [referralCode]
       );
-      if (refRows.length > 0) referredById = refRows[0].id;
+      if (refRows.length > 0) {
+        referredById = refRows[0].id;
+      }
     }
 
-    const passwordHash  = await hashPassword(password);
+    const passwordHash = await hashPassword(password);
     const myReferralCode = generateReferralCode(username);
 
     const [result] = await db.query<ResultSetHeader>(
@@ -67,21 +73,19 @@ export async function POST(req: NextRequest) {
     );
 
     const userId = result.insertId;
-
     const jwtToken = await signToken({ userId, username, email, role: 'user', emailVerified: true });
-    const res = NextResponse.json({ message: 'สมัครสมาชิกสำเร็จ' }, { status: 201 });
-    res.cookies.set('auth_token', jwtToken, {
-      httpOnly: true, secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict', maxAge: 60 * 60 * 24 * 7, path: '/',
-    });
+
+    const res = NextResponse.json({ message: 'Registration successful.' }, { status: 201 });
+    setAuthCookie(res, jwtToken);
     return res;
-  } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error('[register]', msg);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('[register]', message);
 
-    if (msg.includes('ER_DUP_ENTRY'))
-      return NextResponse.json({ error: 'username หรือ email นี้มีผู้ใช้แล้ว' }, { status: 409 });
+    if (message.includes('ER_DUP_ENTRY')) {
+      return NextResponse.json({ error: 'This username or email is already in use.' }, { status: 409 });
+    }
 
-    return NextResponse.json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่' }, { status: 500 });
+    return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
   }
 }
