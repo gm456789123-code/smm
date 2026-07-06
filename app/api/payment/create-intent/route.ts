@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Amount must be between THB 20 and THB 50,000.' }, { status: 400 });
     }
 
-    const METHOD_MAP: Record<string, Stripe.PaymentIntentCreateParams.PaymentMethodType[]> = {
+    const METHOD_MAP: Record<string, string[]> = {
       promptpay: ['promptpay'],
       truemoney: ['truemoney'],
       card: ['card'],
