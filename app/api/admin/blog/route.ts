@@ -28,14 +28,16 @@ export async function POST(req: NextRequest) {
   const admin = await checkAdmin(req);
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const { title, slug, excerpt, content, cover_image, published } = await req.json();
+  const { title, slug, excerpt, content, cover_image, meta_title, meta_description, focus_keyword, og_image, published } = await req.json();
   if (!title || !slug) return NextResponse.json({ error: 'title และ slug จำเป็น' }, { status: 400 });
 
   const publishedAt = published ? new Date() : null;
   const [result] = await db.query<ResultSetHeader>(
-    `INSERT INTO blog_posts (slug,title,excerpt,content,cover_image,author_id,published,published_at)
-     VALUES (?,?,?,?,?,?,?,?)`,
-    [slug, title, excerpt ?? null, content ?? null, cover_image ?? null, admin.userId, published ?? 0, publishedAt]
+    `INSERT INTO blog_posts (slug,title,excerpt,content,cover_image,meta_title,meta_description,focus_keyword,og_image,author_id,published,published_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [slug, title, excerpt ?? null, content ?? null, cover_image ?? null,
+     meta_title ?? null, meta_description ?? null, focus_keyword ?? null, og_image ?? null,
+     admin.userId, published ?? 0, publishedAt]
   );
   return NextResponse.json({ id: result.insertId }, { status: 201 });
 }

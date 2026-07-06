@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { BsShieldFill } from 'react-icons/bs';
 
 const NAV = [
   {
@@ -79,6 +80,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
   const path = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const isCMS = path.startsWith('/admin');
 
   // ปิด sidebar เมื่อเปลี่ยนหน้า
   useEffect(() => { setOpen(false); }, [path]);
@@ -160,20 +162,17 @@ export default function Sidebar({ role, username }: SidebarProps) {
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-[#F1F5F9] truncate">{username}</p>
-          <p className="text-xs text-[#475569]">{role === 'admin' ? '👑 Admin' : 'ผู้ใช้งาน'}</p>
+          <p className="text-xs text-[#475569] flex items-center gap-1">
+            {role === 'admin' && <BsShieldFill size={10} className="text-yellow-400" />}
+            {role === 'admin' ? 'Admin' : 'ผู้ใช้งาน'}
+          </p>
         </div>
       </div>
 
-      {/* User Nav */}
+      {/* Nav */}
       <nav className="flex flex-col gap-1 flex-1">
-        {NAV.map((item) => <NavItem key={item.href} {...item} />)}
-
-        {/* Admin section */}
-        {role === 'admin' && (
+        {isCMS ? (
           <>
-            <div className="mt-3 mb-1 px-3">
-              <p className="text-[10px] text-[#334155] uppercase tracking-widest">จัดการระบบ</p>
-            </div>
             {ADMIN_NAV.map((item) => (
               <Link key={item.href} href={item.href}
                 className={['glass-tab flex items-center gap-3 px-4 py-3 text-base font-medium border-[rgba(251,191,36,0.15)]',
@@ -187,20 +186,44 @@ export default function Sidebar({ role, username }: SidebarProps) {
               </Link>
             ))}
           </>
+        ) : (
+          NAV.map((item) => <NavItem key={item.href} {...item} />)
         )}
       </nav>
 
+      {/* CMS toggle — admin only */}
+      {role === 'admin' && (
+        isCMS ? (
+          <Link href="/dashboard"
+            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#94A3B8] hover:text-white border border-[rgba(139,92,246,0.2)] hover:border-[rgba(139,92,246,0.4)] hover:bg-[rgba(139,92,246,0.08)] transition-all mt-1">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            กลับหน้าหลัก
+          </Link>
+        ) : (
+          <Link href="/admin"
+            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-yellow-400 hover:text-yellow-300 border border-[rgba(251,191,36,0.25)] hover:border-[rgba(251,191,36,0.5)] hover:bg-[rgba(251,191,36,0.06)] transition-all mt-1">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            CMS
+          </Link>
+        )
+      )}
+
       {/* Balance */}
-      <div className="glass-tab px-3 py-3 mt-2 border-[rgba(6,182,212,0.2)]">
-        <p className="text-[10px] text-[#475569] uppercase tracking-wider">ยอดเงิน</p>
+      <div className="rounded-xl px-3 py-3 mt-2 border border-[rgba(6,182,212,0.25)] bg-[rgba(6,182,212,0.07)]">
+        <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-semibold">ยอดเงิน</p>
         <p className="text-[#06B6D4] text-glow-cyan font-bold font-[family-name:var(--font-inter)] text-base mt-0.5">
-          ฿0.00 <span className="text-[#475569] text-xs font-normal">THB</span>
+          ฿0.00 <span className="text-[#64748B] text-xs font-normal">THB</span>
         </p>
       </div>
 
       {/* Logout */}
       <button onClick={handleLogout}
-        className="glass-tab flex items-center gap-3 px-4 py-3 text-base text-[#CBD5E1] hover:text-red-400 transition-colors mt-1">
+        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-[rgba(239,68,68,0.08)] transition-all mt-1">
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
           <path strokeLinecap="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
         </svg>

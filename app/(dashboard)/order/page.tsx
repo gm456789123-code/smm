@@ -334,7 +334,7 @@ export default function OrderPage() {
       <div className="flex gap-4 flex-1 min-h-0 flex-col lg:flex-row">
 
         {/* Service list panel */}
-        <div className="glass flex flex-col lg:w-[420px] xl:w-[480px] shrink-0 overflow-hidden">
+        <div className="glass flex flex-col lg:w-[720px] xl:w-[800px] shrink-0 overflow-hidden">
           <div className="p-3 border-b border-[rgba(139,92,246,0.10)]">
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="ค้นหาบริการ หรือ ID..."

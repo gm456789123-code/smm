@@ -184,7 +184,8 @@ export default function TopupPage() {
             value={voucherInput}
             onChange={e => { setVoucherInput(e.target.value); setResult(null); }}
             placeholder="วางลิ้งหรือโค้ดซองที่นี่..."
-            className="w-full glass px-4 py-3 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border border-[rgba(239,68,68,0.2)] focus:border-[rgba(239,68,68,0.5)] transition-colors"
+            autoFocus
+            className="w-full px-4 py-3.5 text-sm text-white bg-[rgba(255,255,255,0.06)] outline-none placeholder-[#64748B] rounded-xl border border-[rgba(139,92,246,0.4)] focus:border-[#a78bfa] focus:bg-[rgba(255,255,255,0.09)] transition-all"
           />
 
           <button type="submit" disabled={!voucherInput.trim() || loading}
