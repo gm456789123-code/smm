@@ -7,7 +7,7 @@ import generatePayload from 'promptpay-qr';
 import {
   BsBank2, BsQrCodeScan, BsUpload, BsCheckCircleFill,
   BsExclamationCircleFill, BsArrowRight, BsShieldCheck, BsWallet2,
-  BsChevronLeft, BsGift,
+  BsChevronLeft, BsGift, BsClipboard, BsClipboardCheck,
 } from 'react-icons/bs';
 
 const BANK_NAME    = process.env.NEXT_PUBLIC_BANK_NAME           ?? 'ธนาคาร';
@@ -35,6 +35,14 @@ const COLOR_MAP = {
 
 export default function TopupPage() {
   const [slipType,  setSlipType]  = useState<SlipType>('promptpay');
+  const [copied,    setCopied]    = useState(false);
+
+  function copyAccNo() {
+    navigator.clipboard.writeText(ACCOUNT_NO).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
   const [amount,    setAmount]    = useState<number | null>(null);
   const [custom,    setCustom]    = useState('');
   const [confirmed, setConfirmed] = useState(false);
@@ -293,7 +301,13 @@ export default function TopupPage() {
                     </div>
                     <div>
                       <p className="text-[10px] text-[#475569] uppercase tracking-widest">เลขบัญชี</p>
-                      <p className="text-base font-bold font-mono text-[#06B6D4] tracking-widest mt-0.5">{ACCOUNT_NO}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-base font-bold font-mono text-[#06B6D4] tracking-widest">{ACCOUNT_NO}</p>
+                        <button type="button" onClick={copyAccNo}
+                          className="text-[#475569] hover:text-[#06B6D4] transition-colors">
+                          {copied ? <BsClipboardCheck size={14} className="text-emerald-400" /> : <BsClipboard size={14} />}
+                        </button>
+                      </div>
                     </div>
                     <div className="pt-1 border-t border-[rgba(139,92,246,0.08)]">
                       <p className="text-[10px] text-[#475569] uppercase tracking-widest">ยอดที่ต้องโอน</p>

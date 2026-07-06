@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
 import { BsShieldFill } from 'react-icons/bs';
+import { useEffect, useState } from 'react';
 
 const NAV = [
   {
@@ -79,8 +79,15 @@ interface SidebarProps {
 export default function Sidebar({ role, username }: SidebarProps) {
   const path = usePathname();
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]       = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
   const isCMS = path.startsWith('/admin');
+
+  useEffect(() => {
+    fetch('/api/user/me').then(r => r.json()).then(d => {
+      if (d && !d.error) setBalance(Number(d.balance));
+    }).catch(() => null);
+  }, [path]);
 
   // ปิด sidebar เมื่อเปลี่ยนหน้า
   useEffect(() => { setOpen(false); }, [path]);
@@ -217,7 +224,10 @@ export default function Sidebar({ role, username }: SidebarProps) {
       <div className="rounded-xl px-3 py-3 mt-2 border border-[rgba(6,182,212,0.25)] bg-[rgba(6,182,212,0.07)]">
         <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-semibold">ยอดเงิน</p>
         <p className="text-[#06B6D4] text-glow-cyan font-bold font-[family-name:var(--font-inter)] text-base mt-0.5">
-          ฿0.00 <span className="text-[#64748B] text-xs font-normal">THB</span>
+          {balance === null
+            ? <span className="animate-pulse text-[#334155]">loading...</span>
+            : <>{balance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} <span className="text-[#64748B] text-xs font-normal">THB</span></>
+          }
         </p>
       </div>
 
