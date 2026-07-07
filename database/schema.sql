@@ -90,3 +90,18 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   INDEX idx_slug (slug),
   INDEX idx_published (published)
 );
+
+CREATE TABLE IF NOT EXISTS support_tickets (
+  id            INT AUTO_INCREMENT PRIMARY KEY,
+  user_id       INT           NOT NULL,
+  category      VARCHAR(100)  NOT NULL,
+  order_ref     VARCHAR(50)   DEFAULT NULL,
+  detail        TEXT          NOT NULL,
+  ticket_status VARCHAR(20)   DEFAULT 'open',
+  admin_note    TEXT          DEFAULT NULL,
+  created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_user (user_id),
+  INDEX idx_status (ticket_status)
+);

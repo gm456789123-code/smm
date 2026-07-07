@@ -7,25 +7,48 @@ import {
   BsArrowRight, BsWallet2, BsBoxSeam,
   BsClockHistory, BsCheckCircle, BsExclamationCircle,
   BsCheckLg,
+  BsFacebook, BsInstagram, BsTiktok, BsYoutube, BsTwitterX,
+  BsTwitch, BsCart3, BsGrid, BsStars, BsTelegram, BsSpotify,
+  BsDiscord, BsLinkedin, BsWhatsapp,
 } from 'react-icons/bs';
 
-const PLATFORMS = ['ทั้งหมด', 'Instagram', 'TikTok', 'YouTube', 'Facebook', 'Twitter', 'Telegram', 'Spotify'];
+const PLATFORMS = [
+  { id: 'ทั้งหมด',   icon: BsGrid },
+  { id: 'Facebook',  icon: BsFacebook },
+  { id: 'Instagram', icon: BsInstagram },
+  { id: 'TikTok',    icon: BsTiktok },
+  { id: 'YouTube',   icon: BsYoutube },
+  { id: 'Twitter/X', icon: BsTwitterX },
+  { id: 'Telegram',  icon: BsTelegram },
+  { id: 'Spotify',   icon: BsSpotify },
+  { id: 'Discord',   icon: BsDiscord },
+  { id: 'LinkedIn',  icon: BsLinkedin },
+  { id: 'WhatsApp',  icon: BsWhatsapp },
+  { id: 'Twitch',    icon: BsTwitch },
+  { id: 'Shopee',    icon: BsCart3 },
+  { id: 'อื่นๆ',     icon: BsStars },
+];
 
-const PLATFORM_KEYWORDS: Record<string, string[]> = {
-  Instagram: ['instagram', 'ig '],
-  TikTok:    ['tiktok', 'tik tok', 'tik-tok'],
-  YouTube:   ['youtube', 'yt '],
-  Facebook:  ['facebook', 'fb ', 'fb-'],
-  Twitter:   ['twitter', ' x ', 'x followers', 'x likes', 'x retweet', 'tweet'],
-  Telegram:  ['telegram', 'tg '],
-  Spotify:   ['spotify'],
-};
+const has = (c: string, ...words: string[]) =>
+  words.some(w => c.toLowerCase().includes(w.toLowerCase()));
 
 function matchPlatform(name: string, category: string, platform: string): boolean {
   if (platform === 'ทั้งหมด') return true;
-  const text = `${name} ${category}`.toLowerCase();
-  const keywords = PLATFORM_KEYWORDS[platform] ?? [platform.toLowerCase()];
-  return keywords.some(kw => text.includes(kw));
+  const c = category;
+  if (platform === 'Facebook') return has(c, 'แอปฟ้า', 'facebook');
+  if (platform === 'Instagram') return has(c, 'แอปชมพู', 'instagram');
+  if (platform === 'TikTok') return has(c, 'ติ๊กต็อก', 'tiktok');
+  if (platform === 'YouTube') return has(c, 'youtube');
+  if (platform === 'Twitter/X') return has(c, 'ทวิตเตอร์', 'twitter');
+  if (platform === 'Telegram') return has(c, 'telegram');
+  if (platform === 'Spotify') return has(c, 'spotify');
+  if (platform === 'Discord') return has(c, 'discord');
+  if (platform === 'LinkedIn') return has(c, 'linkedin');
+  if (platform === 'WhatsApp') return has(c, 'whatsapp');
+  if (platform === 'Twitch') return has(c, 'twitch');
+  if (platform === 'Shopee') return has(c, 'shopee', 'ช้อปปี้');
+  if (platform === 'อื่นๆ') return !has(c, 'แอปฟ้า','facebook','แอปชมพู','instagram','ติ๊กต็อก','tiktok','youtube','ทวิตเตอร์','twitter','telegram','spotify','discord','linkedin','whatsapp','twitch','shopee','ช้อปปี้');
+  return false;
 }
 
 const EXCHANGE_RATE = Number(process.env.NEXT_PUBLIC_SMM_EXCHANGE_RATE ?? 36);
@@ -194,11 +217,19 @@ export default function DashboardPage() {
     <main className="flex-1 p-6 space-y-6">
 
       {/* Header */}
-      <div>
-        <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-[#475569] text-sm mt-0.5">
-          ยินดีต้อนรับกลับ{user?.username ? `, ${user.username}` : ''}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">Dashboard</h1>
+          <p className="text-[#475569] text-sm mt-0.5">
+            ยินดีต้อนรับกลับ{user?.username ? `, ${user.username}` : ''}
+          </p>
+        </div>
+        <Link 
+          href="/topup"
+          className="px-5 py-2.5 text-sm font-bold text-[#c4b5fd] bg-[#1e1b4b]/40 border border-[#8b5cf6]/40 rounded-xl hover:bg-[#8b5cf6]/20 hover:border-[#8b5cf6]/60 transition-all shadow-[0_4px_20px_rgba(139,92,246,0.15)]"
+        >
+          + เติมเงิน
+        </Link>
       </div>
 
       {/* Stats */}
@@ -226,38 +257,48 @@ export default function DashboardPage() {
         </div>
 
         {/* Platform tabs */}
-        <div className="flex flex-wrap gap-1.5">
-          {PLATFORMS.map(p => (
-            <button
-              type="button" key={p}
-              onClick={() => setPlatform(p)}
-              className={[
-                'glass-tab px-3 py-1.5 text-xs font-medium transition-all',
-                platform === p ? 'glass-tab-active text-[#c4b5fd]' : 'text-[#94A3B8]',
-              ].join(' ')}
-            >
-              {p}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-2">
+          {PLATFORMS.map(p => {
+            const Icon = p.icon;
+            const count = services.filter(s => matchPlatform(s.name, s.category, p.id)).length;
+            if (p.id !== 'ทั้งหมด' && count === 0) return null;
+            return (
+              <button
+                type="button" key={p.id}
+                onClick={() => setPlatform(p.id)}
+                title={p.id}
+                className={[
+                  'glass-tab flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all hover:scale-105 active:scale-95',
+                  platform === p.id ? 'glass-tab-active text-[#c4b5fd] shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'text-[#94A3B8]',
+                ].join(' ')}
+              >
+                <span className="text-lg"><Icon /></span>
+                <span>{p.id}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[rgba(139,92,246,0.15)] text-[#a78bfa] font-mono leading-none">
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Form fields */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col gap-5">
 
           {/* Service */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] text-[#475569] uppercase tracking-widest">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">
               บริการ {filteredServices.length > 0 && `(${filteredServices.length})`}
             </label>
             <select
               value={serviceId}
               onChange={e => setServiceId(e.target.value)}
-              className="glass px-3 py-2.5 text-sm text-[#F1F5F9] bg-[rgba(11,14,26,0.9)] outline-none rounded-xl border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] transition-colors"
+              className="glass px-4 py-3.5 text-base text-white bg-[rgba(255,255,255,0.05)] outline-none rounded-xl border border-[rgba(139,92,246,0.3)] focus:border-[rgba(139,92,246,0.6)] transition-colors"
               required
             >
-              <option value="" className="bg-[#0D1221]">-- เลือกบริการ --</option>
+              <option value="" className="bg-[#1E293B] text-white">-- เลือกบริการ --</option>
               {filteredServices.map(s => (
-                <option key={`${s.provider}-${s.service}`} value={`${s.provider}:${s.service}`} className="bg-[#0D1221]">
+                <option key={`${s.provider}-${s.service}`} value={`${s.provider}:${s.service}`} className="bg-[#1E293B] text-white">
                   [{s.service}] {s.name}
                 </option>
               ))}
@@ -265,23 +306,23 @@ export default function DashboardPage() {
           </div>
 
           {/* Link */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] text-[#475569] uppercase tracking-widest">Link</label>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">Link</label>
             <input
               type="url" value={link}
               onChange={e => setLink(e.target.value)}
               placeholder="https://www.instagram.com/username"
-              className="glass px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] transition-colors"
+              className="glass px-4 py-3.5 text-base text-white bg-[rgba(255,255,255,0.05)] outline-none placeholder-[#94A3B8] rounded-xl border border-[rgba(139,92,246,0.3)] focus:border-[rgba(139,92,246,0.6)] transition-colors"
               required
             />
           </div>
 
           {/* Quantity */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] text-[#475569] uppercase tracking-widest">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">
               จำนวน
               {selectedService && (
-                <span className="ml-1 text-[#334155] normal-case">
+                <span className="ml-1 text-[#94A3B8] normal-case">
                   ({Number(selectedService.min).toLocaleString()} – {Number(selectedService.max).toLocaleString()})
                 </span>
               )}
@@ -292,10 +333,10 @@ export default function DashboardPage() {
               placeholder={selectedService ? String(selectedService.min) : '1000'}
               min={selectedService?.min} max={selectedService?.max}
               className={[
-                'glass px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border transition-colors',
+                'glass px-4 py-3.5 text-base text-white bg-[rgba(255,255,255,0.05)] outline-none placeholder-[#94A3B8] rounded-xl border transition-colors',
                 quantity && !qtyValid
-                  ? 'border-rose-500/50 focus:border-rose-500'
-                  : 'border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)]',
+                  ? 'border-rose-500/60 focus:border-rose-500'
+                  : 'border-[rgba(139,92,246,0.3)] focus:border-[rgba(139,92,246,0.6)]',
               ].join(' ')}
               required
             />
@@ -309,7 +350,7 @@ export default function DashboardPage() {
             <span>|</span>
             <span>หมวด: <span className="text-[#c4b5fd]">{selectedService.category}</span></span>
             <span>|</span>
-            <span>ราคา API: <span className="text-[#06B6D4] font-mono">${Number(selectedService.rate).toFixed(3)}/1K</span></span>
+            <span>ราคา API: <span className="text-[#06B6D4] font-mono">฿{Number(selectedService.rate).toFixed(3)}/1K</span></span>
             <span>|</span>
             <span>Refill: <span className={selectedService.refill ? 'text-emerald-400' : 'text-[#475569]'}>{selectedService.refill ? 'รองรับ' : 'ไม่รองรับ'}</span></span>
           </div>

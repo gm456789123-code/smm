@@ -147,16 +147,16 @@ export default function OrderPage() {
         <div className="glass p-4 space-y-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-[#475569] uppercase tracking-widest mb-1">บริการที่เลือก</p>
-              <p className="font-semibold text-white text-sm leading-snug">{selected.name}</p>
-              <p className="text-xs text-[#475569] mt-0.5">{selected.category}</p>
+              <p className="text-xs text-[#475569] uppercase tracking-widest mb-1">บริการที่เลือก</p>
+              <p className="font-semibold text-white text-base leading-snug">{selected.name}</p>
+              <p className="text-sm text-[#475569] mt-0.5">{selected.category}</p>
             </div>
-            <span className="text-[10px] font-mono px-2 py-1 rounded-full bg-[rgba(139,92,246,0.12)] text-[#a78bfa] shrink-0">
+            <span className="text-xs font-mono px-2.5 py-1 rounded-full bg-[rgba(139,92,246,0.12)] text-[#a78bfa] shrink-0">
               #{selected.service}
             </span>
           </div>
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-[#94A3B8] border-t border-[rgba(139,92,246,0.08)] pt-3">
-            <span>ราคา: <span className="text-[#06B6D4] font-mono">${Number(selected.rate).toFixed(4)}/1K</span></span>
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-[#94A3B8] border-t border-[rgba(139,92,246,0.08)] pt-3">
+            <span>ราคา: <span className="text-[#06B6D4] font-mono">฿{Number(selected.rate).toFixed(4)}/1K</span></span>
             <span>Min–Max: <span className="text-white font-mono">{Number(selected.min).toLocaleString()} – {Number(selected.max).toLocaleString()}</span></span>
             <span>Refill: <span className={selected.refill ? 'text-emerald-400' : 'text-[#475569]'}>{selected.refill ? '✓' : '✗'}</span></span>
             <span>Cancel: <span className={selected.cancel ? 'text-emerald-400' : 'text-[#475569]'}>{selected.cancel ? '✓' : '✗'}</span></span>
@@ -165,21 +165,21 @@ export default function OrderPage() {
 
         {/* Link */}
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] text-[#475569] uppercase tracking-widest">Link / URL เป้าหมาย</label>
+          <label className="text-sm font-medium text-[#94A3B8]">Link / URL เป้าหมาย</label>
           <input
             type="url" value={link}
             onChange={e => setLink(e.target.value)}
             placeholder="https://www.instagram.com/username"
-            className="w-full glass px-4 py-3 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] transition-colors"
+            className="w-full glass px-4 py-3.5 text-base text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] transition-colors"
             required
           />
         </div>
 
         {/* Quantity */}
         <div className="flex flex-col gap-2">
-          <label className="text-[10px] text-[#475569] uppercase tracking-widest">
+          <label className="text-sm font-medium text-[#94A3B8]">
             จำนวน
-            <span className="ml-1.5 text-[#334155] normal-case font-normal">
+            <span className="ml-2 text-[#475569] font-normal">
               ({Number(selected.min).toLocaleString()} – {Number(selected.max).toLocaleString()})
             </span>
           </label>
@@ -189,7 +189,7 @@ export default function OrderPage() {
             placeholder={String(selected.min)}
             min={selected.min} max={selected.max}
             className={[
-              'w-full glass px-4 py-3 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border transition-colors',
+              'w-full glass px-4 py-3.5 text-base text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border transition-colors',
               quantity && !qtyValid
                 ? 'border-rose-500/50 focus:border-rose-500'
                 : 'border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)]',
@@ -197,17 +197,17 @@ export default function OrderPage() {
             required
           />
           {quantity && !qtyValid && (
-            <p className="text-[11px] text-rose-400">
+            <p className="text-sm text-rose-400">
               จำนวนต้องอยู่ระหว่าง {Number(selected.min).toLocaleString()} – {Number(selected.max).toLocaleString()}
             </p>
           )}
           {/* Quick qty */}
-          <div className="flex flex-wrap gap-1.5 mt-1">
+          <div className="flex flex-wrap gap-2 mt-1">
             {[100, 500, 1000, 5000, 10000]
               .filter(v => v >= qtyMin && v <= qtyMax)
               .map(v => (
                 <button key={v} type="button" onClick={() => setQty(String(v))}
-                  className="glass-tab px-3 py-1 text-xs text-[#94A3B8] hover:text-white transition-colors">
+                  className="glass-tab px-4 py-1.5 text-sm text-[#94A3B8] hover:text-white transition-colors">
                   {v.toLocaleString()}
                 </button>
               ))}
@@ -217,12 +217,12 @@ export default function OrderPage() {
         {/* Price + Submit */}
         <div className="flex items-center justify-between pt-1 gap-4">
           <div>
-            <p className="text-[10px] text-[#475569] uppercase tracking-widest mb-1">ราคาโดยประมาณ</p>
+            <p className="text-sm text-[#475569] mb-1">ราคาโดยประมาณ</p>
             <p className="font-[family-name:var(--font-jakarta)] text-3xl font-bold text-[#06B6D4] text-glow-cyan">
               {costThb !== null ? `฿${costThb.toFixed(2)}` : '฿0.00'}
             </p>
             {costThb !== null && balance !== null && (
-              <p className={`text-[11px] mt-0.5 ${canAfford ? 'text-emerald-500' : 'text-rose-400'}`}>
+              <p className={`text-sm mt-0.5 ${canAfford ? 'text-emerald-500' : 'text-rose-400'}`}>
                 {canAfford
                   ? `ยอดคงเหลือ ฿${balance.toFixed(2)} — เพียงพอ`
                   : `ยอดไม่เพียงพอ — ต้องการอีก ฿${(costThb - balance).toFixed(2)}`}
@@ -231,7 +231,7 @@ export default function OrderPage() {
           </div>
           <button
             type="submit" disabled={!canSubmit}
-            className="btn-primary flex items-center gap-2 px-8 py-3.5 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+            className="btn-primary flex items-center gap-2 px-8 py-4 text-base font-semibold disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
           >
             {submitting
               ? <><span className="animate-spin inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full" /> กำลังสั่ง...</>
@@ -280,21 +280,21 @@ export default function OrderPage() {
                 : 'hover:bg-[rgba(139,92,246,0.06)] border border-transparent',
             ].join(' ')}
           >
-            <span className="text-[10px] font-mono text-[#334155] w-10 shrink-0 pt-0.5">#{svc.service}</span>
+            <span className="text-xs font-mono text-[#334155] w-12 shrink-0 pt-0.5">#{svc.service}</span>
             <div className="flex-1 min-w-0">
-              <p className={`text-xs font-medium truncate ${active ? 'text-[#c4b5fd]' : 'text-[#CBD5E1] group-hover:text-white'}`}>
+              <p className={`text-sm font-medium truncate ${active ? 'text-[#c4b5fd]' : 'text-[#CBD5E1] group-hover:text-white'}`}>
                 {svc.name}
               </p>
-              <p className="text-[10px] text-[#334155] truncate mt-0.5">{svc.category}</p>
+              <p className="text-xs text-[#334155] truncate mt-0.5">{svc.category}</p>
             </div>
-            <span className="text-[10px] font-mono text-[#06B6D4] shrink-0 whitespace-nowrap">
-              ${Number(svc.rate).toFixed(3)}
+            <span className="text-xs font-mono text-[#06B6D4] shrink-0 whitespace-nowrap">
+              ฿{Number(svc.rate).toFixed(3)}
             </span>
           </button>
         );
       })}
       <div ref={sentinelRef} className="h-4" />
-      {hasMore && <p className="text-center text-[10px] text-[#334155] py-2 animate-pulse">กำลังโหลดเพิ่ม...</p>}
+      {hasMore && <p className="text-center text-xs text-[#334155] py-2 animate-pulse">กำลังโหลดเพิ่ม...</p>}
     </div>
   );
 
@@ -308,11 +308,11 @@ export default function OrderPage() {
           <p className="text-[#475569] text-sm mt-0.5">เลือกบริการ → กรอกข้อมูล → สั่งซื้อ</p>
         </div>
         <div className="glass px-4 py-2 flex items-center gap-2">
-          <span className="text-[10px] text-[#475569] uppercase tracking-widest">ยอดเงิน</span>
+          <span className="text-xs text-[#475569] uppercase tracking-widest">ยอดเงิน</span>
           <span className="font-[family-name:var(--font-inter)] font-bold text-[#06B6D4] text-glow-cyan">
             {balance !== null ? `฿${balance.toFixed(2)}` : '...'}
           </span>
-          <Link href="/topup" className="text-[10px] text-[#8B5CF6] hover:text-[#a78bfa] transition-colors ml-1">เติมเงิน →</Link>
+          <Link href="/topup" className="text-sm text-[#8B5CF6] hover:text-[#a78bfa] transition-colors ml-1">เติมเงิน →</Link>
         </div>
       </div>
 
@@ -338,10 +338,10 @@ export default function OrderPage() {
           <div className="p-3 border-b border-[rgba(139,92,246,0.10)]">
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="ค้นหาบริการ หรือ ID..."
-              className="w-full glass px-3 py-2 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
+              className="w-full glass px-4 py-3 text-base text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
           </div>
           <div className="px-4 py-2 border-b border-[rgba(139,92,246,0.06)]">
-            <span className="text-[10px] text-[#334155] uppercase tracking-widest">
+            <span className="text-xs text-[#334155] uppercase tracking-widest">
               {loading ? 'กำลังโหลด...' : `${filtered.length.toLocaleString()} บริการ`}
             </span>
           </div>
@@ -370,7 +370,7 @@ export default function OrderPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              <OrderForm />
+              {OrderForm()}
             </div>
           )}
         </div>
@@ -399,7 +399,7 @@ export default function OrderPage() {
             </div>
             {/* Scrollable form */}
             <div className="overflow-y-auto px-5 pb-8 pt-2" style={{ maxHeight: 'calc(88vh - 60px)' }}>
-              <OrderForm />
+              {OrderForm()}
             </div>
           </div>
         </>

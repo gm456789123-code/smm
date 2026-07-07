@@ -105,7 +105,7 @@ export default function ServicesPage() {
           value={search}
           onChange={e => { setSearch(e.target.value); setPlatform('ทั้งหมด'); }}
           placeholder="ค้นหาบริการ..."
-          className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors"
+          className="glass w-full px-4 py-3 text-base text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] rounded-xl border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] transition-colors"
         />
 
         <div className="flex flex-wrap gap-2">
@@ -128,7 +128,7 @@ export default function ServicesPage() {
               >
                 <span className="text-xl leading-none">{p.icon}</span>
                 {p.label}
-                <span className={`text-[9px] px-1 py-0.5 rounded ${active ? 'bg-[rgba(139,92,246,0.25)] text-[#c4b5fd]' : 'bg-[rgba(139,92,246,0.10)] text-[#475569]'}`}>
+                <span className={`text-xs px-1.5 py-0.5 rounded ${active ? 'bg-[rgba(139,92,246,0.25)] text-[#c4b5fd]' : 'bg-[rgba(139,92,246,0.10)] text-[#475569]'}`}>
                   {count}
                 </span>
               </button>
@@ -147,37 +147,34 @@ export default function ServicesPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <p className="text-[10px] text-[#334155] mb-3">
-              แสดง {displayed.length} จาก {filtered.length} รายการ
-            </p>
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[10px] text-[#475569] uppercase tracking-widest border-b border-[rgba(139,92,246,0.10)]">
-                  <th className="pb-3 pr-3">ID</th>
-                  <th className="pb-3 pr-3">ชื่อบริการ</th>
-                  <th className="pb-3 pr-3">หมวดหมู่</th>
-                  <th className="pb-3 pr-3">ราคา/1K</th>
-                  <th className="pb-3 pr-3">Min</th>
-                  <th className="pb-3 pr-3">Max</th>
+                <tr className="text-left text-xs text-[#475569] uppercase tracking-widest border-b border-[rgba(139,92,246,0.10)]">
+                  <th className="pb-3 pr-4">ID</th>
+                  <th className="pb-3 pr-4">ชื่อบริการ</th>
+                  <th className="pb-3 pr-4">หมวดหมู่</th>
+                  <th className="pb-3 pr-4">ราคา/1K</th>
+                  <th className="pb-3 pr-4">Min</th>
+                  <th className="pb-3 pr-4">Max</th>
                   <th className="pb-3">Refill</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[rgba(139,92,246,0.05)]">
                 {displayed.map(s => (
                   <tr key={`${s.provider}-${s.service}`} className="hover:bg-[rgba(139,92,246,0.04)] transition-colors">
-                    <td className="py-2.5 pr-3 font-mono text-xs text-[#475569]">{s.service}</td>
-                    <td className="py-2.5 pr-3 text-[#F1F5F9] max-w-[280px]">
-                      <p className="truncate">{s.name}</p>
-                      <p className="text-[10px] text-[#475569]">{s.type}</p>
+                    <td className="py-3 pr-4 font-mono text-sm text-[#475569]">{s.service}</td>
+                    <td className="py-3 pr-4 text-[#F1F5F9] max-w-[300px]">
+                      <p className="truncate text-sm">{s.name}</p>
+                      <p className="text-xs text-[#475569] mt-0.5">{s.type}</p>
                     </td>
-                    <td className="py-2.5 pr-3 text-xs text-[#94A3B8] max-w-[160px]">
+                    <td className="py-3 pr-4 text-sm text-[#94A3B8] max-w-[180px]">
                       <p className="truncate">{s.category}</p>
                     </td>
-                    <td className="py-2.5 pr-3 text-[#06B6D4] font-mono font-semibold">${s.rate}</td>
-                    <td className="py-2.5 pr-3 text-xs text-[#94A3B8]">{Number(s.min).toLocaleString()}</td>
-                    <td className="py-2.5 pr-3 text-xs text-[#94A3B8]">{Number(s.max).toLocaleString()}</td>
-                    <td className="py-2.5">
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${s.refill ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[rgba(71,85,105,0.2)] text-[#475569]'}`}>
+                    <td className="py-3 pr-4 text-[#06B6D4] font-mono font-semibold text-sm">฿{s.rate}</td>
+                    <td className="py-3 pr-4 text-sm text-[#94A3B8]">{Number(s.min).toLocaleString()}</td>
+                    <td className="py-3 pr-4 text-sm text-[#94A3B8]">{Number(s.max).toLocaleString()}</td>
+                    <td className="py-3">
+                      <span className={`text-xs px-2 py-0.5 rounded ${s.refill ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[rgba(71,85,105,0.2)] text-[#475569]'}`}>
                         {s.refill ? '✓' : '—'}
                       </span>
                     </td>
@@ -189,7 +186,7 @@ export default function ServicesPage() {
             {/* Sentinel for infinite scroll */}
             <div ref={sentinelRef} className="h-4" />
             {hasMore && (
-              <p className="text-center text-[10px] text-[#334155] py-2 animate-pulse">กำลังโหลดเพิ่ม...</p>
+              <p className="text-center text-sm text-[#334155] py-2 animate-pulse">กำลังโหลดเพิ่ม...</p>
             )}
           </div>
         )}

@@ -68,7 +68,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale       = (LOCALES as readonly string[]).includes(cookieLang ?? '')
     ? (cookieLang as Locale)
     : 'th';
-  const messages = await getMessages(locale);
+  const messages = getMessages(locale);
 
   return (
     <html

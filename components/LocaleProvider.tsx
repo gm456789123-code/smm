@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { LOCALES, LOCALE_NAMES, LOCALE_FLAGS, type Locale } from '@/lib/i18n';
+import { LOCALES, LOCALE_NAMES, LOCALE_FLAGS, getMessages, type Locale } from '@/lib/i18n';
 
 interface LocaleContextValue {
   locale: Locale;
@@ -30,13 +30,11 @@ export default function LocaleProvider({ children, initialLocale, initialMessage
   const [locale, setLocaleState]     = useState<Locale>(initialLocale);
   const [messages, setMessages]      = useState(initialMessages);
 
-  const setLocale = useCallback(async (newLocale: Locale) => {
+  const setLocale = useCallback((newLocale: Locale) => {
     // Update cookie
     document.cookie = `locale=${newLocale}; max-age=${60 * 60 * 24 * 365}; path=/; samesite=lax`;
 
-    // Load new messages
-    const mod = await import(`../messages/${newLocale}.json`);
-    setMessages(mod.default);
+    setMessages(getMessages(newLocale));
     setLocaleState(newLocale);
   }, []);
 

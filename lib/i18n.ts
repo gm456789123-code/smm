@@ -1,68 +1,44 @@
-export const LOCALES = ['th', 'en', 'lo', 'my', 'vi', 'km'] as const;
+import thMessages from '../messages/th.json';
+import loMessages from '../messages/lo.json';
+import zhMessages from '../messages/zh.json';
+import enMessages from '../messages/en.json';
+
+export const LOCALES = ['th', 'lo', 'zh', 'en'] as const;
 export type Locale = typeof LOCALES[number];
+export const DEFAULT_LOCALE: Locale = 'th';
 
 export const LOCALE_NAMES: Record<Locale, string> = {
   th: 'ไทย',
-  en: 'English',
   lo: 'ລາວ',
-  my: 'မြန်မာ',
-  vi: 'Tiếng Việt',
-  km: 'ខ្មែរ',
+  zh: '中文',
+  en: 'English',
 };
 
 export const LOCALE_FLAGS: Record<Locale, string> = {
   th: '🇹🇭',
-  en: '🇬🇧',
   lo: '🇱🇦',
-  my: '🇲🇲',
-  vi: '🇻🇳',
-  km: '🇰🇭',
+  zh: '🇨🇳',
+  en: '🇬🇧',
 };
 
-// Map Accept-Language codes → our supported locales
+const MESSAGES: Record<Locale, Record<string, unknown>> = {
+  th: thMessages as Record<string, unknown>,
+  lo: loMessages as Record<string, unknown>,
+  zh: zhMessages as Record<string, unknown>,
+  en: enMessages as Record<string, unknown>,
+};
+
+export function getMessages(locale: Locale): Record<string, unknown> {
+  return MESSAGES[locale];
+}
+
 export function detectLocale(acceptLanguage: string): Locale {
-  const langMap: Record<string, Locale> = {
-    th: 'th',
-    lo: 'lo',
-    my: 'my',
-    ms: 'my', // close enough fallback
-    vi: 'vi',
-    km: 'km',
-    en: 'en',
-  };
-
-  const langs = acceptLanguage
-    .split(',')
-    .map((l) => l.split(';')[0].trim().toLowerCase().split('-')[0]);
-
-  for (const lang of langs) {
-    if (lang in langMap) return langMap[lang];
+  const tags = acceptLanguage.split(',').map((s) => s.split(';')[0].trim().toLowerCase());
+  for (const tag of tags) {
+    if (tag.startsWith('th')) return 'th';
+    if (tag.startsWith('lo')) return 'lo';
+    if (tag.startsWith('zh')) return 'zh';
+    if (tag.startsWith('en')) return 'en';
   }
-  return 'th'; // default
-}
-
-export async function getMessages(locale: Locale) {
-  try {
-    const messages = await import(`../messages/${locale}.json`);
-    return messages.default as Record<string, unknown>;
-  } catch {
-    const messages = await import('../messages/th.json');
-    return messages.default as Record<string, unknown>;
-  }
-}
-
-// Simple nested key getter: t('hero.badge')
-export function createTranslator(messages: Record<string, unknown>) {
-  return function t(key: string, fallback = ''): string {
-    const parts = key.split('.');
-    let current: unknown = messages;
-    for (const part of parts) {
-      if (current && typeof current === 'object' && part in (current as object)) {
-        current = (current as Record<string, unknown>)[part];
-      } else {
-        return fallback || key;
-      }
-    }
-    return typeof current === 'string' ? current : fallback || key;
-  };
+  return DEFAULT_LOCALE;
 }

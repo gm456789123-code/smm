@@ -1,0 +1,135 @@
+{
+  "nav": {
+    "home": "首页",
+    "services": "服务",
+    "pricing": "价格",
+    "blog": "文章",
+    "login": "登录",
+    "register": "免费注册"
+  },
+  "hero": {
+    "badge": "东南亚 #1 SMM 面板",
+    "tagline": "高质量 SMM 面板 — 快速、稳定、价格实惠",
+    "desc": "提升所有平台的粉丝数、点赞数和互动率",
+    "cta": "免费开始",
+    "viewServices": "查看所有服务",
+    "stats": {
+      "orders": "订单",
+      "users": "用户",
+      "platforms": "平台",
+      "uptime": "在线率"
+    }
+  },
+  "features": {
+    "title": "为什么选择我们",
+    "fast": { "label": "极速启动", "desc": "60 秒内开始处理订单" },
+    "safe": { "label": "100% 安全", "desc": "无需密码，只需公开链接" },
+    "quality": { "label": "高质量", "desc": "真实粉丝，真实互动，不掉量" },
+    "support": { "label": "24/7 支持", "desc": "团队随时准备，几分钟内响应" },
+    "payment": { "label": "轻松付款", "desc": "支持 PromptPay、银行卡、TrueMoney" },
+    "global": { "label": "全平台", "desc": "10+ 平台，一站式服务" }
+  },
+  "platforms": {
+    "title": "我们的服务",
+    "subtitle": "支持您需要的每个平台",
+    "tags": { "followers": "粉丝", "likes": "点赞", "views": "播放量" },
+    "viewAll": "查看所有服务"
+  },
+  "pricing": {
+    "title": "价格与套餐",
+    "subtitle": "充值后立即可用，无注册费",
+    "popular": "最受欢迎",
+    "getStarted": "立即开始",
+    "perK": "每 1,000",
+    "features": {
+      "allBasic": "所有基础服务",
+      "autoSystem": "自动化系统",
+      "chatSupport": "在线客服",
+      "allStarter": "Starter 全部内容",
+      "bulkPrice": "批量特价",
+      "prioritySupport": "优先支持",
+      "refillGuarantee": "补量保证",
+      "allPopular": "Popular 全部内容",
+      "apiAccess": "API 访问",
+      "accountManager": "专属客户经理",
+      "customServices": "自定义服务"
+    }
+  },
+  "faq": {
+    "title": "常见问题",
+    "q1": "服务安全吗？",
+    "a1": "安全！我们从不索取密码，只需公开链接。",
+    "q2": "多快能开始？",
+    "a2": "大多数订单在付款后 0–1 小时内开始处理。",
+    "q3": "订单未完成可以补量吗？",
+    "a3": "可以！支持补量的服务可通过【我的订单】页面申请。",
+    "q4": "购买后粉丝会掉吗？",
+    "a4": "我们的指定服务提供终身保障。"
+  },
+  "cta": {
+    "ready": "准备好了吗？",
+    "grow": "增长您的",
+    "today": "粉丝数",
+    "subtitle": "免费注册，无前期费用。充值后立即开始。"
+  },
+  "footer": {
+    "developer": "开发者",
+    "rights": "版权所有"
+  },
+  "dash": {
+    "navDashboard": "主页", "navOrder": "下订单", "navOrders": "我的订单",
+    "navServices": "所有服务", "navTopup": "充值", "navBalance": "余额",
+    "navProfile": "个人资料", "navReport": "问题反馈", "navLogout": "退出登录",
+    "navCms": "CMS", "navBack": "返回主页",
+    "sideBalance": "余额", "sideRoleAdmin": "管理员", "sideRoleUser": "用户", "sideThb": "THB",
+    "homeTitle": "控制台", "homeWelcome": "欢迎回来",
+    "statBalance": "当前余额", "statOrders": "总订单",
+    "statProcessing": "处理中", "statCompleted": "已完成",
+    "quickOrder": "快速下单", "viewAll": "查看所有服务",
+    "topupBtn": "+ 充值", "loading": "加载中...",
+    "orderTitle": "下订单", "orderSearch": "搜索服务或 ID...",
+    "orderSelectLeft": "从左侧列表选择服务",
+    "orderSelected": "已选服务", "orderLinkLabel": "目标 Link / URL",
+    "orderQtyLabel": "数量", "orderPrice": "预估价格",
+    "orderSubmit": "提交订单", "orderSubmitting": "提交中...", "orderSuccess": "下单成功！",
+    "orderViewOrders": "查看订单", "orderTopup": "充值 →",
+    "orderNoServices": "未找到服务", "orderLoadingMore": "加载更多...",
+    "orderSufficient": "余额充足", "orderInsufficient": "余额不足 — 请充值",
+    "ordersTitle": "我的订单", "ordersEmpty": "暂无订单",
+    "statusPending": "待处理", "statusCompleted": "已完成", "statusPartial": "部分完成",
+    "statusCancelled": "已取消", "statusProcessing": "处理中",
+    "topupTitle": "充值", "topupSelectChannel": "选择付款方式",
+    "topupSelectAmount": "选择金额", "topupConfirm": "确认金额",
+    "topupMinWarning": "最低 ฿10", "topupScanQR": "扫码支付",
+    "topupUploadSlip": "上传凭证", "topupSubmitSlip": "提交凭证",
+    "topupVoucher": "优惠码或链接", "topupRedeem": "兑换", "topupBack": "返回",
+    "balanceTitle": "余额", "balanceCurrent": "当前余额",
+    "balanceTopupTotal": "累计充值", "balanceSpentTotal": "累计消费",
+    "balanceTxCount": "总交易数", "balanceRecentTx": "最近交易",
+    "balanceEmpty": "暂无交易记录", "balanceTxTopup": "充值", "balanceTxSpend": "消费",
+    "profileTitle": "个人资料", "profileEditInfo": "编辑信息",
+    "profilePhone": "手机号", "profileSave": "保存", "profileSaving": "保存中...", "profileSaved": "已保存",
+    "profileChangePw": "修改密码", "profileCurrentPw": "当前密码",
+    "profileNewPw": "新密码", "profileConfirmPw": "确认新密码",
+    "profileReferral": "我的推荐码", "profileCopy": "复制", "profileJoined": "注册时间",
+    "reportTitle": "问题反馈", "reportSubtitle": "填写详情，我们的团队将为您提供帮助",
+    "reportCategory": "问题类型", "reportOrderId": "订单 ID", "reportOrderIdHint": "（如适用）",
+    "reportDetail": "详细描述", "reportSubmit": "提交", "reportSubmitting": "提交中...",
+    "reportSuccessTitle": "已提交", "reportSuccessMsg": "我们的团队将在 24 小时内审核并回复",
+    "reportNew": "提交新反馈",
+    "reportCat1": "订单未运行 / 卡住", "reportCat2": "已扣款但未收到服务",
+    "reportCat3": "充值后余额未到账", "reportCat4": "服务错误 / 数量不足",
+    "reportCat5": "登录问题", "reportCat6": "其他"
+  },
+  "auth": {
+    "login": "登录",
+    "register": "创建账户",
+    "noAccount": "还没有账户？",
+    "hasAccount": "已有账户？",
+    "forgotPassword": "忘记密码？",
+    "username": "用户名或邮箱",
+    "password": "密码",
+    "submit": "登录",
+    "submitting": "登录中..."
+  }
+}
