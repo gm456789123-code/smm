@@ -29,17 +29,33 @@ CREATE TABLE IF NOT EXISTS email_verifications (
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
-  id         INT AUTO_INCREMENT PRIMARY KEY,
-  user_id    INT            NOT NULL,
-  tx_type    VARCHAR(10)    NOT NULL,
-  amount     DECIMAL(12,4)  NOT NULL,
-  ref        VARCHAR(255)   DEFAULT NULL,
-  tx_status  VARCHAR(10)    DEFAULT 'pending',
-  note       TEXT           DEFAULT NULL,
-  created_at TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  user_id      INT            NOT NULL,
+  tx_type      VARCHAR(10)    NOT NULL,
+  amount       DECIMAL(12,4)  NOT NULL,
+  ref          VARCHAR(255)   DEFAULT NULL,
+  tx_status    VARCHAR(10)    DEFAULT 'pending',
+  note         TEXT           DEFAULT NULL,
+  provider     VARCHAR(50)    DEFAULT NULL,
+  api_failed   TINYINT(1)     DEFAULT 0,
+  api_error    TEXT           DEFAULT NULL,
+  service_id   INT            DEFAULT NULL,
+  link_url     TEXT           DEFAULT NULL,
+  qty          INT            DEFAULT NULL,
+  created_at   TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  INDEX idx_user_id (user_id)
+  INDEX idx_user_id (user_id),
+  INDEX idx_api_failed (api_failed)
 );
+
+-- Migration for existing databases (run once on production):
+-- ALTER TABLE transactions
+--   ADD COLUMN IF NOT EXISTS provider   VARCHAR(50)  DEFAULT NULL,
+--   ADD COLUMN IF NOT EXISTS api_failed TINYINT(1)   DEFAULT 0,
+--   ADD COLUMN IF NOT EXISTS api_error  TEXT         DEFAULT NULL,
+--   ADD COLUMN IF NOT EXISTS service_id INT          DEFAULT NULL,
+--   ADD COLUMN IF NOT EXISTS link_url   TEXT         DEFAULT NULL,
+--   ADD COLUMN IF NOT EXISTS qty        INT          DEFAULT NULL;
 
 CREATE TABLE IF NOT EXISTS sessions (
   id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -68,7 +84,8 @@ INSERT IGNORE INTO site_settings (setting_key, setting_value) VALUES
   ('stat_orders',   '50,000+'),
   ('stat_users',    '10,000+'),
   ('stat_platforms','10+'),
-  ('stat_uptime',   '99.9%');
+  ('stat_uptime',   '99.9%'),
+  ('line_url',      '');
 
 CREATE TABLE IF NOT EXISTS blog_posts (
   id               INT AUTO_INCREMENT PRIMARY KEY,

@@ -95,22 +95,11 @@ export default function Sidebar({ role, username }: SidebarProps) {
     }
   }
 
-  function NavItem({ href, tKey, icon }: { href: string; tKey: string; icon: React.ReactNode }) {
-    const active = path === href || (href !== '/dashboard' && href !== '/admin' && path.startsWith(href));
-    return (
-      <Link href={href}
-        className={['glass-tab flex items-center gap-3 px-4 py-3 text-base font-medium',
-          active ? 'glass-tab-active' : 'text-white hover:text-white'].join(' ')}>
-        <span className={active ? 'text-[#a78bfa]' : 'text-[#CBD5E1]'}>{icon}</span>
-        {t(`dash.${tKey}`)}
-      </Link>
-    );
-  }
-
   return (
     <>
-      {/* Mobile top bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 glass-strong h-16 flex items-center px-4 gap-3 border-b border-[rgba(139,92,246,0.15)]">
+      {/* Mobile top bar — z-40, sidebar sits above it when open */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 h-16 flex items-center px-4 gap-3 border-b border-[rgba(139,92,246,0.15)]"
+        style={{ background: 'rgba(13,18,32,0.95)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
         <button
           onClick={() => setOpen(true)}
           className="glass p-2.5 rounded-xl text-white shrink-0"
@@ -129,117 +118,135 @@ export default function Sidebar({ role, username }: SidebarProps) {
         </div>
       </div>
 
-      {/* Backdrop — mobile only */}
+      {/* Backdrop — sits between top bar (z-40) and sidebar (z-50) */}
       {open && (
         <div
-          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 z-[45] bg-black/60 backdrop-blur-sm"
           onClick={() => setOpen(false)}
         />
       )}
 
+      {/* Sidebar — z-50, fully covers top bar on mobile when open */}
       <aside className={[
-        'glass-strong w-72 flex flex-col px-4 py-6 gap-1 shrink-0',
-        'fixed inset-y-0 left-0 z-50 overflow-y-auto',
+        'w-72 flex flex-col px-4 py-6 gap-1 shrink-0',
+        'fixed inset-y-0 left-0 z-50',
+        'border-r border-[rgba(255,255,255,0.07)]',
         'lg:sticky lg:top-0 lg:h-screen',
         'transition-transform duration-300',
         open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-      ].join(' ')}>
-      {/* Logo */}
-      <div className="px-3 pb-5 mb-1 border-b border-[rgba(139,92,246,0.10)] flex items-start justify-between">
-        <div>
-          <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
-            <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
-            <span className="text-white"> SMM</span>
-          </p>
-          <p className="text-xs text-[#475569] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
-        </div>
-        <div className="flex items-center gap-1">
-          <LangSwitcher />
-          <button onClick={() => setOpen(false)} className="lg:hidden text-[#475569] hover:text-white p-1">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      </div>
+      ].join(' ')}
+        style={{ background: 'rgba(13,18,32,0.97)', backdropFilter: 'blur(24px) saturate(1.4)', WebkitBackdropFilter: 'blur(24px) saturate(1.4)' }}>
 
-      {/* User info */}
-      <div className="px-3 py-3 mb-1 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center text-sm font-bold text-white shadow-md shadow-purple-500/25">
-          {username[0]?.toUpperCase()}
+        {/* Logo */}
+        <div className="px-3 pb-5 mb-1 border-b border-[rgba(139,92,246,0.10)] flex items-center justify-between">
+          <div>
+            <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
+              <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
+              <span className="text-white"> SMM</span>
+            </p>
+            <p className="text-xs text-[#475569] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
+          </div>
+          <div className="flex items-center gap-1">
+            {/* LangSwitcher: desktop sidebar only. Mobile has it in the top bar. */}
+            <div className="hidden lg:block">
+              <LangSwitcher />
+            </div>
+            <button onClick={() => setOpen(false)} className="lg:hidden text-[#475569] hover:text-white p-1">
+              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#F1F5F9] truncate">{username}</p>
-          <p className="text-xs text-[#475569] flex items-center gap-1">
-            {role === 'admin' && <BsShieldFill size={10} className="text-yellow-400" />}
-            {role === 'admin' ? t('dash.sideRoleAdmin') : t('dash.sideRoleUser')}
-          </p>
-        </div>
-      </div>
 
-      {/* Nav */}
-      <nav className="flex flex-col gap-1 flex-1">
-        {isCMS ? (
-          <>
-            {ADMIN_NAV.map((item) => (
-              <Link key={item.href} href={item.href}
-                className={['glass-tab flex items-center gap-3 px-4 py-3 text-base font-medium border-[rgba(251,191,36,0.15)]',
-                  path === item.href || (item.href !== '/admin' && path.startsWith(item.href))
-                    ? 'glass-tab-active !border-[rgba(251,191,36,0.4)] !bg-[rgba(251,191,36,0.12)]'
-                    : 'text-white hover:text-white'].join(' ')}>
-                <span className={path.startsWith(item.href) ? 'text-yellow-400' : 'text-[#CBD5E1]'}>
-                  {item.icon}
-                </span>
-                {item.label}
-              </Link>
-            ))}
-          </>
-        ) : (
-          NAV.map((item) => <NavItem key={item.href} href={item.href} tKey={item.key} icon={item.icon} />)
+        {/* User info */}
+        <div className="px-3 py-3 mb-1 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center text-sm font-bold text-white shadow-md shadow-purple-500/25 shrink-0">
+            {username[0]?.toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-[#F1F5F9] truncate">{username}</p>
+            <p className="text-xs text-[#475569] flex items-center gap-1">
+              {role === 'admin' && <BsShieldFill size={10} className="text-yellow-400" />}
+              {role === 'admin' ? t('dash.sideRoleAdmin') : t('dash.sideRoleUser')}
+            </p>
+          </div>
+        </div>
+
+        {/* Nav — scrolls independently if content is taller than viewport */}
+        <nav className="flex flex-col gap-1 flex-1 min-h-0 overflow-y-auto">
+          {isCMS ? (
+            ADMIN_NAV.map((item) => {
+              const active = path === item.href || (item.href !== '/admin' && path.startsWith(item.href));
+              return (
+                <Link key={item.href} href={item.href}
+                  className={['glass-tab flex items-center gap-3 px-4 py-3 text-base font-medium border-[rgba(251,191,36,0.15)]',
+                    active
+                      ? 'glass-tab-active !border-[rgba(251,191,36,0.4)] !bg-[rgba(251,191,36,0.12)]'
+                      : 'text-white hover:text-white'].join(' ')}>
+                  <span className={active ? 'text-yellow-400' : 'text-[#CBD5E1]'}>
+                    {item.icon}
+                  </span>
+                  {item.label}
+                </Link>
+              );
+            })
+          ) : (
+            NAV.map(({ href, key, icon }) => {
+              const active = path === href || (href !== '/dashboard' && href !== '/admin' && path.startsWith(href));
+              return (
+                <Link key={href} href={href}
+                  className={['glass-tab flex items-center gap-3 px-4 py-3 text-base font-medium',
+                    active ? 'glass-tab-active' : 'text-white hover:text-white'].join(' ')}>
+                  <span className={active ? 'text-[#a78bfa]' : 'text-[#CBD5E1]'}>{icon}</span>
+                  {t(`dash.${key}`)}
+                </Link>
+              );
+            })
+          )}
+        </nav>
+
+        {/* CMS toggle — admin only */}
+        {role === 'admin' && (
+          isCMS ? (
+            <Link href="/dashboard"
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#94A3B8] hover:text-white border border-[rgba(139,92,246,0.2)] hover:border-[rgba(139,92,246,0.4)] hover:bg-[rgba(139,92,246,0.08)] transition-all mt-1">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              {t('dash.navBack')}
+            </Link>
+          ) : (
+            <Link href="/admin"
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-yellow-400 hover:text-yellow-300 border border-[rgba(251,191,36,0.25)] hover:border-[rgba(251,191,36,0.5)] hover:bg-[rgba(251,191,36,0.06)] transition-all mt-1">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {t('dash.navCms')}
+            </Link>
+          )
         )}
-      </nav>
 
-      {/* CMS toggle — admin only */}
-      {role === 'admin' && (
-        isCMS ? (
-          <Link href="/dashboard"
-            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#94A3B8] hover:text-white border border-[rgba(139,92,246,0.2)] hover:border-[rgba(139,92,246,0.4)] hover:bg-[rgba(139,92,246,0.08)] transition-all mt-1">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            {t('dash.navBack')}
-          </Link>
-        ) : (
-          <Link href="/admin"
-            className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-yellow-400 hover:text-yellow-300 border border-[rgba(251,191,36,0.25)] hover:border-[rgba(251,191,36,0.5)] hover:bg-[rgba(251,191,36,0.06)] transition-all mt-1">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            {t('dash.navCms')}
-          </Link>
-        )
-      )}
+        {/* Balance */}
+        <div className="rounded-xl px-3 py-3 mt-2 border border-[rgba(6,182,212,0.25)] bg-[rgba(6,182,212,0.07)]">
+          <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-semibold">{t('dash.sideBalance')}</p>
+          <p className="text-[#06B6D4] text-glow-cyan font-bold font-[family-name:var(--font-inter)] text-base mt-0.5">
+            {balance === null
+              ? <span className="animate-pulse text-[#334155]">{t('dash.loading')}</span>
+              : <>{balance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} <span className="text-[#64748B] text-xs font-normal">{t('dash.sideThb')}</span></>
+            }
+          </p>
+        </div>
 
-      {/* Balance */}
-      <div className="rounded-xl px-3 py-3 mt-2 border border-[rgba(6,182,212,0.25)] bg-[rgba(6,182,212,0.07)]">
-        <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-semibold">{t('dash.sideBalance')}</p>
-        <p className="text-[#06B6D4] text-glow-cyan font-bold font-[family-name:var(--font-inter)] text-base mt-0.5">
-          {balance === null
-            ? <span className="animate-pulse text-[#334155]">{t('dash.loading')}</span>
-            : <>{balance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} <span className="text-[#64748B] text-xs font-normal">{t('dash.sideThb')}</span></>
-          }
-        </p>
-      </div>
-
-      {/* Logout */}
-      <button onClick={handleLogout}
-        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-[rgba(239,68,68,0.08)] transition-all mt-1">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-        </svg>
-        {t('dash.navLogout')}
-      </button>
+        {/* Logout */}
+        <button onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-[rgba(239,68,68,0.08)] transition-all mt-1">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          {t('dash.navLogout')}
+        </button>
 
       </aside>
     </>

@@ -13,6 +13,7 @@ const SETTING_LABELS: Record<string, string> = {
   stat_users:    'จำนวนลูกค้า (แสดงหน้าแรก)',
   stat_platforms:'จำนวนแพลตฟอร์ม',
   stat_uptime:   'Uptime',
+  line_url:      'LINE URL (ปุ่มลอยมุมขวาล่าง)',
 };
 
 export default function AdminSettingsPage() {

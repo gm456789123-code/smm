@@ -119,16 +119,16 @@ export default function ServicesPage() {
                 className={[
                   'glass-tab flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all',
                   active
-                    ? 'glass-tab-active text-[#c4b5fd]'
+                    ? 'glass-tab-active text-white'
                     : count === 0
-                      ? 'text-[#334155] opacity-40 cursor-default'
-                      : 'text-[#94A3B8] hover:text-white',
+                      ? 'text-white/30 opacity-40 cursor-default'
+                      : 'text-white hover:text-white',
                 ].join(' ')}
                 disabled={count === 0 && p.label !== 'ทั้งหมด'}
               >
                 <span className="text-xl leading-none">{p.icon}</span>
                 {p.label}
-                <span className={`text-xs px-1.5 py-0.5 rounded ${active ? 'bg-[rgba(139,92,246,0.25)] text-[#c4b5fd]' : 'bg-[rgba(139,92,246,0.10)] text-[#475569]'}`}>
+                <span className={`text-xs px-1.5 py-0.5 rounded ${active ? 'bg-[rgba(139,92,246,0.30)] text-white' : 'bg-[rgba(255,255,255,0.10)] text-white/60'}`}>
                   {count}
                 </span>
               </button>

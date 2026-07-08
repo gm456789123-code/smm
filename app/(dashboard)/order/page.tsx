@@ -282,7 +282,7 @@ export default function OrderPage() {
           >
             <span className="text-xs font-mono text-[#334155] w-12 shrink-0 pt-0.5">#{svc.service}</span>
             <div className="flex-1 min-w-0">
-              <p className={`text-sm font-medium truncate ${active ? 'text-[#c4b5fd]' : 'text-[#CBD5E1] group-hover:text-white'}`}>
+              <p className={`text-sm font-medium truncate ${active ? 'text-white' : 'text-white group-hover:text-white'}`}>
                 {svc.name}
               </p>
               <p className="text-xs text-[#334155] truncate mt-0.5">{svc.category}</p>
@@ -322,7 +322,7 @@ export default function OrderPage() {
           <button key={p.label} onClick={() => setPlatform(p.label)}
             className={[
               'glass-tab flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap shrink-0 transition-all',
-              platform === p.label ? 'glass-tab-active text-[#c4b5fd]' : 'text-[#94A3B8]',
+              platform === p.label ? 'glass-tab-active text-white' : 'text-white',
             ].join(' ')}>
             <span className="text-xl leading-none">{p.icon}</span>
             {p.label}

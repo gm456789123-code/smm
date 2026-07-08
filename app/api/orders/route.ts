@@ -5,7 +5,6 @@ import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import { checkRateLimit } from '@/lib/rate-limit';
 
-// In-process cache - refresh every 10 min
 let _svcCache: { data: Service[]; exp: number } | null = null;
 async function getCachedServices(): Promise<Service[]> {
   if (_svcCache && _svcCache.exp > Date.now()) return _svcCache.data;
@@ -39,9 +38,7 @@ export async function POST(req: NextRequest) {
   if (quantity <= 0) {
     return NextResponse.json({ error: 'quantity must be greater than 0.' }, { status: 400 });
   }
-  try {
-    new URL(link);
-  } catch {
+  try { new URL(link); } catch {
     return NextResponse.json({ error: 'link must be a valid URL.' }, { status: 400 });
   }
 
@@ -77,27 +74,53 @@ export async function POST(req: NextRequest) {
       }, { status: 402 });
     }
 
-    const smmResult = await smmApi.addOrder({
-      service: String(serviceId),
-      link,
-      quantity: String(quantity),
-    });
-
+    // Deduct balance first regardless of API result
     await conn.query('UPDATE users SET balance = balance - ? WHERE id = ?', [costThb, user.userId]);
+
+    let smmOrderId: number | null = null;
+    let apiFailed = 0;
+    let apiError: string | null = null;
+
+    try {
+      const smmResult = await smmApi.addOrder({
+        service: String(serviceId),
+        link,
+        quantity: String(quantity),
+      });
+      smmOrderId = smmResult.order;
+    } catch (err) {
+      apiFailed = 1;
+      apiError = err instanceof Error ? err.message : String(err);
+      console.error('[orders/POST] SMM API error:', apiError);
+    }
+
     await conn.query(
-      `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note)
-       VALUES (?, 'spend', ?, ?, 'pending', ?)`,
-      [user.userId, costThb, String(smmResult.order), `${service.name} | ${link}`]
+      `INSERT INTO transactions
+         (user_id, tx_type, amount, ref, tx_status, note, provider, api_failed, api_error, service_id, link_url, qty)
+       VALUES (?, 'spend', ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        user.userId,
+        costThb,
+        smmOrderId !== null ? String(smmOrderId) : null,
+        `${service.name} | ${link}`,
+        service.provider,
+        apiFailed,
+        apiError,
+        serviceId,
+        link,
+        quantity,
+      ]
     );
 
     await conn.commit();
 
     return NextResponse.json({
       success: true,
-      orderId: smmResult.order,
+      orderId: smmOrderId,
       cost: costThb,
       balance: Math.round((balance - costThb) * 100) / 100,
     }, { status: 201 });
+
   } catch (error) {
     await conn.rollback();
     console.error('[orders/POST]', error);
@@ -112,7 +135,7 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const [rows] = await db.query<RowDataPacket[]>(
-    `SELECT id, amount, ref, tx_status, note, created_at
+    `SELECT id, amount, ref, tx_status, note, api_failed, created_at
      FROM transactions
      WHERE user_id = ? AND tx_type = 'spend'
      ORDER BY created_at DESC

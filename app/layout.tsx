@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import type { CSSProperties } from 'react';
 import './globals.css';
 import LocaleProvider from '@/components/LocaleProvider';
+import LineFloatButtonServer from '@/components/LineFloatButtonServer';
 import { getMessages, LOCALES, type Locale } from '@/lib/i18n';
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
@@ -85,6 +86,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="h-full">
         <LocaleProvider initialLocale={locale} initialMessages={messages}>
           {children}
+          <LineFloatButtonServer />
         </LocaleProvider>
       </body>
     </html>
