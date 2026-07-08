@@ -477,7 +477,7 @@ body {
     radial-gradient(ellipse 35% 30% at 15% 88%, rgba(16,185,129,0.28) 0%, transparent 55%),
     radial-gradient(ellipse 30% 25% at 52% 52%, rgba(245,158,11,0.20) 0%, transparent 55%);
 }
-.dash-bg > * { position: relative; z-index: 1; }
+.dash-bg > .dash-content { position: relative; z-index: 1; }
 
 /* Glass — bright card surface that reads clearly against the dark bg */
 .glass {

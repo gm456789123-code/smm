@@ -257,7 +257,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Platform tabs */}
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-2 gap-2 lg:flex lg:flex-wrap">
           {PLATFORMS.map(p => {
             const Icon = p.icon;
             const count = services.filter(s => matchPlatform(s.name, s.category, p.id)).length;
@@ -268,13 +268,13 @@ export default function DashboardPage() {
                 onClick={() => setPlatform(p.id)}
                 title={p.id}
                 className={[
-                  'glass-tab flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all hover:scale-105 active:scale-95',
+                  'glass-tab flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-all active:scale-95 w-full lg:w-auto lg:px-4 lg:hover:scale-105',
                   platform === p.id ? 'glass-tab-active text-[#c4b5fd] shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'text-[#94A3B8]',
                 ].join(' ')}
               >
-                <span className="text-lg"><Icon /></span>
-                <span>{p.id}</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[rgba(139,92,246,0.15)] text-[#a78bfa] font-mono leading-none">
+                <span className="text-base shrink-0"><Icon /></span>
+                <span className="truncate">{p.id}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[rgba(139,92,246,0.15)] text-[#a78bfa] font-mono leading-none ml-auto shrink-0 lg:ml-0">
                   {count}
                 </span>
               </button>
