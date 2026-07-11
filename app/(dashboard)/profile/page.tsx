@@ -49,13 +49,13 @@ export default function ProfilePage() {
     setPwForm({ current: '', newPw: '', confirm: '' });
   }
 
-  if (!user) return <main className="flex-1 p-6"><p className="text-[#475569] animate-pulse">กำลังโหลด...</p></main>;
+  if (!user) return <main className="flex-1 p-6"><p className="text-[#94A3B8] animate-pulse">กำลังโหลด...</p></main>;
 
   return (
     <main className="flex-1 p-6 space-y-6 max-w-2xl">
       <div>
         <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">โปรไฟล์</h1>
-        <p className="text-[#475569] text-sm mt-0.5">จัดการข้อมูลส่วนตัว</p>
+        <p className="text-[#94A3B8] text-sm mt-0.5">จัดการข้อมูลส่วนตัว</p>
       </div>
 
       {/* Avatar + info */}
@@ -75,7 +75,7 @@ export default function ProfilePage() {
 
       {/* Referral code */}
       <div className="glass p-5 space-y-2">
-        <p className="text-xs text-[#475569] uppercase tracking-wider">Referral Code ของคุณ</p>
+        <p className="text-xs text-[#94A3B8] uppercase tracking-wider">Referral Code ของคุณ</p>
         <div className="flex items-center gap-3">
           <code className="font-mono text-[#8B5CF6] text-lg font-bold tracking-widest">{user.referral_code}</code>
           <button
@@ -84,22 +84,22 @@ export default function ProfilePage() {
             คัดลอก
           </button>
         </div>
-        <p className="text-xs text-[#475569]">สมัครเมื่อ: {new Date(user.created_at).toLocaleDateString('th-TH', { year:'numeric',month:'long',day:'numeric' })}</p>
+        <p className="text-xs text-[#94A3B8]">สมัครเมื่อ: {new Date(user.created_at).toLocaleDateString('th-TH', { year:'numeric',month:'long',day:'numeric' })}</p>
       </div>
 
       {/* Edit profile */}
       <div className="glass p-6 space-y-4">
         <h2 className="font-[family-name:var(--font-jakarta)] font-semibold text-white">แก้ไขข้อมูล</h2>
         <div className="space-y-1.5">
-          <label className="text-xs text-[#475569] uppercase tracking-wider">Username</label>
-          <input value={user.username} disabled className="glass w-full px-3 py-2.5 text-sm text-[#475569] bg-transparent outline-none opacity-60 cursor-not-allowed" />
+          <label className="text-xs text-[#94A3B8] uppercase tracking-wider">Username</label>
+          <input value={user.username} disabled className="glass w-full px-3 py-2.5 text-sm text-[#94A3B8] bg-transparent outline-none opacity-60 cursor-not-allowed" />
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs text-[#475569] uppercase tracking-wider">Email</label>
-          <input value={user.email} disabled className="glass w-full px-3 py-2.5 text-sm text-[#475569] bg-transparent outline-none opacity-60 cursor-not-allowed" />
+          <label className="text-xs text-[#94A3B8] uppercase tracking-wider">Email</label>
+          <input value={user.email} disabled className="glass w-full px-3 py-2.5 text-sm text-[#94A3B8] bg-transparent outline-none opacity-60 cursor-not-allowed" />
         </div>
         <div className="space-y-1.5">
-          <label className="text-xs text-[#475569] uppercase tracking-wider">เบอร์โทร</label>
+          <label className="text-xs text-[#94A3B8] uppercase tracking-wider">เบอร์โทร</label>
           <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="08x-xxx-xxxx"
             className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
         </div>
@@ -114,7 +114,7 @@ export default function ProfilePage() {
         <h2 className="font-[family-name:var(--font-jakarta)] font-semibold text-white">เปลี่ยนรหัสผ่าน</h2>
         {['current','newPw','confirm'].map((field) => (
           <div key={field} className="space-y-1.5">
-            <label className="text-xs text-[#475569] uppercase tracking-wider">
+            <label className="text-xs text-[#94A3B8] uppercase tracking-wider">
               {field === 'current' ? 'รหัสผ่านปัจจุบัน' : field === 'newPw' ? 'รหัสผ่านใหม่' : 'ยืนยันรหัสผ่านใหม่'}
             </label>
             <input type="password" value={pwForm[field as keyof typeof pwForm]}

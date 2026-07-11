@@ -77,7 +77,7 @@
     "rights": "All rights reserved"
   },
   "dash": {
-    "navDashboard": "Dashboard", "navOrder": "New Order", "navOrders": "My Orders",
+    "navDashboard": "Dashboard", "navOrder": "New Order", "navOrders": "My Orders", "navMassOrder": "Mass Order",
     "navServices": "All Services", "navTopup": "Top Up", "navBalance": "Balance",
     "navProfile": "Profile", "navReport": "Report Issue", "navLogout": "Log Out",
     "navCms": "CMS", "navBack": "Back to Dashboard",

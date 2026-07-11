@@ -3,7 +3,7 @@ export interface BankSlipResponse {
   data?: {
     isDuplicate:    boolean;
     amountInSlip:   number;
-    matchedAccount: null | object;
+    matchedAccount?: null | object;
     rawSlip: {
       transRef:    string;
       date:        string;
@@ -15,8 +15,12 @@ export interface BankSlipResponse {
         account: { name: { th?: string; en?: string } };
       };
       receiver: {
-        bank:       { id: string; name: string; short: string };
-        account:    { name: { th?: string; en?: string } };
+        bank?:   { id: string; name: string; short: string };
+        account: {
+          name:   { th?: string; en?: string };
+          proxy?: { type: string; account: string };
+          bank?:  { type: string; account: string };
+        };
         merchantId?: string | null;
       };
     };
@@ -27,8 +31,9 @@ export interface BankSlipResponse {
 export interface TrueWalletResponse {
   success: boolean;
   data?: {
-    isDuplicate:  boolean;
-    amountInSlip: number;
+    isDuplicate:    boolean;
+    amountInSlip:   number;
+    matchedAccount: null | object;
     rawSlip: {
       transactionId: string;
       date:          string;

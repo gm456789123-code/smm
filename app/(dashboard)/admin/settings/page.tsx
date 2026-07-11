@@ -14,22 +14,38 @@ const SETTING_LABELS: Record<string, string> = {
   stat_platforms:'จำนวนแพลตฟอร์ม',
   stat_uptime:   'Uptime',
   line_url:      'LINE URL (ปุ่มลอยมุมขวาล่าง)',
+  announcement_active: 'แสดง Announcement Banner (1 = เปิด, 0 = ปิด)',
+  announcement_text:   'ข้อความ Announcement',
+  referral_commission_pct: 'Commission Referral (%)',
 };
+
+// Settings that use textarea instead of input
+const TEXTAREA_KEYS = new Set(['announcement_text', 'brand_desc']);
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Setting[]>([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
 
+  // Default values for settings that may not exist in DB yet
+  const DEFAULTS: Record<string, string> = {
+    announcement_active:     '0',
+    announcement_text:       '',
+    referral_commission_pct: '5',
+  };
+
   useEffect(() => {
     fetch('/api/admin/settings')
       .then((r) => r.json())
-      .then((data) => {
-        const list = Object.entries(data as Record<string,string>).map(([key, value]) => ({
-          key, label: SETTING_LABELS[key] ?? key, value,
+      .then((data: Record<string, string>) => {
+        // Merge DB data with defaults so new keys always appear
+        const merged = { ...DEFAULTS, ...data };
+        const list = Object.entries(SETTING_LABELS).map(([key, label]) => ({
+          key, label, value: merged[key] ?? '',
         }));
         setSettings(list);
       });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleChange(key: string, value: string) {
@@ -60,11 +76,20 @@ export default function AdminSettingsPage() {
         {settings.map(({ key, label, value }) => (
           <div key={key} className="space-y-1.5">
             <label className="text-xs text-[#475569] uppercase tracking-wider">{label}</label>
-            <input
-              value={value}
-              onChange={(e) => handleChange(key, e.target.value)}
-              className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors"
-            />
+            {TEXTAREA_KEYS.has(key) ? (
+              <textarea
+                value={value}
+                rows={3}
+                onChange={(e) => handleChange(key, e.target.value)}
+                className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors resize-none"
+              />
+            ) : (
+              <input
+                value={value}
+                onChange={(e) => handleChange(key, e.target.value)}
+                className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors"
+              />
+            )}
           </div>
         ))}
 

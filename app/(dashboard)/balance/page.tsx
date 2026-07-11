@@ -27,7 +27,7 @@ export default function BalancePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">ยอดเงิน</h1>
-          <p className="text-[#475569] text-sm mt-0.5">ประวัติและสรุปยอดเงิน</p>
+          <p className="text-[#94A3B8] text-sm mt-0.5">ประวัติและสรุปยอดเงิน</p>
         </div>
         <Link href="/topup" className="glass-tab glass-tab-active px-5 py-2.5 text-sm font-semibold text-[#c4b5fd] hover:text-white">
           + เติมเงิน
@@ -54,7 +54,7 @@ export default function BalancePage() {
         <h2 className="font-[family-name:var(--font-jakarta)] font-semibold text-white text-base">ธุรกรรมล่าสุด</h2>
         <div className="space-y-2">
           {txs.length === 0 ? (
-            <p className="py-8 text-center text-[#475569]">ยังไม่มีธุรกรรม</p>
+            <p className="py-8 text-center text-[#94A3B8]">ยังไม่มีธุรกรรม</p>
           ) : txs.map(t => (
             <div key={t.id} className="glass-tab flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
@@ -63,7 +63,7 @@ export default function BalancePage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-[#F1F5F9]">{t.tx_type === 'topup' ? 'เติมเงิน' : 'ใช้จ่าย'}</p>
-                  <p className="text-xs text-[#475569]">{new Date(t.created_at).toLocaleDateString('th-TH')}</p>
+                  <p className="text-xs text-[#94A3B8]">{new Date(t.created_at).toLocaleDateString('th-TH')}</p>
                 </div>
               </div>
               <div className="text-right">

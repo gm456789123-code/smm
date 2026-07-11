@@ -184,7 +184,7 @@ export default async function LandingPage() {
             </h1>
 
             {/* Tagline */}
-            <p className="anim-fade-up anim-fade-up-1 text-[#64748B] text-base md:text-[1.05rem] leading-relaxed max-w-md">
+            <p className="anim-fade-up anim-fade-up-1 text-base md:text-[1.05rem] leading-relaxed max-w-md" style={{ color: '#CBD5E1' }}>
               {desc}
             </p>
 
@@ -194,7 +194,7 @@ export default async function LandingPage() {
                 {cta} <BsArrowRight size={14} />
               </Link>
               <Link href="/#services"
-                    className="text-sm text-[#475569] hover:text-[#94A3B8] transition-colors inline-flex items-center gap-1.5 font-medium">
+                    className="text-sm text-[#94A3B8] hover:text-white transition-colors inline-flex items-center gap-1.5 font-medium">
                 ดูบริการทั้งหมด <BsArrowRight size={12} />
               </Link>
             </div>
@@ -208,7 +208,7 @@ export default async function LandingPage() {
               ].map(({ value, label, color }) => (
                 <div key={label}>
                   <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tabular-nums" style={{ color }}>{value}</p>
-                  <p className="text-[9px] text-[#1E293B] uppercase tracking-[0.2em] mt-0.5">{label}</p>
+                  <p className="text-[9px] text-[#64748B] uppercase tracking-[0.2em] mt-0.5">{label}</p>
                 </div>
               ))}
             </div>

@@ -77,7 +77,7 @@
     "rights": "สงวนลิขสิทธิ์"
   },
   "dash": {
-    "navDashboard": "หน้าหลัก", "navOrder": "สั่งซื้อ", "navOrders": "ออเดอร์ของฉัน",
+    "navDashboard": "หน้าหลัก", "navOrder": "สั่งซื้อ", "navOrders": "ออเดอร์ของฉัน", "navMassOrder": "สั่งจำนวนมาก",
     "navServices": "บริการทั้งหมด", "navTopup": "เติมเงิน", "navBalance": "ยอดเงิน",
     "navProfile": "โปรไฟล์", "navReport": "แจ้งปัญหา", "navLogout": "ออกจากระบบ",
     "navCms": "CMS", "navBack": "กลับหน้าหลัก",

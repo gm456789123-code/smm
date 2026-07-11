@@ -48,6 +48,8 @@ export default async function PublicLayout({ children }: { children: React.React
               <Link href="/blog" className="hover:text-[#94A3B8] transition-colors">บทความ</Link>
               <Link href="/#services" className="hover:text-[#94A3B8] transition-colors">บริการ</Link>
               <Link href="/#pricing" className="hover:text-[#94A3B8] transition-colors">ราคา</Link>
+              <Link href="/terms" className="hover:text-[#94A3B8] transition-colors">ข้อกำหนด</Link>
+              <Link href="/privacy" className="hover:text-[#94A3B8] transition-colors">นโยบาย</Link>
               <Link href="/register" className="hover:text-[#8B5CF6] transition-colors">สมัครสมาชิก</Link>
             </nav>
           </div>

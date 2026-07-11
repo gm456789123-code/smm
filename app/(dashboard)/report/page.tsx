@@ -72,7 +72,7 @@ export default function ReportPage() {
         </div>
         <div>
           <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">แจ้งปัญหา</h1>
-          <p className="text-[#475569] text-sm mt-0.5">กรอกรายละเอียดเพื่อให้ทีมงานช่วยเหลือ</p>
+          <p className="text-[#94A3B8] text-sm mt-0.5">กรอกรายละเอียดเพื่อให้ทีมงานช่วยเหลือ</p>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export default function ReportPage() {
         {/* Order ID */}
         <div className="space-y-2">
           <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">
-            Order ID <span className="normal-case font-normal text-[#475569]">(ถ้ามี)</span>
+            Order ID <span className="normal-case font-normal text-[#94A3B8]">(ถ้ามี)</span>
           </label>
           <input
             type="text" value={orderId}
@@ -123,7 +123,7 @@ export default function ReportPage() {
             className="w-full glass px-4 py-3 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border border-[rgba(255,255,255,0.10)] focus:border-[rgba(139,92,246,0.50)] transition-colors resize-none"
             required
           />
-          <p className={`text-[11px] text-right ${detail.length > 800 ? 'text-rose-400' : 'text-[#334155]'}`}>
+          <p className={`text-[11px] text-right ${detail.length > 800 ? 'text-rose-400' : 'text-[#64748B]'}`}>
             {detail.length} / 800
           </p>
         </div>

@@ -108,7 +108,7 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
 
         {/* ── Auth buttons (desktop full, mobile compact) ── */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="hidden md:block"><LangSwitcher /></div>
+          {/* <div className="hidden md:block"><LangSwitcher /></div> */}
           <Link
             href="/login"
             className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-xs md:text-sm font-medium text-[#94A3B8] hover:text-white border border-[rgba(139,92,246,0.18)] hover:border-[rgba(139,92,246,0.35)] hover:bg-[rgba(139,92,246,0.08)] transition-all"
@@ -165,9 +165,9 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
               <BsPersonPlus size={14} /> {t('nav.register')}
             </Link>
           </div>
-          <div className="pt-2 flex justify-center">
+          {/* <div className="pt-2 flex justify-center">
             <LangSwitcher />
-          </div>
+          </div> */}
         </div>
       </div>
       </header>

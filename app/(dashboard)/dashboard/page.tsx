@@ -269,10 +269,10 @@ export default function DashboardPage() {
                 title={p.id}
                 className={[
                   'glass-tab flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-all active:scale-95 w-full lg:w-auto lg:px-4 lg:hover:scale-105',
-                  platform === p.id ? 'glass-tab-active text-[#c4b5fd] shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'text-[#94A3B8]',
+                  platform === p.id ? 'glass-tab-active text-white shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'text-white',
                 ].join(' ')}
               >
-                <span className="text-base shrink-0"><Icon /></span>
+                <span className="text-base shrink-0 text-white"><Icon /></span>
                 <span className="truncate">{p.id}</span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-[rgba(139,92,246,0.15)] text-[#a78bfa] font-mono leading-none ml-auto shrink-0 lg:ml-0">
                   {count}

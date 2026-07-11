@@ -77,7 +77,7 @@
     "rights": "版权所有"
   },
   "dash": {
-    "navDashboard": "主页", "navOrder": "下订单", "navOrders": "我的订单",
+    "navDashboard": "主页", "navOrder": "下订单", "navOrders": "我的订单", "navMassOrder": "批量下单",
     "navServices": "所有服务", "navTopup": "充值", "navBalance": "余额",
     "navProfile": "个人资料", "navReport": "问题反馈", "navLogout": "退出登录",
     "navCms": "CMS", "navBack": "返回主页",

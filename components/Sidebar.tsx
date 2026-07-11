@@ -21,6 +21,10 @@ const NAV: { href: string; key: string; icon: React.ReactNode }[] = [
     icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /><path strokeLinecap="round" d="M9 12h6M9 16h4" /></svg>,
   },
   {
+    href: '/mass-order', key: 'navMassOrder',
+    icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>,
+  },
+  {
     href: '/services', key: 'navServices',
     icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M4 6h16M4 10h16M4 14h10M4 18h6" /></svg>,
   },
@@ -58,6 +62,10 @@ const ADMIN_NAV = [
   {
     href: '/admin/blog', label: 'จัดการบทความ',
     icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>,
+  },
+  {
+    href: '/admin/angpao', label: 'ซองอั้งเปา',
+    icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M20 12v7a1 1 0 01-1 1H5a1 1 0 01-1-1v-7M1 7h22v5H1zM12 7V4a1 1 0 00-1-1H9a1 1 0 00-1 1v3" /></svg>,
   },
   {
     href: '/admin/settings', label: 'ตั้งค่าเว็บ',
@@ -113,9 +121,9 @@ export default function Sidebar({ role, username }: SidebarProps) {
           <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
           <span className="text-white"> SMM</span>
         </p>
-        <div className="ml-auto">
+        {/* <div className="ml-auto">
           <LangSwitcher />
-        </div>
+        </div> */}
       </div>
 
       {/* Backdrop — sits between top bar (z-40) and sidebar (z-50) */}
@@ -147,10 +155,9 @@ export default function Sidebar({ role, username }: SidebarProps) {
             <p className="text-xs text-[#475569] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
           </div>
           <div className="flex items-center gap-1">
-            {/* LangSwitcher: desktop sidebar only. Mobile has it in the top bar. */}
-            <div className="hidden lg:block">
+            {/* <div className="hidden lg:block">
               <LangSwitcher />
-            </div>
+            </div> */}
             <button onClick={() => setOpen(false)} className="lg:hidden text-[#475569] hover:text-white p-1">
               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
