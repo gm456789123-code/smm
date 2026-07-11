@@ -61,17 +61,14 @@ interface Props {
   initialMessages: Record<string, unknown>;
 }
 
-export default function LocaleProvider({ children, initialLocale, initialMessages }: Props) {
-  const [locale, setLocaleState]  = useState<Locale>(initialLocale);
-  const [messages, setMessages]   = useState(initialMessages);
+export default function LocaleProvider({ children, initialMessages }: Props) {
+  // ล็อคภาษาไทยเป็นหลัก — เปิด i18n ได้ทีหลังโดยเอา locale hardcode ออก
+  const locale: Locale = 'th';
+  const [messages] = useState(initialMessages);
   const localeRef = useRef(locale);
-  localeRef.current = locale;
 
-  const setLocale = useCallback((newLocale: Locale) => {
-    document.cookie = `locale=${newLocale}; max-age=${60 * 60 * 24 * 365}; path=/; samesite=lax`;
-    setMessages(getMessages(newLocale));
-    setLocaleState(newLocale);
-  }, []);
+  // no-op — ยังไม่เปิดใช้การเปลี่ยนภาษา
+  const setLocale = useCallback((_newLocale: Locale) => {}, []);
 
   const t = useCallback((key: string, fallback = ''): string => {
     const parts = key.split('.');
