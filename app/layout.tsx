@@ -64,11 +64,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore  = await cookies();
-  const cookieLang   = cookieStore.get('locale')?.value;
-  const locale       = (LOCALES as readonly string[]).includes(cookieLang ?? '')
-    ? (cookieLang as Locale)
-    : 'th';
+  const locale = 'th' as Locale;
   const messages = getMessages(locale);
 
   return (
