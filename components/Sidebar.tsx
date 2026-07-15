@@ -60,6 +60,14 @@ const ADMIN_NAV = [
     icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
   },
   {
+    href: '/admin/topups', label: 'ประวัติเติมเงิน',
+    icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>,
+  },
+  {
+    href: '/admin/tickets', label: 'Support Tickets',
+    icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>,
+  },
+  {
     href: '/admin/blog', label: 'จัดการบทความ',
     icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>,
   },
@@ -83,6 +91,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
   const { t } = useLocale();
   const [open, setOpen]       = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string>('');
   const isCMS = path.startsWith('/admin');
 
   useEffect(() => {
@@ -90,6 +99,12 @@ export default function Sidebar({ role, username }: SidebarProps) {
       if (d && !d.error) setBalance(Number(d.balance));
     }).catch(() => null);
   }, [path]);
+
+  useEffect(() => {
+    fetch('/api/public/settings').then(r => r.json()).then(d => {
+      if (d?.logo_url) setLogoUrl(d.logo_url);
+    }).catch(() => null);
+  }, []);
 
   useEffect(() => { setOpen(false); }, [path]);
 
@@ -117,10 +132,15 @@ export default function Sidebar({ role, username }: SidebarProps) {
             <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
-          <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
-          <span className="text-white"> SMM</span>
-        </p>
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logoUrl} alt="logo" className="max-h-8 max-w-[140px] object-contain" onError={() => setLogoUrl('')} />
+        ) : (
+          <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
+            <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
+            <span className="text-white"> SMM</span>
+          </p>
+        )}
         {/* <div className="ml-auto">
           <LangSwitcher />
         </div> */}
@@ -147,17 +167,26 @@ export default function Sidebar({ role, username }: SidebarProps) {
 
         {/* Logo */}
         <div className="px-3 pb-5 mb-1 border-b border-[rgba(139,92,246,0.10)] flex items-center justify-between">
-          <div>
-            <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
-              <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
-              <span className="text-white"> SMM</span>
-            </p>
-            <p className="text-xs text-[#475569] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
+          <div className="flex-1 min-w-0">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt="logo"
+                className="max-h-9 max-w-[160px] object-contain"
+                onError={() => setLogoUrl('')}
+              />
+            ) : (
+              <>
+                <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
+                  <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
+                  <span className="text-white"> SMM</span>
+                </p>
+                <p className="text-xs text-[#475569] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
+              </>
+            )}
           </div>
-          <div className="flex items-center gap-1">
-            {/* <div className="hidden lg:block">
-              <LangSwitcher />
-            </div> */}
+          <div className="flex items-center gap-1 shrink-0">
             <button onClick={() => setOpen(false)} className="lg:hidden text-[#475569] hover:text-white p-1">
               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />
