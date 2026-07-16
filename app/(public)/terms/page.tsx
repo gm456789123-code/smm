@@ -1,9 +1,16 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
+import { SITE_URL } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: 'เงื่อนไขการใช้บริการ',
-  description: 'ข้อกำหนดและเงื่อนไขการใช้บริการ AURA SMM',
+  title: 'Terms of Service | AURA SMM',
+  description: 'Terms and conditions for using AURA SMM services.',
+  alternates: { canonical: `${SITE_URL}/terms` },
+  openGraph: {
+    title: 'Terms of Service | AURA SMM',
+    description: 'Terms and conditions for using AURA SMM services.',
+    url: `${SITE_URL}/terms`,
+  },
 };
 
 export default function TermsPage() {
@@ -12,67 +19,51 @@ export default function TermsPage() {
       <div className="mb-10">
         <p className="text-xs text-[#8B5CF6] uppercase tracking-widest font-semibold mb-2">Legal</p>
         <h1 className="font-[family-name:var(--font-jakarta)] text-3xl font-bold text-white mb-2">
-          เงื่อนไขการใช้บริการ
+          Terms of Service
         </h1>
-        <p className="text-[#475569] text-sm">มีผลบังคับใช้ตั้งแต่ 1 มกราคม 2568</p>
+        <p className="text-[#475569] text-sm">Effective from January 1, 2025</p>
       </div>
 
       <div className="space-y-8 text-[#94A3B8] leading-relaxed text-sm">
         <div className="glass p-6 space-y-2">
-          <h2 className="text-white font-semibold text-base">1. การยอมรับเงื่อนไข</h2>
-          <p>การเข้าใช้งานหรือสมัครบัญชีบน AURA SMM ถือว่าคุณได้อ่านและยอมรับข้อกำหนดและเงื่อนไขเหล่านี้ทั้งหมดแล้ว หากคุณไม่เห็นด้วยกับส่วนใดส่วนหนึ่ง กรุณางดใช้บริการ</p>
+          <h2 className="text-white font-semibold text-base">1. Acceptance</h2>
+          <p>By using AURA SMM or creating an account, you agree to these terms. If you do not agree, please stop using the service.</p>
         </div>
 
         <div className="glass p-6 space-y-2">
-          <h2 className="text-white font-semibold text-base">2. บริการที่ให้</h2>
-          <p>AURA SMM ให้บริการเพิ่มผู้ติดตาม ยอดไลก์ ยอดวิว และ engagement บนโซเชียลมีเดีย ผ่านระบบอัตโนมัติ เราสงวนสิทธิ์ปรับปรุง แก้ไข หรือหยุดให้บริการใดๆ ได้ทุกเมื่อโดยไม่ต้องแจ้งล่วงหน้า</p>
+          <h2 className="text-white font-semibold text-base">2. Services</h2>
+          <p>AURA SMM provides social media marketing related services such as followers, likes, views, and other engagement tools. We may update, change, or discontinue any service at any time.</p>
         </div>
 
         <div className="glass p-6 space-y-2">
-          <h2 className="text-white font-semibold text-base">3. นโยบายการเงินและการคืนเงิน</h2>
+          <h2 className="text-white font-semibold text-base">3. Credits and refunds</h2>
           <ul className="list-disc list-inside space-y-2">
-            <li>เครดิตที่เติมเข้าระบบแล้ว <span className="text-white font-medium">ไม่สามารถขอคืนเงินได้</span>ไม่ว่ากรณีใดทั้งสิ้น</li>
-            <li>ราคาบริการอาจเปลี่ยนแปลงได้โดยไม่แจ้งล่วงหน้า เครดิตคงเหลือไม่ได้รับผลกระทบ</li>
-            <li>ออเดอร์ที่ส่งแล้วและอยู่ระหว่างดำเนินการ ไม่สามารถยกเลิกได้ ยกเว้นบริการที่ระบุว่ารองรับ Cancel</li>
-            <li>กรณีออเดอร์ไม่สำเร็จเนื่องจากข้อผิดพลาดของระบบ เราจะคืนเครดิตเข้าบัญชีภายใน 24–72 ชั่วโมง</li>
+            <li>Account credits are generally non-refundable once added to your balance.</li>
+            <li>Prices may change without prior notice.</li>
+            <li>Orders that are already in progress may not be cancellable unless the service explicitly supports cancellation.</li>
+            <li>If an order fails due to a system issue, we may return credit back to your account.</li>
           </ul>
         </div>
 
         <div className="glass p-6 space-y-2">
-          <h2 className="text-white font-semibold text-base">4. ความรับผิดชอบของผู้ใช้</h2>
+          <h2 className="text-white font-semibold text-base">4. User responsibilities</h2>
           <ul className="list-disc list-inside space-y-2">
-            <li>คุณรับผิดชอบต่อการใช้งานบัญชีและต้องรักษาความลับของรหัสผ่าน</li>
-            <li>ห้ามใช้บริการเพื่อวัตถุประสงค์ที่ผิดกฎหมาย หลอกลวง หรือก่อให้เกิดความเสียหายต่อผู้อื่น</li>
-            <li>ห้ามพยายามเจาะระบบ โจมตี หรือรบกวนการทำงานของเว็บไซต์</li>
-            <li>ผู้ใช้ต้องมีอายุครบ 18 ปีบริบูรณ์หรือได้รับอนุญาตจากผู้ปกครอง</li>
+            <li>You are responsible for securing your account credentials.</li>
+            <li>You must not use the service for illegal, deceptive, or harmful activity.</li>
+            <li>You must not attempt to attack, abuse, or interfere with the website or its infrastructure.</li>
           </ul>
         </div>
 
         <div className="glass p-6 space-y-2">
-          <h2 className="text-white font-semibold text-base">5. การยกเว้นความรับผิดชอบ</h2>
-          <p>AURA SMM ไม่รับประกันผลลัพธ์ใดๆ จากการใช้บริการ บริการทั้งหมดเป็น "as-is" ตามที่ระบุในหน้าบริการ อาจมีความล่าช้าหรือข้อผิดพลาดจากผู้ให้บริการภายนอก เราไม่รับผิดชอบต่อความเสียหายทางตรงหรือทางอ้อมที่เกิดจากการใช้บริการ</p>
-        </div>
-
-        <div className="glass p-6 space-y-2">
-          <h2 className="text-white font-semibold text-base">6. การระงับบัญชี</h2>
-          <p>เราสงวนสิทธิ์ระงับหรือยกเลิกบัญชีที่ละเมิดข้อกำหนดเหล่านี้ หรือกระทำการที่ส่งผลเสียต่อระบบหรือผู้ใช้รายอื่น โดยไม่ต้องแจ้งล่วงหน้าและไม่มีการคืนเครดิตคงเหลือ</p>
-        </div>
-
-        <div className="glass p-6 space-y-2">
-          <h2 className="text-white font-semibold text-base">7. การแก้ไขข้อกำหนด</h2>
-          <p>เราอาจแก้ไขข้อกำหนดเหล่านี้ได้ทุกเมื่อ การใช้บริการต่อหลังจากมีการแก้ไขถือว่าคุณยอมรับข้อกำหนดใหม่</p>
-        </div>
-
-        <div className="glass p-6 space-y-2">
-          <h2 className="text-white font-semibold text-base">8. การติดต่อ</h2>
-          <p>หากมีคำถามหรือข้อสงสัย กรุณาติดต่อเราผ่านช่องทางที่ระบุในเว็บไซต์</p>
+          <h2 className="text-white font-semibold text-base">5. Disclaimer</h2>
+          <p>Services are provided as available. We do not guarantee specific business outcomes, growth results, or uninterrupted availability.</p>
         </div>
       </div>
 
       <div className="mt-10 flex items-center gap-4 text-xs text-[#334155]">
-        <Link href="/privacy" className="hover:text-[#8B5CF6] transition-colors">นโยบายความเป็นส่วนตัว</Link>
+        <Link href="/privacy" className="hover:text-[#8B5CF6] transition-colors">Privacy Policy</Link>
         <span>·</span>
-        <Link href="/" className="hover:text-[#94A3B8] transition-colors">กลับหน้าแรก</Link>
+        <Link href="/" className="hover:text-[#94A3B8] transition-colors">Back to home</Link>
       </div>
     </section>
   );
