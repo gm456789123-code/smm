@@ -15,6 +15,7 @@ import {
   FaqSection, CtaSection,
 } from '@/components/LandingClient';
 import { SITE_ICON, SITE_URL } from '@/lib/site';
+import { sanitizeUrl } from '@/lib/sanitize-html';
 
 async function getSettings() {
   try {
@@ -33,14 +34,14 @@ async function getLatestPosts() {
 }
 
 const PLATFORMS = [
-  { name: 'Instagram', icon: BsInstagram, bg: 'bg-gradient-to-br from-pink-600/20 via-purple-600/15 to-[#0B0E1A]',  glow: 'rgba(225,48,108,0.25)',  iconColor: '#E1306C' },
-  { name: 'TikTok',    icon: BsTiktok,    bg: 'bg-gradient-to-br from-slate-600/20 via-slate-800/15 to-[#0B0E1A]',  glow: 'rgba(241,245,249,0.12)', iconColor: '#F1F5F9' },
-  { name: 'YouTube',   icon: BsYoutube,   bg: 'bg-gradient-to-br from-red-600/20 via-red-900/15 to-[#0B0E1A]',      glow: 'rgba(255,0,0,0.22)',     iconColor: '#FF0000' },
-  { name: 'Facebook',  icon: BsFacebook,  bg: 'bg-gradient-to-br from-blue-600/20 via-blue-900/15 to-[#0B0E1A]',    glow: 'rgba(24,119,242,0.22)',  iconColor: '#1877F2' },
-  { name: 'Twitter/X', icon: BsTwitterX,  bg: 'bg-gradient-to-br from-slate-500/15 via-slate-700/10 to-[#0B0E1A]',  glow: 'rgba(241,245,249,0.10)', iconColor: '#F1F5F9' },
-  { name: 'Telegram',  icon: BsTelegram,  bg: 'bg-gradient-to-br from-sky-500/20 via-sky-800/15 to-[#0B0E1A]',      glow: 'rgba(42,171,238,0.22)',  iconColor: '#2AABEE' },
-  { name: 'Spotify',   icon: BsSpotify,   bg: 'bg-gradient-to-br from-green-500/20 via-green-800/15 to-[#0B0E1A]',  glow: 'rgba(29,185,84,0.22)',   iconColor: '#1DB954' },
-  { name: 'Threads',   icon: SiThreads,   bg: 'bg-gradient-to-br from-slate-500/15 via-slate-700/10 to-[#0B0E1A]',  glow: 'rgba(241,245,249,0.10)', iconColor: '#F1F5F9' },
+  { name: 'Instagram', icon: BsInstagram, bg: 'bg-gradient-to-br from-pink-600/20 via-purple-600/15 to-[#0B0E1A]', glow: 'rgba(225,48,108,0.25)', iconColor: '#E1306C' },
+  { name: 'TikTok', icon: BsTiktok, bg: 'bg-gradient-to-br from-slate-600/20 via-slate-800/15 to-[#0B0E1A]', glow: 'rgba(241,245,249,0.12)', iconColor: '#F1F5F9' },
+  { name: 'YouTube', icon: BsYoutube, bg: 'bg-gradient-to-br from-red-600/20 via-red-900/15 to-[#0B0E1A]', glow: 'rgba(255,0,0,0.22)', iconColor: '#FF0000' },
+  { name: 'Facebook', icon: BsFacebook, bg: 'bg-gradient-to-br from-blue-600/20 via-blue-900/15 to-[#0B0E1A]', glow: 'rgba(24,119,242,0.22)', iconColor: '#1877F2' },
+  { name: 'Twitter/X', icon: BsTwitterX, bg: 'bg-gradient-to-br from-slate-500/15 via-slate-700/10 to-[#0B0E1A]', glow: 'rgba(241,245,249,0.10)', iconColor: '#F1F5F9' },
+  { name: 'Telegram', icon: BsTelegram, bg: 'bg-gradient-to-br from-sky-500/20 via-sky-800/15 to-[#0B0E1A]', glow: 'rgba(42,171,238,0.22)', iconColor: '#2AABEE' },
+  { name: 'Spotify', icon: BsSpotify, bg: 'bg-gradient-to-br from-green-500/20 via-green-800/15 to-[#0B0E1A]', glow: 'rgba(29,185,84,0.22)', iconColor: '#1DB954' },
+  { name: 'Threads', icon: SiThreads, bg: 'bg-gradient-to-br from-slate-500/15 via-slate-700/10 to-[#0B0E1A]', glow: 'rgba(241,245,249,0.10)', iconColor: '#F1F5F9' },
 ];
 
 const FAQS = [
@@ -49,7 +50,6 @@ const FAQS = [
   { q: 'Can I request refill if an order drops?', a: 'Yes. Refill-supported services can be requested from the My Orders page.' },
   { q: 'Can followers drop after purchase?', a: 'Some services include a refill period or guarantee based on the selected package.' },
 ];
-
 
 export async function generateMetadata() {
   const s = await getSettings();
@@ -81,7 +81,7 @@ export default async function LandingPage() {
         '@id': `${SITE_URL}/#organization`,
         name: brand,
         url: SITE_URL,
-        logo: { '@type': 'ImageObject', url: `${SITE_URL}/og-image.svg` },
+        logo: { '@type': 'ImageObject', url: SITE_ICON },
         description: desc,
         sameAs: [],
       },
@@ -140,10 +140,7 @@ export default async function LandingPage() {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section className="hero-bg hero-grid relative min-h-screen flex items-center px-6 md:px-12 overflow-hidden">
         <div className="hero-light-beam" />
         <div className="hero-grain" />
@@ -154,57 +151,50 @@ export default async function LandingPage() {
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#07090F] to-transparent pointer-events-none" />
 
         <div className="relative z-10 w-full max-w-6xl mx-auto grid lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px] gap-12 xl:gap-20 items-center py-32 lg:min-h-screen lg:py-0">
-
-          {/* Left: copy */}
           <div className="space-y-8 lg:space-y-9">
-
-            {/* Brand label */}
             <div className="word-reveal word-reveal-1 flex items-center gap-3">
               <span className="w-5 h-px bg-[#8B5CF6]" />
               <span className="text-[11px] font-bold tracking-[0.22em] text-[#8B5CF6] uppercase">{brand} · SMM Panel</span>
             </div>
 
-            {/* Headline */}
             <h1 className="font-[family-name:var(--font-jakarta)] font-black leading-[0.92] tracking-tight">
               <span className="word-reveal word-reveal-1 block text-white text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5rem]">
-                ????????
+                Grow your
               </span>
-              <span className="word-reveal word-reveal-2 block text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5rem]"
-                    style={{
-                      background: 'linear-gradient(120deg,#8B5CF6 0%,#c4b5fd 50%,#06B6D4 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                    }}>
-                ?????????
+              <span
+                className="word-reveal word-reveal-2 block text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5rem]"
+                style={{
+                  background: 'linear-gradient(120deg,#8B5CF6 0%,#c4b5fd 50%,#06B6D4 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                followers
               </span>
               <span className="word-reveal word-reveal-2 block text-[#CBD5E1] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] mt-1">
-                ????????????
+                on every platform
               </span>
             </h1>
 
-            {/* Tagline */}
             <p className="anim-fade-up anim-fade-up-1 text-base md:text-[1.05rem] leading-relaxed max-w-md" style={{ color: '#CBD5E1' }}>
               {desc}
             </p>
 
-            {/* CTAs */}
             <div className="anim-fade-up anim-fade-up-2 flex flex-wrap gap-4 items-center">
               <Link href="/register" className="btn-primary text-sm font-bold px-8 py-3.5 inline-flex items-center gap-2">
                 {cta} <BsArrowRight size={14} />
               </Link>
-              <Link href="/#services"
-                    className="text-sm text-[#94A3B8] hover:text-white transition-colors inline-flex items-center gap-1.5 font-medium">
-                ??????????????? <BsArrowRight size={12} />
+              <Link href="/#services" className="text-sm text-[#94A3B8] hover:text-white transition-colors inline-flex items-center gap-1.5 font-medium">
+                View all services <BsArrowRight size={12} />
               </Link>
             </div>
 
-            {/* Inline stats */}
             <div className="anim-fade-up anim-fade-up-3 flex items-center gap-8 pt-5 border-t border-white/[0.05]">
               {[
-                { value: s.stat_orders   ?? '50K+',  label: '???????',  color: '#8B5CF6' },
-                { value: s.stat_users    ?? '10K+',  label: '??????',   color: '#06B6D4' },
-                { value: s.stat_uptime   ?? '99.9%', label: 'Uptime',   color: '#10B981' },
+                { value: s.stat_orders ?? '50K+', label: 'Orders', color: '#8B5CF6' },
+                { value: s.stat_users ?? '10K+', label: 'Customers', color: '#06B6D4' },
+                { value: s.stat_uptime ?? '99.9%', label: 'Uptime', color: '#10B981' },
               ].map(({ value, label, color }) => (
                 <div key={label}>
                   <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tabular-nums" style={{ color }}>{value}</p>
@@ -214,7 +204,6 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          {/* Right: dashboard preview */}
           <div className="hidden lg:block anim-fade-up anim-fade-up-1">
             <HeroDashboardCard />
           </div>
@@ -233,9 +222,9 @@ export default async function LandingPage() {
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { icon: BsBoxSeam, label: '??????????????', value: s.stat_orders ?? '50,000+', color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.20)' },
-            { icon: BsPeopleFill, label: '??????', value: s.stat_users ?? '10,000+', color: '#06B6D4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.20)' },
-            { icon: BsGlobe2, label: '?????????', value: s.stat_platforms ?? '10+', color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.20)' },
+            { icon: BsBoxSeam, label: 'Total orders', value: s.stat_orders ?? '50,000+', color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.20)' },
+            { icon: BsPeopleFill, label: 'Customers', value: s.stat_users ?? '10,000+', color: '#06B6D4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.20)' },
+            { icon: BsGlobe2, label: 'Platforms', value: s.stat_platforms ?? '10+', color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.20)' },
             { icon: BsLightningChargeFill, label: 'Uptime', value: s.stat_uptime ?? '99.9%', color: '#10B981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.20)' },
           ].map(({ icon: Icon, label, value, color, bg, border }) => (
             <div key={label} className="stat-luxury p-6 text-center" style={{ background: `linear-gradient(135deg, ${bg} 0%, rgba(11,14,26,0.9) 70%)`, borderColor: border }}>
@@ -257,12 +246,9 @@ export default async function LandingPage() {
           <PlatformsTitle />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {PLATFORMS.map(({ name, icon: Icon, bg, glow, iconColor }) => (
-              <div key={name}
-                className={`platform-card ${bg} p-6 text-center space-y-3`}
-                style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06)' }}>
+              <div key={name} className={`platform-card ${bg} p-6 text-center space-y-3`} style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06)' }}>
                 <div className="flex justify-center">
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                    style={{ background: 'rgba(0,0,0,0.3)', boxShadow: `0 0 20px ${glow}, inset 0 1px 0 rgba(255,255,255,0.08)` }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.3)', boxShadow: `0 0 20px ${glow}, inset 0 1px 0 rgba(255,255,255,0.08)` }}>
                     <Icon size={30} color={iconColor} />
                   </div>
                 </div>
@@ -309,36 +295,40 @@ export default async function LandingPage() {
               <div className="flex items-end justify-between">
                 <div className="space-y-2">
                   <p className="section-label text-[#06B6D4]">Blog</p>
-                  <h2 className="font-[family-name:var(--font-jakarta)] text-3xl font-extrabold text-white">????????????</h2>
+                  <h2 className="font-[family-name:var(--font-jakarta)] text-3xl font-extrabold text-white">Latest articles</h2>
                 </div>
                 <Link href="/blog" className="btn-secondary text-xs px-4 py-2 inline-flex items-center gap-1.5">
-                  ????????? <BsArrowRight size={12} />
+                  View all <BsArrowRight size={12} />
                 </Link>
               </div>
               <div className="grid md:grid-cols-3 gap-5">
-                {posts.map((post: RowDataPacket) => (
-                  <Link key={post.slug} href={`/blog/${post.slug}`} className="luxury-card p-5 space-y-3 group">
-                    {post.cover_image && (
-                      <div className="aspect-video rounded-xl overflow-hidden bg-[rgba(139,92,246,0.08)]">
-                        <Image
-                          src={post.cover_image}
-                          alt={post.title}
-                          width={960}
-                          height={540}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-                    )}
-                    <p className="font-[family-name:var(--font-jakarta)] font-bold text-[#F1F5F9] text-sm line-clamp-2 group-hover:text-[#c4b5fd] transition-colors">{post.title}</p>
-                    {post.excerpt && <p className="text-[#475569] text-xs line-clamp-2">{post.excerpt}</p>}
-                    {post.published_at && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-[#334155]">
-                        <BsClockHistory size={10} />
-                        {new Date(post.published_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
-                      </div>
-                    )}
-                  </Link>
-                ))}
+                {posts.map((post: RowDataPacket) => {
+                  const safeCoverImage = sanitizeUrl(post.cover_image, 'image');
+
+                  return (
+                    <Link key={post.slug} href={`/blog/${post.slug}`} className="luxury-card p-5 space-y-3 group">
+                      {safeCoverImage && (
+                        <div className="aspect-video rounded-xl overflow-hidden bg-[rgba(139,92,246,0.08)]">
+                          <Image
+                            src={safeCoverImage}
+                            alt={post.title}
+                            width={960}
+                            height={540}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                      )}
+                      <p className="font-[family-name:var(--font-jakarta)] font-bold text-[#F1F5F9] text-sm line-clamp-2 group-hover:text-[#c4b5fd] transition-colors">{post.title}</p>
+                      {post.excerpt && <p className="text-[#475569] text-xs line-clamp-2">{post.excerpt}</p>}
+                      {post.published_at && (
+                        <div className="flex items-center gap-1.5 text-[10px] text-[#334155]">
+                          <BsClockHistory size={10} />
+                          {new Date(post.published_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </section>
@@ -356,6 +346,3 @@ export default async function LandingPage() {
     </>
   );
 }
-
-
-
