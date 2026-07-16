@@ -1,10 +1,9 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
-
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
+import { SITE_URL } from '@/lib/site';
 
 async function getBrand() {
   try {
@@ -21,10 +20,10 @@ async function getBrand() {
 export async function generateMetadata(): Promise<Metadata> {
   const { name, tagline, desc } = await getBrand();
   return {
-    title: { default: `${name} — ${tagline}`, template: `%s | ${name}` },
+    title: { default: `${name} - ${tagline}`, template: `%s | ${name}` },
     description: desc || tagline,
-    openGraph: { siteName: name, title: `${name} — ${tagline}`, description: desc || tagline },
-    alternates: { canonical: BASE },
+    openGraph: { siteName: name, title: `${name} - ${tagline}`, description: desc || tagline },
+    alternates: { canonical: SITE_URL },
   };
 }
 
@@ -45,12 +44,12 @@ export default async function PublicLayout({ children }: { children: React.React
               <p className="text-xs text-[#334155] mt-1">© {new Date().getFullYear()} {name} · Developed by <span className="text-[#8B5CF6]">Saint</span></p>
             </div>
             <nav className="flex items-center gap-4 text-xs text-[#475569]">
-              <Link href="/blog" className="hover:text-[#94A3B8] transition-colors">บทความ</Link>
-              <Link href="/#services" className="hover:text-[#94A3B8] transition-colors">บริการ</Link>
-              <Link href="/#pricing" className="hover:text-[#94A3B8] transition-colors">ราคา</Link>
-              <Link href="/terms" className="hover:text-[#94A3B8] transition-colors">ข้อกำหนด</Link>
-              <Link href="/privacy" className="hover:text-[#94A3B8] transition-colors">นโยบาย</Link>
-              <Link href="/register" className="hover:text-[#8B5CF6] transition-colors">สมัครสมาชิก</Link>
+              <Link href="/blog" className="hover:text-[#94A3B8] transition-colors">Blog</Link>
+              <Link href="/#services" className="hover:text-[#94A3B8] transition-colors">Services</Link>
+              <Link href="/#pricing" className="hover:text-[#94A3B8] transition-colors">Pricing</Link>
+              <Link href="/terms" className="hover:text-[#94A3B8] transition-colors">Terms</Link>
+              <Link href="/privacy" className="hover:text-[#94A3B8] transition-colors">Privacy</Link>
+              <Link href="/register" className="hover:text-[#8B5CF6] transition-colors">Register</Link>
             </nav>
           </div>
         </div>

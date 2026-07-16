@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import db from '@/lib/db';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { sanitizeHtml, sanitizeUrl } from '@/lib/sanitize-html';
 
 async function checkAdmin(req: NextRequest) {
   const user = await getRequestUser(req);
@@ -30,13 +31,28 @@ export async function POST(req: NextRequest) {
   const { title, slug, excerpt, content, cover_image, meta_title, meta_description, focus_keyword, og_image, published } = await req.json();
   if (!title || !slug) return NextResponse.json({ error: 'title and slug are required.' }, { status: 400 });
 
+  const safeContent = sanitizeHtml(content ?? '');
+  const safeCoverImage = sanitizeUrl(cover_image, 'image');
+  const safeOgImage = sanitizeUrl(og_image, 'image');
   const publishedAt = published ? new Date() : null;
+
   const [result] = await db.query<ResultSetHeader>(
     `INSERT INTO blog_posts (slug,title,excerpt,content,cover_image,meta_title,meta_description,focus_keyword,og_image,author_id,published,published_at)
      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-    [slug, title, excerpt ?? null, content ?? null, cover_image ?? null,
-     meta_title ?? null, meta_description ?? null, focus_keyword ?? null, og_image ?? null,
-     admin.userId, published ?? 0, publishedAt]
+    [
+      slug,
+      title,
+      excerpt ?? null,
+      safeContent || null,
+      safeCoverImage,
+      meta_title ?? null,
+      meta_description ?? null,
+      focus_keyword ?? null,
+      safeOgImage,
+      admin.userId,
+      published ?? 0,
+      publishedAt,
+    ]
   );
   return NextResponse.json({ id: result.insertId }, { status: 201 });
 }

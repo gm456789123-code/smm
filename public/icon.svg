@@ -1,0 +1,13 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="AURA SMM">
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#07090F" />
+  <rect x="10" y="10" width="108" height="108" rx="24" fill="url(#bg)" opacity="0.18" />
+  <path d="M35 92 58 36h12l23 56H80l-4.3-11H52.3L48 92H35Zm21.5-21h15L64 51l-7.5 20Z" fill="#F8FAFC" />
+  <path d="M84 36h10v56H84z" fill="#F8FAFC" opacity=".88" />
+</svg>
+

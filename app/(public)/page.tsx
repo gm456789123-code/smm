@@ -14,6 +14,7 @@ import {
   FeaturesSection, FeaturesTitle, PlatformsTitle, PricingPlans, PricingTitle,
   FaqSection, CtaSection,
 } from '@/components/LandingClient';
+import { SITE_ICON, SITE_URL } from '@/lib/site';
 
 async function getSettings() {
   try {
@@ -43,24 +44,23 @@ const PLATFORMS = [
 ];
 
 const FAQS = [
-  { q: 'บริการมีความปลอดภัยไหม?', a: 'ปลอดภัยครับ เราไม่ขอรหัสผ่าน ใช้เพียงลิงก์สาธารณะเท่านั้น' },
-  { q: 'เริ่มต้นได้เร็วแค่ไหน?', a: 'ส่วนใหญ่เริ่มภายใน 0-1 ชั่วโมงหลังชำระเงิน ขึ้นอยู่กับบริการที่เลือก' },
-  { q: 'ถ้าออเดอร์ไม่ครบ ขอ refill ได้ไหม?', a: 'ได้ครับ บริการที่รองรับ refill สามารถกดขอได้ผ่านหน้า My Orders' },
-  { q: 'ยอด follower จะลดไหมหลังซื้อ?', a: 'บางบริการมีการรับประกันระยะยาวตามเงื่อนไขที่ระบุในแต่ละแพ็กเกจ' },
+  { q: 'Is the service safe?', a: 'Yes. We do not ask for passwords and only require public profile or post links.' },
+  { q: 'How fast do orders start?', a: 'Most services begin within 0-1 hours after payment, depending on the package.' },
+  { q: 'Can I request refill if an order drops?', a: 'Yes. Refill-supported services can be requested from the My Orders page.' },
+  { q: 'Can followers drop after purchase?', a: 'Some services include a refill period or guarantee based on the selected package.' },
 ];
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
 
 export async function generateMetadata() {
   const s = await getSettings();
   const brand = s.brand_name ?? 'AURA SMM';
-  const tagline = s.brand_tagline ?? 'บริการ SMM Panel คุณภาพสูง เร็ว เสถียร ราคาคุ้มค่า';
-  const desc = s.brand_desc ?? 'เพิ่มยอดผู้ติดตาม ยอดไลก์ และ engagement บนทุกแพลตฟอร์ม';
+  const tagline = s.brand_tagline ?? 'High-quality SMM panel with fast delivery and stable service';
+  const desc = s.brand_desc ?? 'Boost followers, likes, views, and engagement across major social platforms.';
   return {
     title: `${brand} - ${tagline}`,
     description: desc,
-    alternates: { canonical: BASE },
-    openGraph: { url: BASE, title: `${brand} - ${tagline}`, description: desc },
+    alternates: { canonical: SITE_URL },
+    openGraph: { url: SITE_URL, title: `${brand} - ${tagline}`, description: desc },
   };
 }
 
@@ -69,51 +69,51 @@ export default async function LandingPage() {
   const posts = await getLatestPosts();
 
   const brand = s.brand_name ?? 'AURA SMM';
-  const tagline = s.brand_tagline ?? 'บริการ SMM Panel คุณภาพสูง เร็ว เสถียร ราคาคุ้มค่า';
-  const desc = s.brand_desc ?? 'เพิ่มยอดผู้ติดตาม ยอดไลก์ และ engagement บนทุกแพลตฟอร์ม';
-  const cta = s.hero_cta ?? 'เริ่มต้นใช้งานฟรี';
+  const tagline = s.brand_tagline ?? 'High-quality SMM panel with fast delivery and stable service';
+  const desc = s.brand_desc ?? 'Boost followers, likes, views, and engagement across major social platforms.';
+  const cta = s.hero_cta ?? 'Get started for free';
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
       {
         '@type': 'Organization',
-        '@id': `${BASE}/#organization`,
+        '@id': `${SITE_URL}/#organization`,
         name: brand,
-        url: BASE,
-        logo: { '@type': 'ImageObject', url: `${BASE}/og-image.png` },
+        url: SITE_URL,
+        logo: { '@type': 'ImageObject', url: `${SITE_URL}/og-image.svg` },
         description: desc,
         sameAs: [],
       },
       {
         '@type': 'WebSite',
-        '@id': `${BASE}/#website`,
-        url: BASE,
+        '@id': `${SITE_URL}/#website`,
+        url: SITE_URL,
         name: brand,
         description: tagline,
-        publisher: { '@id': `${BASE}/#organization` },
+        publisher: { '@id': `${SITE_URL}/#organization` },
         potentialAction: {
           '@type': 'SearchAction',
-          target: { '@type': 'EntryPoint', urlTemplate: `${BASE}/blog?q={search_term_string}` },
+          target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/blog?q={search_term_string}` },
           'query-input': 'required name=search_term_string',
         },
       },
       {
         '@type': 'WebPage',
-        '@id': `${BASE}/#webpage`,
-        url: BASE,
+        '@id': `${SITE_URL}/#webpage`,
+        url: SITE_URL,
         name: `${brand} - ${tagline}`,
         description: desc,
-        isPartOf: { '@id': `${BASE}/#website` },
-        about: { '@id': `${BASE}/#organization` },
+        isPartOf: { '@id': `${SITE_URL}/#website` },
+        about: { '@id': `${SITE_URL}/#organization` },
         breadcrumb: {
           '@type': 'BreadcrumbList',
-          itemListElement: [{ '@type': 'ListItem', position: 1, name: 'หน้าแรก', item: BASE }],
+          itemListElement: [{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL }],
         },
       },
       {
         '@type': 'FAQPage',
-        '@id': `${BASE}/#faq`,
+        '@id': `${SITE_URL}/#faq`,
         mainEntity: FAQS.map(({ q, a }) => ({
           '@type': 'Question',
           name: q,
@@ -122,10 +122,10 @@ export default async function LandingPage() {
       },
       {
         '@type': 'Service',
-        '@id': `${BASE}/#service`,
+        '@id': `${SITE_URL}/#service`,
         name: `${brand} - SMM Panel`,
         description: desc,
-        provider: { '@id': `${BASE}/#organization` },
+        provider: { '@id': `${SITE_URL}/#organization` },
         areaServed: { '@type': 'Country', name: 'Thailand' },
         serviceType: 'Social Media Marketing',
         offers: {
@@ -167,7 +167,7 @@ export default async function LandingPage() {
             {/* Headline */}
             <h1 className="font-[family-name:var(--font-jakarta)] font-black leading-[0.92] tracking-tight">
               <span className="word-reveal word-reveal-1 block text-white text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5rem]">
-                เพิ่มยอด
+                ????????
               </span>
               <span className="word-reveal word-reveal-2 block text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5rem]"
                     style={{
@@ -176,10 +176,10 @@ export default async function LandingPage() {
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
                     }}>
-                ผู้ติดตาม
+                ?????????
               </span>
               <span className="word-reveal word-reveal-2 block text-[#CBD5E1] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] mt-1">
-                ทุกแพลตฟอร์ม
+                ????????????
               </span>
             </h1>
 
@@ -195,15 +195,15 @@ export default async function LandingPage() {
               </Link>
               <Link href="/#services"
                     className="text-sm text-[#94A3B8] hover:text-white transition-colors inline-flex items-center gap-1.5 font-medium">
-                ดูบริการทั้งหมด <BsArrowRight size={12} />
+                ??????????????? <BsArrowRight size={12} />
               </Link>
             </div>
 
             {/* Inline stats */}
             <div className="anim-fade-up anim-fade-up-3 flex items-center gap-8 pt-5 border-t border-white/[0.05]">
               {[
-                { value: s.stat_orders   ?? '50K+',  label: 'ออเดอร์',  color: '#8B5CF6' },
-                { value: s.stat_users    ?? '10K+',  label: 'ลูกค้า',   color: '#06B6D4' },
+                { value: s.stat_orders   ?? '50K+',  label: '???????',  color: '#8B5CF6' },
+                { value: s.stat_users    ?? '10K+',  label: '??????',   color: '#06B6D4' },
                 { value: s.stat_uptime   ?? '99.9%', label: 'Uptime',   color: '#10B981' },
               ].map(({ value, label, color }) => (
                 <div key={label}>
@@ -233,9 +233,9 @@ export default async function LandingPage() {
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { icon: BsBoxSeam, label: 'ออเดอร์ทั้งหมด', value: s.stat_orders ?? '50,000+', color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.20)' },
-            { icon: BsPeopleFill, label: 'ลูกค้า', value: s.stat_users ?? '10,000+', color: '#06B6D4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.20)' },
-            { icon: BsGlobe2, label: 'แพลตฟอร์ม', value: s.stat_platforms ?? '10+', color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.20)' },
+            { icon: BsBoxSeam, label: '??????????????', value: s.stat_orders ?? '50,000+', color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.20)' },
+            { icon: BsPeopleFill, label: '??????', value: s.stat_users ?? '10,000+', color: '#06B6D4', bg: 'rgba(6,182,212,0.08)', border: 'rgba(6,182,212,0.20)' },
+            { icon: BsGlobe2, label: '?????????', value: s.stat_platforms ?? '10+', color: '#A78BFA', bg: 'rgba(167,139,250,0.08)', border: 'rgba(167,139,250,0.20)' },
             { icon: BsLightningChargeFill, label: 'Uptime', value: s.stat_uptime ?? '99.9%', color: '#10B981', bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.20)' },
           ].map(({ icon: Icon, label, value, color, bg, border }) => (
             <div key={label} className="stat-luxury p-6 text-center" style={{ background: `linear-gradient(135deg, ${bg} 0%, rgba(11,14,26,0.9) 70%)`, borderColor: border }}>
@@ -309,10 +309,10 @@ export default async function LandingPage() {
               <div className="flex items-end justify-between">
                 <div className="space-y-2">
                   <p className="section-label text-[#06B6D4]">Blog</p>
-                  <h2 className="font-[family-name:var(--font-jakarta)] text-3xl font-extrabold text-white">บทความล่าสุด</h2>
+                  <h2 className="font-[family-name:var(--font-jakarta)] text-3xl font-extrabold text-white">????????????</h2>
                 </div>
                 <Link href="/blog" className="btn-secondary text-xs px-4 py-2 inline-flex items-center gap-1.5">
-                  ดูทั้งหมด <BsArrowRight size={12} />
+                  ????????? <BsArrowRight size={12} />
                 </Link>
               </div>
               <div className="grid md:grid-cols-3 gap-5">
@@ -356,3 +356,6 @@ export default async function LandingPage() {
     </>
   );
 }
+
+
+

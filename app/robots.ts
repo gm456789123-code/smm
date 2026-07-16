@@ -1,6 +1,5 @@
-import { MetadataRoute } from 'next';
-
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
+﻿import { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -11,7 +10,8 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/dashboard/', '/admin/', '/order/', '/orders/', '/profile/', '/balance/', '/topup/', '/login', '/register', '/api/'],
       },
     ],
-    sitemap: `${BASE}/sitemap.xml`,
-    host: BASE,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }
+

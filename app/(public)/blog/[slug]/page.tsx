@@ -1,12 +1,12 @@
-import { notFound } from 'next/navigation';
+﻿import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import { BsArrowLeft, BsClockHistory, BsPersonCircle } from 'react-icons/bs';
 import type { Metadata } from 'next';
-
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
+import { SITE_ICON, SITE_OG_IMAGE, SITE_URL } from '@/lib/site';
+import { sanitizeHtml, sanitizeUrl } from '@/lib/sanitize-html';
 
 interface Props { params: Promise<{ slug: string }> }
 
@@ -30,15 +30,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${post.title} | AURA SMM Blog`;
   const description = post.excerpt || 'Read the latest social media marketing insights from AURA SMM.';
-  const image = post.cover_image || `${BASE}/og-image.png`;
+  const image = sanitizeUrl(post.og_image || post.cover_image, 'image') || SITE_OG_IMAGE;
 
   return {
     title,
     description,
-    alternates: { canonical: `${BASE}/blog/${slug}` },
+    alternates: { canonical: `${SITE_URL}/blog/${slug}` },
     openGraph: {
       type: 'article',
-      url: `${BASE}/blog/${slug}`,
+      url: `${SITE_URL}/blog/${slug}`,
       title,
       description,
       publishedTime: post.published_at,
@@ -60,23 +60,25 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await getPost(slug);
   if (!post) notFound();
 
+  const safeCoverImage = sanitizeUrl(post.cover_image, 'image');
+  const safeContent = sanitizeHtml(post.content ?? '');
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: post.title,
     description: post.excerpt,
-    image: post.cover_image ? [post.cover_image] : [`${BASE}/og-image.png`],
+    image: safeCoverImage ? [safeCoverImage] : [SITE_OG_IMAGE],
     datePublished: post.published_at,
     dateModified: post.updated_at ?? post.published_at,
     author: { '@type': 'Person', name: post.author_name ?? 'AURA SMM' },
-    publisher: { '@type': 'Organization', name: 'AURA SMM', logo: { '@type': 'ImageObject', url: `${BASE}/og-image.png` } },
-    mainEntityOfPage: { '@type': 'WebPage', '@id': `${BASE}/blog/${slug}` },
+    publisher: { '@type': 'Organization', name: 'AURA SMM', logo: { '@type': 'ImageObject', url: SITE_ICON } },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${slug}` },
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: BASE },
-        { '@type': 'ListItem', position: 2, name: 'Blog', item: `${BASE}/blog` },
-        { '@type': 'ListItem', position: 3, name: post.title, item: `${BASE}/blog/${slug}` },
+        { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+        { '@type': 'ListItem', position: 3, name: post.title, item: `${SITE_URL}/blog/${slug}` },
       ],
     },
   };
@@ -93,9 +95,9 @@ export default async function BlogPostPage({ params }: Props) {
         <span className="text-[#475569] truncate max-w-[200px]">{post.title}</span>
       </nav>
 
-      {post.cover_image && (
+      {safeCoverImage && (
         <div className="aspect-video rounded-2xl overflow-hidden bg-[rgba(139,92,246,0.08)]">
-          <Image src={post.cover_image} alt={post.title} width={1200} height={675} className="w-full h-full object-cover" />
+          <Image src={safeCoverImage} alt={post.title} width={1200} height={675} className="w-full h-full object-cover" />
         </div>
       )}
 
@@ -127,7 +129,7 @@ export default async function BlogPostPage({ params }: Props) {
 
       <article
         className="prose prose-invert prose-sm max-w-none text-[#94A3B8] leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: post.content ?? '' }}
+        dangerouslySetInnerHTML={{ __html: safeContent }}
       />
 
       <div className="pt-6 border-t border-[rgba(139,92,246,0.10)]">
@@ -138,3 +140,4 @@ export default async function BlogPostPage({ params }: Props) {
     </div>
   );
 }
+

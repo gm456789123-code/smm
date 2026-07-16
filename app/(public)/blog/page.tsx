@@ -1,18 +1,18 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import Image from 'next/image';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import type { Metadata } from 'next';
-
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? 'https://aurasmm.com';
+import { SITE_URL } from '@/lib/site';
+import { sanitizeUrl } from '@/lib/sanitize-html';
 
 export const metadata: Metadata = {
   title: 'AURA SMM Blog - Tips and Platform Updates',
   description: 'Guides and updates on social media marketing, growth strategies, and platform trends.',
-  alternates: { canonical: `${BASE}/blog` },
+  alternates: { canonical: `${SITE_URL}/blog` },
   openGraph: {
     type: 'website',
-    url: `${BASE}/blog`,
+    url: `${SITE_URL}/blog`,
     title: 'AURA SMM Blog',
     description: 'Social media growth tips, SMM guides, and platform updates.',
   },
@@ -50,38 +50,43 @@ export default async function BlogPage() {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {posts.map((post: RowDataPacket) => (
-            <Link
-              key={post.slug}
-              href={`/blog/${post.slug}`}
-              className="glass p-5 space-y-3 group hover:border-[rgba(139,92,246,0.3)] transition-colors"
-            >
-              {post.cover_image && (
-                <div className="aspect-video bg-[rgba(139,92,246,0.08)] rounded-lg overflow-hidden">
-                  <Image
-                    src={post.cover_image}
-                    alt={post.title}
-                    width={960}
-                    height={540}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              )}
-              <div className="space-y-1.5">
-                <h2 className="font-[family-name:var(--font-jakarta)] font-semibold text-[#F1F5F9] text-sm group-hover:text-[#c4b5fd] transition-colors line-clamp-2">
-                  {post.title}
-                </h2>
-                {post.excerpt && <p className="text-[#475569] text-xs line-clamp-3">{post.excerpt}</p>}
-                {post.published_at && (
-                  <p className="text-[10px] text-[#334155]">
-                    {new Date(post.published_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
-                  </p>
+          {posts.map((post: RowDataPacket) => {
+            const safeCoverImage = sanitizeUrl(post.cover_image, 'image');
+
+            return (
+              <Link
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                className="glass p-5 space-y-3 group hover:border-[rgba(139,92,246,0.3)] transition-colors"
+              >
+                {safeCoverImage && (
+                  <div className="aspect-video bg-[rgba(139,92,246,0.08)] rounded-lg overflow-hidden">
+                    <Image
+                      src={safeCoverImage}
+                      alt={post.title}
+                      width={960}
+                      height={540}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
                 )}
-              </div>
-            </Link>
-          ))}
+                <div className="space-y-1.5">
+                  <h2 className="font-[family-name:var(--font-jakarta)] font-semibold text-[#F1F5F9] text-sm group-hover:text-[#c4b5fd] transition-colors line-clamp-2">
+                    {post.title}
+                  </h2>
+                  {post.excerpt && <p className="text-[#475569] text-xs line-clamp-3">{post.excerpt}</p>}
+                  {post.published_at && (
+                    <p className="text-[10px] text-[#334155]">
+                      {new Date(post.published_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
+

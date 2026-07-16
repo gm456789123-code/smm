@@ -1,0 +1,25 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="AURA SMM">
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#090B14" />
+      <stop offset="60%" stop-color="#12182A" />
+      <stop offset="100%" stop-color="#081922" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" x2="100%" y1="0%" y2="0%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <circle cx="970" cy="120" r="180" fill="#8B5CF6" opacity="0.16" />
+  <circle cx="1040" cy="520" r="210" fill="#06B6D4" opacity="0.12" />
+  <circle cx="240" cy="90" r="120" fill="#8B5CF6" opacity="0.10" />
+  <rect x="70" y="70" width="1060" height="490" rx="36" fill="none" stroke="rgba(255,255,255,0.12)" />
+  <rect x="110" y="120" width="120" height="120" rx="28" fill="url(#accent)" opacity="0.22" />
+  <text x="170" y="198" font-size="78" font-family="Segoe UI, Arial, sans-serif" font-weight="800" text-anchor="middle" fill="#F8FAFC">A</text>
+  <text x="110" y="340" font-size="78" font-family="Segoe UI, Arial, sans-serif" font-weight="800" fill="#F8FAFC">AURA SMM</text>
+  <text x="110" y="412" font-size="34" font-family="Segoe UI, Arial, sans-serif" fill="#CBD5E1">SMM Panel ????????? ??????? ??????????????</text>
+  <text x="110" y="468" font-size="28" font-family="Segoe UI, Arial, sans-serif" fill="#94A3B8">Followers • Likes • Views • ?????????? • ?????????????????</text>
+  <rect x="110" y="500" width="220" height="8" rx="4" fill="url(#accent)" />
+</svg>
+
