@@ -170,7 +170,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
         <div className="px-3 pb-5 mb-1 border-b border-[rgba(139,92,246,0.10)] flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.4)]">
+              <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.4)]">
                 {logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={logoUrl} alt="logo" className="w-full h-full object-cover" onError={() => setLogoUrl('')} />
