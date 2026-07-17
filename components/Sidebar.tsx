@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { BsShieldFill } from 'react-icons/bs';
 import { useEffect, useState } from 'react';
@@ -177,13 +178,18 @@ export default function Sidebar({ role, username }: SidebarProps) {
                 onError={() => setLogoUrl('')}
               />
             ) : (
-              <>
-                <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
-                  <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
-                  <span className="text-white"> SMM</span>
-                </p>
-                <p className="text-xs text-[#475569] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
-              </>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-2xl overflow-hidden shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.4)]">
+                  <Image src="/icon.png" alt="AURA Panel" width={32} height={32} className="w-full h-full object-cover" priority />
+                </div>
+                <div>
+                  <p className="font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
+                    <span className="text-gradient-animated">AURA</span>
+                    <span className="text-white"> Panel</span>
+                  </p>
+                  <p className="text-[10px] text-[#94A3B8] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
+                </div>
+              </div>
             )}
           </div>
           <div className="flex items-center gap-1 shrink-0">
