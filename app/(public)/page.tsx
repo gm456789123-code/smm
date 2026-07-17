@@ -21,7 +21,9 @@ async function getSettings() {
   try {
     const [rows] = await db.query<RowDataPacket[]>('SELECT setting_key, setting_value FROM site_settings');
     return Object.fromEntries(rows.map((r) => [r.setting_key, r.setting_value]));
-  } catch { return {} as Record<string, string>; }
+  } catch {
+    return {} as Record<string, string>;
+  }
 }
 
 async function getLatestPosts() {
@@ -30,7 +32,9 @@ async function getLatestPosts() {
       'SELECT slug, title, excerpt, cover_image, published_at FROM blog_posts WHERE published = 1 ORDER BY published_at DESC LIMIT 3'
     );
     return rows;
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 const PLATFORMS = [
@@ -158,9 +162,7 @@ export default async function LandingPage() {
             </div>
 
             <h1 className="font-[family-name:var(--font-jakarta)] font-black leading-[0.92] tracking-tight">
-              <span className="word-reveal word-reveal-1 block text-white text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5rem]">
-                Grow your
-              </span>
+              <span className="word-reveal word-reveal-1 block text-white text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5rem]">Grow your</span>
               <span
                 className="word-reveal word-reveal-2 block text-[3rem] sm:text-[3.8rem] md:text-[4.5rem] lg:text-[5rem]"
                 style={{
@@ -172,21 +174,17 @@ export default async function LandingPage() {
               >
                 followers
               </span>
-              <span className="word-reveal word-reveal-2 block text-[#CBD5E1] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] mt-1">
-                on every platform
-              </span>
+              <span className="word-reveal word-reveal-2 block text-[#CBD5E1] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] mt-1">on every platform</span>
             </h1>
 
-            <p className="anim-fade-up anim-fade-up-1 text-base md:text-[1.05rem] leading-relaxed max-w-md" style={{ color: '#CBD5E1' }}>
-              {desc}
-            </p>
+            <p className="anim-fade-up anim-fade-up-1 text-base md:text-[1.05rem] leading-relaxed max-w-md text-[#CBD5E1]">{desc}</p>
 
             <div className="anim-fade-up anim-fade-up-2 flex flex-wrap gap-4 items-center">
               <Link href="/register" className="btn-primary text-sm font-bold px-8 py-3.5 inline-flex items-center gap-2">
-                {cta} <BsArrowRight size={14} />
+                {cta} <BsArrowRight size={14} aria-hidden="true" focusable="false" />
               </Link>
-              <Link href="/#services" className="text-sm text-[#94A3B8] hover:text-white transition-colors inline-flex items-center gap-1.5 font-medium">
-                View all services <BsArrowRight size={12} />
+              <Link href="/#services" className="text-sm text-[#CBD5E1] hover:text-white transition-colors inline-flex items-center gap-1.5 font-medium">
+                View all services <BsArrowRight size={12} aria-hidden="true" focusable="false" />
               </Link>
             </div>
 
@@ -198,7 +196,7 @@ export default async function LandingPage() {
               ].map(({ value, label, color }) => (
                 <div key={label}>
                   <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tabular-nums" style={{ color }}>{value}</p>
-                  <p className="text-[9px] text-[#64748B] uppercase tracking-[0.2em] mt-0.5">{label}</p>
+                  <p className="text-[9px] text-[#94A3B8] uppercase tracking-[0.2em] mt-0.5">{label}</p>
                 </div>
               ))}
             </div>
@@ -230,11 +228,11 @@ export default async function LandingPage() {
             <div key={label} className="stat-luxury p-6 text-center" style={{ background: `linear-gradient(135deg, ${bg} 0%, rgba(11,14,26,0.9) 70%)`, borderColor: border }}>
               <div className="flex justify-center mb-3">
                 <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: bg, border: `1px solid ${border}` }}>
-                  <Icon size={22} color={color} />
+                  <Icon size={22} color={color} aria-hidden="true" focusable="false" />
                 </div>
               </div>
               <p className="font-[family-name:var(--font-jakarta)] text-3xl font-extrabold" style={{ color }}>{value}</p>
-              <p className="text-[10px] text-[#475569] uppercase tracking-wider mt-1.5">{label}</p>
+              <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider mt-1.5">{label}</p>
             </div>
           ))}
         </div>
@@ -249,21 +247,22 @@ export default async function LandingPage() {
               <div key={name} className={`platform-card ${bg} p-6 text-center space-y-3`} style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06)' }}>
                 <div className="flex justify-center">
                   <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.3)', boxShadow: `0 0 20px ${glow}, inset 0 1px 0 rgba(255,255,255,0.08)` }}>
-                    <Icon size={30} color={iconColor} />
+                    <Icon size={30} color={iconColor} aria-hidden="true" focusable="false" role="presentation" />
                   </div>
                 </div>
                 <p className="text-sm font-bold text-[#F1F5F9]">{name}</p>
                 <div className="flex justify-center gap-1 flex-wrap">
                   {['Followers', 'Likes', 'Views'].map((t) => (
-                    <span key={t} className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/5 text-[#475569]">{t}</span>
+                    <span key={t} className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/5 text-[#CBD5E1]">{t}</span>
                   ))}
                 </div>
               </div>
             ))}
           </div>
           <div className="text-center">
-            <Link href="/register" className="btn-primary inline-flex items-center gap-2.5 px-8 py-3">
-              <BsArrowRight size={15} />
+            <Link href="/register" aria-label="Register for an account" className="btn-primary inline-flex items-center gap-2.5 px-8 py-3">
+              <span>Register now</span>
+              <BsArrowRight size={15} aria-hidden="true" focusable="false" />
             </Link>
           </div>
         </div>
@@ -281,7 +280,7 @@ export default async function LandingPage() {
       <section className="py-20 px-4">
         <div className="max-w-2xl mx-auto space-y-10">
           <div className="text-center space-y-3">
-            <p className="section-label text-[#94A3B8]">FAQ</p>
+            <p className="section-label text-[#CBD5E1]">FAQ</p>
           </div>
           <FaqSection />
         </div>
@@ -298,7 +297,7 @@ export default async function LandingPage() {
                   <h2 className="font-[family-name:var(--font-jakarta)] text-3xl font-extrabold text-white">Latest articles</h2>
                 </div>
                 <Link href="/blog" className="btn-secondary text-xs px-4 py-2 inline-flex items-center gap-1.5">
-                  View all <BsArrowRight size={12} />
+                  View all <BsArrowRight size={12} aria-hidden="true" focusable="false" />
                 </Link>
               </div>
               <div className="grid md:grid-cols-3 gap-5">
@@ -319,10 +318,10 @@ export default async function LandingPage() {
                         </div>
                       )}
                       <p className="font-[family-name:var(--font-jakarta)] font-bold text-[#F1F5F9] text-sm line-clamp-2 group-hover:text-[#c4b5fd] transition-colors">{post.title}</p>
-                      {post.excerpt && <p className="text-[#475569] text-xs line-clamp-2">{post.excerpt}</p>}
+                      {post.excerpt && <p className="text-[#CBD5E1] text-xs line-clamp-2">{post.excerpt}</p>}
                       {post.published_at && (
-                        <div className="flex items-center gap-1.5 text-[10px] text-[#334155]">
-                          <BsClockHistory size={10} />
+                        <div className="flex items-center gap-1.5 text-[10px] text-[#94A3B8]">
+                          <BsClockHistory size={10} aria-hidden="true" focusable="false" />
                           {new Date(post.published_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </div>
                       )}

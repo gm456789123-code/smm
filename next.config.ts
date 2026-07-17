@@ -39,6 +39,10 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  experimental: {
+    // Inline CSS with HTML to eliminate render-blocking stylesheet requests → improves LCP/FCP
+    inlineCss: true,
+  },
   // ป้องกัน server-side env leak ไปฝั่ง client
   serverExternalPackages: ['mysql2', 'bcryptjs', 'nodemailer'],
 };

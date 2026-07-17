@@ -41,15 +41,15 @@ export default async function PublicLayout({ children }: { children: React.React
                 <span className="text-gradient-animated">{name.split(' ')[0]}</span>
                 <span className="text-white"> {name.split(' ').slice(1).join(' ')}</span>
               </p>
-              <p className="text-xs text-[#334155] mt-1">© {new Date().getFullYear()} {name} · Developed by <span className="text-[#8B5CF6]">Saint</span></p>
+              <p className="text-xs text-[#94A3B8] mt-1">© {new Date().getFullYear()} {name} · Developed by <span className="text-[#C4B5FD]">Saint</span></p>
             </div>
-            <nav className="flex items-center gap-4 text-xs text-[#475569]">
-              <Link href="/blog" className="hover:text-[#94A3B8] transition-colors">Blog</Link>
-              <Link href="/#services" className="hover:text-[#94A3B8] transition-colors">Services</Link>
-              <Link href="/#pricing" className="hover:text-[#94A3B8] transition-colors">Pricing</Link>
-              <Link href="/terms" className="hover:text-[#94A3B8] transition-colors">Terms</Link>
-              <Link href="/privacy" className="hover:text-[#94A3B8] transition-colors">Privacy</Link>
-              <Link href="/register" className="hover:text-[#8B5CF6] transition-colors">Register</Link>
+            <nav className="flex items-center gap-4 text-xs text-[#CBD5E1]">
+              <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
+              <Link href="/#services" className="hover:text-white transition-colors">Services</Link>
+              <Link href="/#pricing" className="hover:text-white transition-colors">Pricing</Link>
+              <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+              <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+              <Link href="/register" className="text-[#C4B5FD] hover:text-white transition-colors">Register</Link>
             </nav>
           </div>
         </div>
