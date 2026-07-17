@@ -59,7 +59,7 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
           </button>
 
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 shadow-[0_0_16px_rgba(139,92,246,0.5)] group-hover:shadow-[0_0_24px_rgba(139,92,246,0.7)] transition-shadow">
+            <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-[0_0_16px_rgba(139,92,246,0.5)] group-hover:shadow-[0_0_24px_rgba(139,92,246,0.7)] transition-shadow">
               <Image src="/icon.png" alt={brandName ?? 'AURA Panel'} width={32} height={32} className="w-full h-full object-cover" priority />
             </div>
             <span className="hidden md:block font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
