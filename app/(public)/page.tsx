@@ -10,7 +10,7 @@ import {
 } from 'react-icons/bs';
 import { SiThreads } from 'react-icons/si';
 import {
-  HeroDashboardCard,
+  HeroDashboardCard, HeroStatCounter,
   FeaturesSection, FeaturesTitle, PlatformsTitle, PricingPlans, PricingTitle,
   FaqSection, CtaSection,
 } from '@/components/LandingClient';
@@ -177,7 +177,10 @@ export default async function LandingPage() {
               <span className="word-reveal word-reveal-2 block text-[#CBD5E1] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] mt-1">on every platform</span>
             </h1>
 
-            <p className="anim-fade-up anim-fade-up-1 text-base md:text-[1.05rem] leading-relaxed max-w-md text-[#CBD5E1]">{desc}</p>
+            <p className="anim-fade-up anim-fade-up-1 text-base md:text-[1.05rem] leading-relaxed max-w-md text-[#CBD5E1]">
+              ผู้ให้บริการ SMM Panel <span className="text-[#c4b5fd] font-semibold">รายใหม่จากทีมคนไทย</span> เพิ่งเปิดตัว!&nbsp;
+              ราคาถูกกว่าตลาด บริการครบทุกแพลตฟอร์ม ระบบอัตโนมัติ 24/7
+            </p>
 
             <div className="anim-fade-up anim-fade-up-2 flex flex-wrap gap-4 items-center">
               <Link href="/register" className="btn-primary text-sm font-bold px-8 py-3.5 inline-flex items-center gap-2">
@@ -189,16 +192,12 @@ export default async function LandingPage() {
             </div>
 
             <div className="anim-fade-up anim-fade-up-3 flex items-center gap-8 pt-5 border-t border-white/[0.05]">
-              {[
-                { value: s.stat_orders ?? '50K+', label: 'Orders', color: '#8B5CF6' },
-                { value: s.stat_users ?? '10K+', label: 'Customers', color: '#06B6D4' },
-                { value: s.stat_uptime ?? '99.9%', label: 'Uptime', color: '#10B981' },
-              ].map(({ value, label, color }) => (
-                <div key={label}>
-                  <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tabular-nums" style={{ color }}>{value}</p>
-                  <p className="text-[9px] text-[#94A3B8] uppercase tracking-[0.2em] mt-0.5">{label}</p>
-                </div>
-              ))}
+              <HeroStatCounter rawValue={s.stat_orders ?? '50K+'} label="Orders" color="#8B5CF6" />
+              <HeroStatCounter rawValue={s.stat_users ?? '10K+'} label="Customers" color="#06B6D4" />
+              <div>
+                <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tabular-nums" style={{ color: '#10B981' }}>{s.stat_uptime ?? '99.9%'}</p>
+                <p className="text-[9px] text-[#94A3B8] uppercase tracking-[0.2em] mt-0.5">Uptime</p>
+              </div>
             </div>
           </div>
 

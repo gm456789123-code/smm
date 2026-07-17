@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useLocale } from './LocaleProvider';
 import {
@@ -10,6 +10,45 @@ import {
   BsBarChartLineFill, BsCreditCard2BackFill, BsQuestionCircle,
   BsInstagram, BsTiktok, BsYoutube, BsFacebook,
 } from 'react-icons/bs';
+
+export function HeroStatCounter({ rawValue, label, color }: { rawValue: string; label: string; color: string }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const hasK = /k/i.test(rawValue.replace(/[+,]/g, ''));
+    const target = parseFloat(rawValue.replace(/[+,k\s]/gi, '')) * (hasK ? 1000 : 1);
+    let started = false;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting || started) return;
+      started = true;
+      const frames = 90;
+      let frame = 0;
+      const timer = setInterval(() => {
+        frame++;
+        const progress = 1 - Math.pow(1 - frame / frames, 3);
+        setCount(Math.round(progress * target));
+        if (frame >= frames) clearInterval(timer);
+      }, 16);
+    }, { threshold: 0.5 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [rawValue]);
+
+  const hasK = /k/i.test(rawValue.replace(/[+,]/g, ''));
+  const display = hasK ? `${Math.round(count / 1000)}K` : count.toLocaleString();
+
+  return (
+    <div ref={ref}>
+      <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tabular-nums" style={{ color }}>
+        {display}{rawValue.includes('+') ? '+' : ''}
+      </p>
+      <p className="text-[9px] text-[#94A3B8] uppercase tracking-[0.2em] mt-0.5">{label}</p>
+    </div>
+  );
+}
 
 const LIVE_ORDERS = [
   { Icon: BsInstagram, platform: 'Instagram', service: 'Followers - TH', pct: 78, color: '#E1306C', done: false },
