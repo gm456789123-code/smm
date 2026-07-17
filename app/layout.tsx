@@ -4,7 +4,7 @@ import './globals.css';
 import LocaleProvider from '@/components/LocaleProvider';
 import LineFloatButtonServer from '@/components/LineFloatButtonServer';
 import { getMessages, LOCALES, type Locale } from '@/lib/i18n';
-import { SITE_DESCRIPTION, SITE_ICON, SITE_NAME, SITE_OG_IMAGE, SITE_TITLE, SITE_URL } from '@/lib/site';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_OG_IMAGE, SITE_TITLE, SITE_URL } from '@/lib/site';
 
 const fontVars = {
   '--font-jakarta': 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
@@ -74,9 +74,12 @@ export const metadata: Metadata = {
   alternates: { canonical: SITE_URL, languages: localeAlternates },
   category: 'technology',
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon.ico',
-    other: [{ rel: 'icon', url: SITE_ICON, type: 'image/svg+xml' }],
+    icon: [
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/favicon.ico', type: 'image/x-icon' },
+    ],
+    shortcut: '/icon.png',
+    apple: '/icon.png',
   },
 };
 

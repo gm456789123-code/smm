@@ -19,5 +19,5 @@ export const SITE_NAME = 'AURA SMM';
 export const SITE_TITLE = 'AURA SMM Panel';
 export const SITE_DESCRIPTION =
   'High-quality SMM panel for followers, likes, views, and fast top-ups across major platforms.';
-export const SITE_OG_IMAGE = `${SITE_URL}/og-image.svg`;
-export const SITE_ICON = `${SITE_URL}/icon.svg`;
+export const SITE_OG_IMAGE = `${SITE_URL}/icon.png`;
+export const SITE_ICON = `${SITE_URL}/icon.png`;
