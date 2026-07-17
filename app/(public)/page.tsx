@@ -177,7 +177,7 @@ export default async function LandingPage() {
               <span className="word-reveal word-reveal-2 block text-[#CBD5E1] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] mt-1">on every platform</span>
             </h1>
 
-            <p className="anim-fade-up anim-fade-up-1 text-sm md:text-base leading-relaxed max-w-lg text-[#CBD5E1]">
+            <p className="anim-fade-up anim-fade-up-1 text-sm md:text-base leading-loose max-w-lg text-white/90">
               ยินดีต้อนรับสู่ AURA Panel ผู้ให้บริการ SMM Panel รายใหม่จากทีมคนไทยที่เพิ่งเปิดตัวอย่างเป็นทางการ
               เราก่อตั้งขึ้นด้วยความมุ่งมั่นที่จะเป็นทางเลือกที่ดีที่สุดสำหรับทุกคนที่ต้องการเพิ่มยอดผู้ติดตาม
               ยอดไลค์ วิว และ engagement บนโซเชียลมีเดียทุกแพลตฟอร์ม ด้วยราคาที่ถูกกว่าตลาดและระบบที่โปร่งใส
