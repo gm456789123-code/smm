@@ -179,7 +179,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
               />
             ) : (
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-2xl overflow-hidden shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.4)]">
+                <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.4)]">
                   <Image src="/icon.png" alt="AURA Panel" width={32} height={32} className="w-full h-full object-cover" priority />
                 </div>
                 <div>
