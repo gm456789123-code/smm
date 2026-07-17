@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
@@ -58,14 +59,12 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
           </button>
 
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#8B5CF6] to-[#6D28D9] flex items-center justify-center shadow-[0_0_16px_rgba(139,92,246,0.5)] group-hover:shadow-[0_0_24px_rgba(139,92,246,0.7)] transition-shadow">
-              <span className="text-white text-xs font-black tracking-tighter">
-                {first[0]}{rest[0]?.[0] ?? ''}
-              </span>
+            <div className="w-8 h-8 rounded-2xl overflow-hidden shrink-0 shadow-[0_0_16px_rgba(139,92,246,0.5)] group-hover:shadow-[0_0_24px_rgba(139,92,246,0.7)] transition-shadow">
+              <Image src="/icon.png" alt={brandName ?? 'AURA Panel'} width={32} height={32} className="w-full h-full object-cover" priority />
             </div>
             <span className="hidden md:block font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
               <span className="text-gradient-animated">{first}</span>
-              {rest.length > 0 && <span className="text-white"> {rest.join(' ')}</span>}
+              <span className="text-white"> Panel</span>
             </span>
           </Link>
 
