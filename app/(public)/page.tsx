@@ -177,9 +177,16 @@ export default async function LandingPage() {
               <span className="word-reveal word-reveal-2 block text-[#CBD5E1] text-[2.2rem] sm:text-[2.8rem] md:text-[3.4rem] lg:text-[3.8rem] mt-1">on every platform</span>
             </h1>
 
-            <p className="anim-fade-up anim-fade-up-1 text-base md:text-[1.05rem] leading-relaxed max-w-md text-[#CBD5E1]">
-              ผู้ให้บริการ SMM Panel <span className="text-[#c4b5fd] font-semibold">รายใหม่จากทีมคนไทย</span> เพิ่งเปิดตัว!&nbsp;
-              ราคาถูกกว่าตลาด บริการครบทุกแพลตฟอร์ม ระบบอัตโนมัติ 24/7
+            <p className="anim-fade-up anim-fade-up-1 text-sm md:text-base leading-relaxed max-w-lg text-[#CBD5E1]">
+              ยินดีต้อนรับสู่ AURA Panel ผู้ให้บริการ SMM Panel รายใหม่จากทีมคนไทยที่เพิ่งเปิดตัวอย่างเป็นทางการ
+              เราก่อตั้งขึ้นด้วยความมุ่งมั่นที่จะเป็นทางเลือกที่ดีที่สุดสำหรับทุกคนที่ต้องการเพิ่มยอดผู้ติดตาม
+              ยอดไลค์ วิว และ engagement บนโซเชียลมีเดียทุกแพลตฟอร์ม ด้วยราคาที่ถูกกว่าตลาดและระบบที่โปร่งใส
+              ไม่ว่าจะเป็น Instagram, TikTok, YouTube, Facebook, Twitter/X, Telegram หรือแพลตฟอร์มอื่นๆ
+              กว่า 10 แพลตฟอร์ม เราพร้อมให้บริการครบจบในที่เดียว ระบบอัตโนมัติทำงานตลอด 24 ชั่วโมง 7 วัน
+              ออเดอร์เริ่มประมวลผลภายในไม่กี่นาทีหลังเติมเงิน ไม่ต้องรอนาน ไม่มีขั้นตอนยุ่งยาก
+              สมัครฟรี ไม่มีค่าธรรมเนียมแรกเข้า เริ่มต้นเพียง 100 บาทก็ใช้งานได้ทันที
+              เหมาะสำหรับครีเอเตอร์ เจ้าของธุรกิจ และทุกคนที่ต้องการขยายฐานผู้ชมบนโซเชียลมีเดีย
+              ทีมงานคนไทยพร้อมให้ความช่วยเหลือตลอด 24/7
             </p>
 
             <div className="anim-fade-up anim-fade-up-2 flex flex-wrap gap-4 items-center">

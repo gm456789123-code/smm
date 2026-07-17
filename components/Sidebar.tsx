@@ -169,28 +169,23 @@ export default function Sidebar({ role, username }: SidebarProps) {
         {/* Logo */}
         <div className="px-3 pb-5 mb-1 border-b border-[rgba(139,92,246,0.10)] flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={logoUrl}
-                alt="logo"
-                className="max-h-9 max-w-[160px] object-contain"
-                onError={() => setLogoUrl('')}
-              />
-            ) : (
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.4)]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.4)]">
+                {logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logoUrl} alt="logo" className="w-full h-full object-cover" onError={() => setLogoUrl('')} />
+                ) : (
                   <Image src="/icon.png" alt="AURA Panel" width={32} height={32} className="w-full h-full object-cover" priority />
-                </div>
-                <div>
-                  <p className="font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
-                    <span className="text-gradient-animated">AURA</span>
-                    <span className="text-white"> Panel</span>
-                  </p>
-                  <p className="text-[10px] text-[#94A3B8] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
-                </div>
+                )}
               </div>
-            )}
+              <div>
+                <p className="font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
+                  <span className="text-gradient-animated">AURA</span>
+                  <span className="text-white"> Panel</span>
+                </p>
+                <p className="text-[10px] text-[#94A3B8] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
+              </div>
+            </div>
           </div>
           <div className="flex items-center gap-1 shrink-0">
             <button onClick={() => setOpen(false)} className="lg:hidden text-[#475569] hover:text-white p-1">
