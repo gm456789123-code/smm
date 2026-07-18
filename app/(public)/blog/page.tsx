@@ -6,6 +6,8 @@ import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/site';
 import { sanitizeUrl } from '@/lib/sanitize-html';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'AURA SMM Blog - Tips and Platform Updates',
   description: 'Guides and updates on social media marketing, growth strategies, and platform trends.',

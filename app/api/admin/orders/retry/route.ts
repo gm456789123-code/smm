@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!txId) return NextResponse.json({ error: 'txId required' }, { status: 400 });
 
   const [rows] = await db.query<RowDataPacket[]>(
-    `SELECT * FROM transactions WHERE id = ? AND tx_type = 'spend' AND api_failed = 1 LIMIT 1`,
+    `SELECT * FROM transactions WHERE id = ? AND tx_type = 'spend' AND (api_failed = 1 OR tx_status = 'pending') LIMIT 1`,
     [txId]
   );
   const tx = rows[0];

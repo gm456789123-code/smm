@@ -183,11 +183,16 @@ export default function AdminOrdersPage() {
 
                   {/* Retry button */}
                   <td className="py-3">
-                    {o.api_failed ? (
+                    {(o.api_failed || o.tx_status === 'pending') ? (
                       <button
                         onClick={() => retry(o.id)}
                         disabled={retrying === o.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[rgba(139,92,246,0.12)] text-[#a78bfa] hover:bg-[rgba(139,92,246,0.22)] hover:text-white border border-[rgba(139,92,246,0.25)] transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        className={[
+                          'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap',
+                          o.api_failed
+                            ? 'bg-[rgba(139,92,246,0.12)] text-[#a78bfa] hover:bg-[rgba(139,92,246,0.22)] hover:text-white border-[rgba(139,92,246,0.25)]'
+                            : 'bg-[rgba(245,158,11,0.10)] text-amber-400 hover:bg-[rgba(245,158,11,0.20)] hover:text-white border-amber-500/25',
+                        ].join(' ')}
                       >
                         <BsArrowRepeat size={12} className={retrying === o.id ? 'animate-spin' : ''} />
                         {retrying === o.id ? 'กำลังส่ง...' : 'Retry'}

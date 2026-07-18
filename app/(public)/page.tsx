@@ -2,6 +2,8 @@
 import Image from 'next/image';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
+
+export const dynamic = 'force-dynamic';
 import {
   BsInstagram, BsTiktok, BsYoutube, BsFacebook,
   BsTwitterX, BsTelegram, BsSpotify,
@@ -178,11 +180,7 @@ export default async function LandingPage() {
             </h1>
 
             <p className="anim-fade-up anim-fade-up-1 text-base md:text-lg leading-loose max-w-lg text-white font-light">
-              ผู้ให้บริการ SMM Panel รายใหม่จากทีมคนไทย เพิ่งเปิดตัวอย่างเป็นทางการ!
-              เพิ่มยอดผู้ติดตาม ยอดไลค์ วิว และ engagement ครบทุกแพลตฟอร์ม
-              ไม่ว่าจะเป็น Instagram, TikTok, YouTube, Facebook หรือแพลตฟอร์มอื่นๆ
-              ราคาถูกกว่าตลาด ระบบอัตโนมัติ 24/7 สมัครฟรี เริ่มต้นเพียง 100 บาท
-              ทีมงานคนไทยพร้อมดูแลตลอด
+              SMM Panel จากทีมคนไทย เพิ่มยอดผู้ติดตาม ไลค์ วิว ทุกแพลตฟอร์ม ราคาถูกกว่าตลาด ระบบอัตโนมัติ 24/7 เริ่มต้นเพียง 100 บาท
             </p>
 
             <div className="anim-fade-up anim-fade-up-2 flex flex-wrap gap-4 items-center">
