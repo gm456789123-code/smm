@@ -2,12 +2,6 @@ import webpush from 'web-push';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 
-webpush.setVapidDetails(
-  `mailto:${process.env.VAPID_EMAIL ?? 'admin@example.com'}`,
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!,
-);
-
 interface PushPayload {
   title: string;
   body: string;
@@ -15,7 +9,24 @@ interface PushPayload {
   tag?: string;
 }
 
+let vapidInitialized = false;
+
+function initVapid() {
+  if (vapidInitialized) return;
+  const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  const priv = process.env.VAPID_PRIVATE_KEY;
+  if (!pub || !priv) return;
+  webpush.setVapidDetails(
+    `mailto:${process.env.VAPID_EMAIL ?? 'admin@example.com'}`,
+    pub,
+    priv,
+  );
+  vapidInitialized = true;
+}
+
 export async function sendAdminPush(payload: PushPayload) {
+  initVapid();
+  if (!vapidInitialized) return;
   try {
     const [rows] = await db.query<RowDataPacket[]>(
       'SELECT endpoint, p256dh, auth FROM push_subscriptions'
