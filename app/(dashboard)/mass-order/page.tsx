@@ -104,7 +104,7 @@ export default function MassOrderPage() {
   }
 
   return (
-    <main className="flex-1 p-4 lg:p-6 space-y-5 max-w-5xl">
+    <main className="flex-1 p-4 lg:p-6 space-y-5">
 
       {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
@@ -255,12 +255,12 @@ export default function MassOrderPage() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[rgba(139,92,246,0.12)] text-[#94A3B8] text-xs uppercase tracking-wider">
-              <th className="text-left px-4 py-3 w-32">Service ID</th>
-              <th className="text-left px-4 py-3">ชื่อบริการ</th>
-              <th className="text-left px-4 py-3 w-56">Link / URL</th>
-              <th className="text-left px-4 py-3 w-32">จำนวน</th>
+              <th className="text-left px-4 py-3 w-36">Service ID</th>
+              <th className="text-left px-4 py-3 w-56">ชื่อบริการ</th>
+              <th className="text-left px-4 py-3">Link / URL</th>
+              <th className="text-left px-4 py-3 w-36">จำนวน</th>
               <th className="text-left px-4 py-3 w-28">ราคา</th>
-              <th className="text-left px-4 py-3 w-48">สถานะ</th>
+              <th className="text-left px-4 py-3 w-44">สถานะ</th>
               <th className="px-4 py-3 w-10" />
             </tr>
           </thead>

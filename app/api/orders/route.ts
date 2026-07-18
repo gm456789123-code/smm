@@ -4,6 +4,7 @@ import { Service, getProviderApi } from '@/lib/smm-api';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { sendAdminPush } from '@/lib/push';
 
 const _svcCache: Record<string, { data: Service[]; exp: number }> = {};
 async function getCachedServices(provider: string): Promise<Service[]> {
@@ -128,6 +129,13 @@ export async function POST(req: NextRequest) {
     );
 
     await conn.commit();
+
+    sendAdminPush({
+      title: '📦 ออเดอร์ใหม่ — pending',
+      body: `[${provider.toUpperCase()}] ${service.name} · ฿${costThb} · ${quantity.toLocaleString()} pcs`,
+      url: '/admin/orders',
+      tag: `order-${smmOrderId}`,
+    }).catch(() => {});
 
     return NextResponse.json({
       success: true,

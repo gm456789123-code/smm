@@ -108,6 +108,16 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   INDEX idx_published (published)
 );
 
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  endpoint   TEXT          NOT NULL,
+  p256dh     TEXT          NOT NULL,
+  auth       TEXT          NOT NULL,
+  created_at TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_endpoint (endpoint(500))
+);
+
 CREATE TABLE IF NOT EXISTS support_tickets (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   user_id       INT           NOT NULL,

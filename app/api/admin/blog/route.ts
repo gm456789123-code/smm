@@ -36,23 +36,33 @@ export async function POST(req: NextRequest) {
   const safeOgImage = sanitizeUrl(og_image, 'image');
   const publishedAt = published ? new Date() : null;
 
-  const [result] = await db.query<ResultSetHeader>(
-    `INSERT INTO blog_posts (slug,title,excerpt,content,cover_image,meta_title,meta_description,focus_keyword,og_image,author_id,published,published_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-    [
-      slug,
-      title,
-      excerpt ?? null,
-      safeContent || null,
-      safeCoverImage,
-      meta_title ?? null,
-      meta_description ?? null,
-      focus_keyword ?? null,
-      safeOgImage,
-      admin.userId,
-      published ?? 0,
-      publishedAt,
-    ]
-  );
-  return NextResponse.json({ id: result.insertId }, { status: 201 });
+  try {
+    const [result] = await db.query<ResultSetHeader>(
+      `INSERT INTO blog_posts (slug,title,excerpt,content,cover_image,meta_title,meta_description,focus_keyword,og_image,author_id,published,published_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [
+        slug,
+        title,
+        excerpt ?? null,
+        safeContent || null,
+        safeCoverImage,
+        meta_title ?? null,
+        meta_description ?? null,
+        focus_keyword ?? null,
+        safeOgImage,
+        admin.userId,
+        published ?? 0,
+        publishedAt,
+      ]
+    );
+    return NextResponse.json({ id: result.insertId }, { status: 201 });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[blog POST]', msg);
+    const isDupe = msg.includes('Duplicate entry');
+    return NextResponse.json(
+      { error: isDupe ? 'Slug นี้มีอยู่แล้ว กรุณาเปลี่ยน URL slug' : msg },
+      { status: isDupe ? 409 : 500 }
+    );
+  }
 }

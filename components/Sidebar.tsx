@@ -7,6 +7,7 @@ import { BsShieldFill } from 'react-icons/bs';
 import { useEffect, useState } from 'react';
 import { useLocale } from './LocaleProvider';
 import LangSwitcher from './LangSwitcher';
+import PushBell from './PushBell';
 
 const NAV: { href: string; key: string; icon: React.ReactNode }[] = [
   {
@@ -188,6 +189,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
             </div>
           </div>
           <div className="flex items-center gap-1 shrink-0">
+            {role === 'admin' && isCMS && <PushBell />}
             <button onClick={() => setOpen(false)} className="lg:hidden text-[#475569] hover:text-white p-1">
               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" d="M6 18L18 6M6 6l12 12" />

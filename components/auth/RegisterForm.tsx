@@ -3,7 +3,18 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BsX } from 'react-icons/bs';
+import { BsX, BsCheckCircleFill, BsCircle } from 'react-icons/bs';
+
+function getPasswordStrength(pw: string) {
+  const checks = {
+    length: pw.length >= 8,
+    upper:  /[A-Z]/.test(pw),
+    lower:  /[a-z]/.test(pw),
+    number: /[0-9]/.test(pw),
+  };
+  const passed = Object.values(checks).filter(Boolean).length;
+  return { checks, passed };
+}
 
 interface FormData {
   username: string;
@@ -26,6 +37,7 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
     username: '', email: '', phone: '',
     password: '', confirmPassword: '', referralCode: '',
   });
+  const [hp, setHp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -66,6 +78,13 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    const { checks } = getPasswordStrength(form.password);
+    if (!checks.length) { setError('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร'); return; }
+    if (!checks.upper)  { setError('รหัสผ่านต้องมีตัวพิมพ์ใหญ่ (A-Z) อย่างน้อย 1 ตัว'); return; }
+    if (!checks.lower)  { setError('รหัสผ่านต้องมีตัวพิมพ์เล็ก (a-z) อย่างน้อย 1 ตัว'); return; }
+    if (!checks.number) { setError('รหัสผ่านต้องมีตัวเลข (0-9) อย่างน้อย 1 ตัว'); return; }
+
     if (form.password !== form.confirmPassword) {
       setError('รหัสผ่านไม่ตรงกัน');
       return;
@@ -83,6 +102,7 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
           phone: form.phone || undefined,
           password: form.password,
           referralCode: form.referralCode || undefined,
+          hp,
         }),
       });
       const data = await res.json();
@@ -235,6 +255,12 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-3">
+
+        {/* Honeypot — hidden from humans, bots fill it */}
+        <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
+          <input tabIndex={-1} autoComplete="off" name="website" value={hp} onChange={e => setHp(e.target.value)} />
+        </div>
+
         <div className="space-y-1.5">
           <label className="text-xs text-[#475569] uppercase tracking-wider">Username *</label>
           <input name="username" value={form.username} onChange={handleChange} placeholder="your_username" required className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
@@ -250,15 +276,50 @@ export default function RegisterForm({ inModal = false, onSwitchToLogin, onSucce
           <input name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="08x-xxx-xxxx" className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <label className="text-xs text-[#475569] uppercase tracking-wider">รหัสผ่าน *</label>
-            <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="••••••" required className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs text-[#475569] uppercase tracking-wider">ยืนยัน *</label>
-            <input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} placeholder="••••••" required className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
-          </div>
+        <div className="space-y-1.5">
+          <label className="text-xs text-[#475569] uppercase tracking-wider">รหัสผ่าน *</label>
+          <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="อย่างน้อย 8 ตัว" required className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
+
+          {/* Strength bar */}
+          {form.password.length > 0 && (() => {
+            const { checks, passed } = getPasswordStrength(form.password);
+            const colors = ['#ef4444', '#ef4444', '#f59e0b', '#f59e0b', '#22c55e'];
+            const labels = ['', 'อ่อนมาก', 'อ่อน', 'พอใช้', 'แข็งแกร่ง'];
+            return (
+              <div className="space-y-2 pt-1">
+                <div className="flex gap-1">
+                  {[0,1,2,3].map(i => (
+                    <div key={i} className="flex-1 h-1 rounded-full transition-all duration-300"
+                      style={{ background: i < passed ? colors[passed] : 'rgba(255,255,255,0.07)' }} />
+                  ))}
+                </div>
+                <p className="text-[10px] font-semibold" style={{ color: colors[passed] }}>{labels[passed]}</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+                  {[
+                    { ok: checks.length, label: 'ขั้นต่ำ 8 ตัวอักษร' },
+                    { ok: checks.upper,  label: 'ตัวพิมพ์ใหญ่ (A-Z)' },
+                    { ok: checks.lower,  label: 'ตัวพิมพ์เล็ก (a-z)' },
+                    { ok: checks.number, label: 'ตัวเลข (0-9)' },
+                  ].map(({ ok, label }) => (
+                    <div key={label} className="flex items-center gap-1.5 text-[10px]">
+                      {ok
+                        ? <BsCheckCircleFill size={10} className="text-emerald-400 shrink-0" />
+                        : <BsCircle size={10} className="text-[#334155] shrink-0" />}
+                      <span className={ok ? 'text-[#94A3B8]' : 'text-[#475569]'}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-xs text-[#475569] uppercase tracking-wider">ยืนยันรหัสผ่าน *</label>
+          <input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange} placeholder="••••••••" required className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
+          {form.confirmPassword.length > 0 && form.password !== form.confirmPassword && (
+            <p className="text-[10px] text-red-400">รหัสผ่านไม่ตรงกัน</p>
+          )}
         </div>
 
         <div className="space-y-1.5">

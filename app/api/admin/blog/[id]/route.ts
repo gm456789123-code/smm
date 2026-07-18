@@ -39,8 +39,17 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const set = updates.map(([key]) => `${key}=?`).join(', ');
   const vals = [...updates.map(([, value]) => value), id];
-  await db.query(`UPDATE blog_posts SET ${set} WHERE id=?`, vals);
-  return NextResponse.json({ ok: true });
+  try {
+    await db.query(`UPDATE blog_posts SET ${set} WHERE id=?`, vals);
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    const isDupe = msg.includes('Duplicate entry');
+    return NextResponse.json(
+      { error: isDupe ? 'Slug นี้มีอยู่แล้ว กรุณาเปลี่ยน URL slug' : 'บันทึกไม่สำเร็จ' },
+      { status: isDupe ? 409 : 500 }
+    );
+  }
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

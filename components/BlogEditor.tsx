@@ -164,12 +164,14 @@ export default function BlogEditor({ initial, postId }: Props) {
     setSave(true); setError('');
     const url    = postId ? `/api/admin/blog/${postId}` : '/api/admin/blog';
     const method = postId ? 'PUT' : 'POST';
-    const res    = await fetch(url, {
+    const res  = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form, published: published ? 1 : 0 }),
     });
-    const d = await res.json();
+    const text = await res.text();
+    let d: { id?: number; ok?: boolean; error?: string } = {};
+    try { d = JSON.parse(text); } catch { /* empty or non-JSON response */ }
     if (!res.ok) { setError(d.error ?? 'เกิดข้อผิดพลาด'); setSave(false); return; }
     router.push('/admin/blog');
   }
@@ -186,15 +188,15 @@ export default function BlogEditor({ initial, postId }: Props) {
         {/* Title */}
         <div className="glass p-5 space-y-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] text-[#475569] uppercase tracking-widest">หัวข้อบทความ *</label>
+            <label className="text-sm text-white uppercase tracking-widest">หัวข้อบทความ *</label>
             <input value={form.title} onChange={e => handleTitle(e.target.value)}
               placeholder="หัวข้อที่ดึงดูดผู้อ่าน..."
               className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)] rounded-xl px-4 py-3 text-lg font-semibold text-white outline-none placeholder-[#334155] transition-colors" />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] text-[#475569] uppercase tracking-widest">Slug (URL)</label>
+            <label className="text-sm text-white uppercase tracking-widest">Slug (URL)</label>
             <div className="flex items-center gap-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(139,92,246,0.15)] rounded-xl px-4 py-2.5">
-              <span className="text-[#334155] text-sm shrink-0">/blog/</span>
+              <span className="text-white text-sm shrink-0">/blog/</span>
               <input value={form.slug} onChange={e => set('slug', toSlug(e.target.value))}
                 className="flex-1 bg-transparent text-sm text-[#a78bfa] outline-none font-mono" />
             </div>
@@ -210,7 +212,7 @@ export default function BlogEditor({ initial, postId }: Props) {
           ] as const).map(([k, icon, l]) => (
             <button key={k} onClick={() => setTab(k)}
               className={['glass-tab flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-all',
-                tab === k ? 'glass-tab-active text-[#c4b5fd]' : 'text-[#94A3B8]'].join(' ')}>
+                tab === k ? 'glass-tab-active text-[#c4b5fd]' : 'text-white'].join(' ')}>
               {icon}{l}
             </button>
           ))}
@@ -226,13 +228,13 @@ export default function BlogEditor({ initial, postId }: Props) {
                   {TOOLBAR.map(t => (
                     <button key={t.label} type="button"
                       onClick={() => taRef.current && insertTag(taRef.current, t.wrap, v => set('content', v))}
-                      className="px-2.5 py-1 text-xs font-mono font-semibold text-[#94A3B8] hover:text-white bg-[rgba(139,92,246,0.06)] hover:bg-[rgba(139,92,246,0.15)] rounded-lg transition-all">
+                      className="px-2.5 py-1 text-sm font-mono font-semibold text-white hover:text-[#c4b5fd] bg-[rgba(139,92,246,0.06)] hover:bg-[rgba(139,92,246,0.15)] rounded-lg transition-all">
                       {t.label}
                     </button>
                   ))}
                 </div>
               ) : (
-                <span className="text-xs text-[#475569] flex-1">เขียนปกติ — กด Enter 2 ครั้งเพื่อขึ้นย่อหน้าใหม่</span>
+                <span className="text-sm text-white flex-1">เขียนปกติ — กด Enter 2 ครั้งเพื่อขึ้นย่อหน้าใหม่</span>
               )}
               {/* Mode toggle */}
               <button type="button"
@@ -248,7 +250,7 @@ export default function BlogEditor({ initial, postId }: Props) {
                   'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
                   htmlMode
                     ? 'bg-[rgba(139,92,246,0.2)] text-[#a78bfa] border border-[rgba(139,92,246,0.4)]'
-                    : 'bg-[rgba(255,255,255,0.05)] text-[#64748B] border border-[rgba(255,255,255,0.08)] hover:text-white',
+                    : 'bg-[rgba(255,255,255,0.05)] text-white border border-[rgba(255,255,255,0.08)] hover:text-[#c4b5fd]',
                 ].join(' ')}>
                 {htmlMode
                   ? <><BsCodeSlash size={13} /> HTML</>
@@ -261,17 +263,17 @@ export default function BlogEditor({ initial, postId }: Props) {
               <textarea ref={taRef} value={form.content} onChange={e => handleContent(e.target.value)}
                 placeholder={'<h2>หัวข้อย่อย</h2>\n<p>เนื้อหาบทความ...</p>'}
                 rows={22}
-                className="w-full bg-transparent px-4 py-3 text-sm text-[#F1F5F9] font-mono outline-none placeholder-[#334155] resize-y leading-relaxed"
+                className="w-full bg-transparent px-4 py-3 text-base text-[#F1F5F9] font-mono outline-none placeholder-[#64748B] resize-y leading-relaxed"
               />
             ) : (
               <textarea value={form.content} onChange={e => handleContent(e.target.value)}
                 placeholder={'เริ่มเขียนบทความที่นี่...\n\nกด Enter 2 ครั้งเพื่อขึ้นย่อหน้าใหม่'}
                 rows={22}
-                className="w-full bg-transparent px-4 py-3 text-sm text-[#F1F5F9] outline-none placeholder-[#334155] resize-y leading-relaxed"
+                className="w-full bg-transparent px-4 py-3 text-base text-[#F1F5F9] outline-none placeholder-[#64748B] resize-y leading-relaxed"
               />
             )}
 
-            <div className="px-4 py-2 border-t border-[rgba(139,92,246,0.08)] flex justify-between text-[10px] text-[#334155]">
+            <div className="px-4 py-2 border-t border-[rgba(139,92,246,0.08)] flex justify-between text-xs text-white">
               <span>{countWords(form.content).toLocaleString()} คำ</span>
               <span>{form.content.length.toLocaleString()} ตัวอักษร</span>
             </div>
@@ -285,7 +287,7 @@ export default function BlogEditor({ initial, postId }: Props) {
               <img src={form.cover_image} alt="" className="w-full rounded-xl mb-6 max-h-64 object-cover" />
             )}
             <h1 className="text-2xl font-bold text-white mb-2">{form.title || 'ไม่มีหัวข้อ'}</h1>
-            {form.excerpt && <p className="text-[#94A3B8] text-sm mb-4 italic">{form.excerpt}</p>}
+            {form.excerpt && <p className="text-white text-sm mb-4 italic">{form.excerpt}</p>}
             <div className="prose prose-invert max-w-none text-[#CBD5E1] text-sm leading-relaxed"
               dangerouslySetInnerHTML={{ __html: form.content || '<p class="text-[#475569]">ยังไม่มีเนื้อหา</p>' }}
             />
@@ -302,14 +304,14 @@ export default function BlogEditor({ initial, postId }: Props) {
 
         {/* Excerpt + Cover */}
         <div className="glass p-5 space-y-4">
-          <p className="text-xs text-[#475569] uppercase tracking-widest font-semibold">รูปภาพและบทสรุป</p>
+          <p className="text-sm text-white uppercase tracking-widest font-semibold">รูปภาพและบทสรุป</p>
           {[
             { key: 'cover_image', label: 'Cover Image URL', ph: 'https://example.com/image.jpg' },
             { key: 'og_image',    label: 'OG Image URL (ถ้าต่างจาก cover)', ph: 'https://...' },
             { key: 'excerpt',     label: 'บทสรุปย่อ (แสดงในรายการบทความ)', ph: 'สรุปสั้นๆ 1-2 ประโยค...' },
           ].map(f => (
             <div key={f.key} className="space-y-1.5">
-              <label className="text-[10px] text-[#475569] uppercase tracking-widest">{f.label}</label>
+              <label className="text-sm text-white uppercase tracking-widest">{f.label}</label>
               <input value={form[f.key as keyof BlogForm]} onChange={e => set(f.key as keyof BlogForm, e.target.value)}
                 placeholder={f.ph}
                 className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] rounded-xl px-4 py-2.5 text-sm text-[#F1F5F9] outline-none placeholder-[#334155] transition-colors" />
@@ -321,7 +323,7 @@ export default function BlogEditor({ initial, postId }: Props) {
 
         <div className="flex gap-3 pb-6">
           <button onClick={() => save(false)} disabled={saving}
-            className="glass-tab flex-1 py-3 text-sm text-[#94A3B8] hover:text-white disabled:opacity-50">
+            className="glass-tab flex-1 py-3 text-sm text-white hover:text-[#c4b5fd] disabled:opacity-50">
             บันทึกเป็นร่าง
           </button>
           <button onClick={() => save(true)} disabled={saving}
@@ -355,7 +357,7 @@ function SeoPanel({ form, set, checks, score, color, seoTitleLen, metaDescLen }:
       {/* Score */}
       <div className="glass p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-xs text-[#475569] uppercase tracking-widest font-semibold flex items-center gap-1.5">
+          <p className="text-sm text-white uppercase tracking-widest font-semibold flex items-center gap-1.5">
             <BsGraphUp size={11} /> SEO Score
           </p>
           <span className="text-xs font-bold px-2.5 py-0.5 rounded-full"
@@ -373,11 +375,11 @@ function SeoPanel({ form, set, checks, score, color, seoTitleLen, metaDescLen }:
           {checks.map((c, i) => (
             <div key={i} className="flex items-start gap-2 text-xs">
               {c.pass === null
-                ? <BsDashCircle size={13} className="text-[#475569] shrink-0 mt-0.5" />
+                ? <BsDashCircle size={13} className="text-[#94A3B8] shrink-0 mt-0.5" />
                 : c.pass
                   ? <BsCheck2Circle size={13} className="text-emerald-400 shrink-0 mt-0.5" />
                   : <BsXCircle size={13} className="text-rose-400 shrink-0 mt-0.5" />}
-              <span className={c.pass === true ? 'text-[#94A3B8]' : c.pass === false ? 'text-rose-400/80' : 'text-[#475569]'}>
+              <span className={c.pass === true ? 'text-white' : c.pass === false ? 'text-rose-400/80' : 'text-white/60'}>
                 {c.label}
               </span>
             </div>
@@ -387,7 +389,7 @@ function SeoPanel({ form, set, checks, score, color, seoTitleLen, metaDescLen }:
 
       {/* Focus keyword */}
       <div className="glass p-4 space-y-3">
-        <p className="text-xs text-[#475569] uppercase tracking-widest font-semibold">Focus Keyword</p>
+        <p className="text-sm text-white uppercase tracking-widest font-semibold">Focus Keyword</p>
         <input value={form.focus_keyword} onChange={e => set('focus_keyword', e.target.value)}
           placeholder="คีย์เวิร์ดหลัก เช่น buy instagram followers"
           className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)] rounded-xl px-3 py-2.5 text-sm text-white outline-none placeholder-[#334155] transition-colors" />
@@ -396,7 +398,7 @@ function SeoPanel({ form, set, checks, score, color, seoTitleLen, metaDescLen }:
       {/* SEO title */}
       <div className="glass p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-xs text-[#475569] uppercase tracking-widest font-semibold">SEO Title</p>
+          <p className="text-sm text-white uppercase tracking-widest font-semibold">SEO Title</p>
           <span className="text-[10px] font-mono" style={{ color: counterColor(seoTitleLen, 10, 60) }}>
             {seoTitleLen}/60
           </span>
@@ -406,7 +408,7 @@ function SeoPanel({ form, set, checks, score, color, seoTitleLen, metaDescLen }:
           className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)] rounded-xl px-3 py-2.5 text-sm text-white outline-none placeholder-[#334155] transition-colors" />
         {/* Google preview */}
         <div className="bg-[rgba(255,255,255,0.03)] rounded-xl p-3 space-y-0.5 border border-[rgba(139,92,246,0.08)]">
-          <p className="text-[11px] text-[#475569] uppercase tracking-widest mb-1">ตัวอย่างใน Google</p>
+          <p className="text-sm text-white uppercase tracking-widest mb-1">ตัวอย่างใน Google</p>
           <p className="text-[#4285f4] text-sm font-medium truncate">{form.meta_title || form.title || 'SEO Title'}</p>
           <p className="text-[#006621] text-[11px]">yoursite.com/blog/{form.slug || 'slug'}</p>
           <p className="text-[#545454] text-[11px] leading-relaxed line-clamp-2">{form.meta_description || 'Meta description จะแสดงตรงนี้...'}</p>
@@ -416,7 +418,7 @@ function SeoPanel({ form, set, checks, score, color, seoTitleLen, metaDescLen }:
       {/* Meta description */}
       <div className="glass p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-xs text-[#475569] uppercase tracking-widest font-semibold">Meta Description</p>
+          <p className="text-sm text-white uppercase tracking-widest font-semibold">Meta Description</p>
           <span className="text-[10px] font-mono" style={{ color: counterColor(metaDescLen, 50, 155) }}>
             {metaDescLen}/155
           </span>
