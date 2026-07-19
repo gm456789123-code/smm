@@ -40,10 +40,7 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: '**' },
-      { protocol: 'http',  hostname: '**' },
-    ],
+    unoptimized: true,
   },
   experimental: {
     // Inline CSS with HTML to eliminate render-blocking stylesheet requests → improves LCP/FCP
