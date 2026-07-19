@@ -23,7 +23,42 @@ import {
   BsLink45Deg, BsImage, BsTable, BsYoutube, BsTextLeft, BsTextCenter,
   BsTextRight, BsJustify, BsArrowCounterclockwise, BsArrowClockwise,
   BsHighlighter, BsX, BsCheck, BsUpload, BsSlashCircle,
+  BsCodeSlash, BsPencil,
 } from 'react-icons/bs';
+
+// ---- HTML toolbar tags ----
+const HTML_TAGS = [
+  { label: 'H1',   wrap: '<h1>$</h1>' },
+  { label: 'H2',   wrap: '<h2>$</h2>' },
+  { label: 'H3',   wrap: '<h3>$</h3>' },
+  { label: 'H4',   wrap: '<h4>$</h4>' },
+  { label: 'B',    wrap: '<strong>$</strong>' },
+  { label: 'I',    wrap: '<em>$</em>' },
+  { label: 'U',    wrap: '<u>$</u>' },
+  { label: 'A',    wrap: '<a href="https://" target="_blank">$</a>' },
+  { label: 'IMG',  wrap: '<img src="URL" alt="$" style="max-width:100%" />' },
+  { label: 'P',    wrap: '<p>$</p>' },
+  { label: 'UL',   wrap: '<ul>\n  <li>$</li>\n</ul>' },
+  { label: 'OL',   wrap: '<ol>\n  <li>$</li>\n</ol>' },
+  { label: 'BQ',   wrap: '<blockquote>$</blockquote>' },
+  { label: 'CODE', wrap: '<code>$</code>' },
+  { label: 'PRE',  wrap: '<pre><code>$</code></pre>' },
+  { label: 'HR',   wrap: '\n<hr />\n$' },
+];
+
+function insertHtmlTag(ta: HTMLTextAreaElement, wrap: string, onChange: (v: string) => void) {
+  const start = ta.selectionStart;
+  const end   = ta.selectionEnd;
+  const sel   = ta.value.slice(start, end) || 'ข้อความ';
+  const inserted = wrap.replace('$', sel);
+  const next = ta.value.slice(0, start) + inserted + ta.value.slice(end);
+  onChange(next);
+  setTimeout(() => {
+    const cursor = start + inserted.length;
+    ta.focus();
+    ta.setSelectionRange(cursor, cursor);
+  }, 0);
+}
 
 interface Props {
   value: string;
@@ -220,6 +255,27 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
   const [linkModal,  setLinkModal]  = useState(false);
   const [imgModal,   setImgModal]   = useState(false);
   const [ytModal,    setYtModal]    = useState(false);
+  const [htmlMode,   setHtmlMode]   = useState(false);
+  const [rawHtml,    setRawHtml]    = useState('');
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
+  function switchToHtml() {
+    if (!editor) return;
+    setRawHtml(editor.getHTML());
+    setHtmlMode(true);
+  }
+
+  function switchToVisual() {
+    if (!editor) return;
+    editor.commands.setContent(rawHtml);
+    onChange(rawHtml);
+    setHtmlMode(false);
+  }
+
+  function onRawChange(v: string) {
+    setRawHtml(v);
+    onChange(v);
+  }
 
   const editor = useEditor({
     extensions: [
@@ -402,15 +458,56 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
           <Btn onClick={() => editor.chain().focus().setHorizontalRule().run()} active={false} title="เส้นคั่น">
             <span className="text-[11px] font-bold">HR</span>
           </Btn>
+
+          {/* Mode toggle — far right */}
+          <div className="ml-auto">
+            <button type="button"
+              onClick={htmlMode ? switchToVisual : switchToHtml}
+              className={[
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
+                htmlMode
+                  ? 'bg-[rgba(139,92,246,0.25)] text-[#a78bfa] border border-[rgba(139,92,246,0.5)]'
+                  : 'bg-[rgba(255,255,255,0.06)] text-white border border-[rgba(255,255,255,0.1)] hover:text-[#c4b5fd]',
+              ].join(' ')}>
+              {htmlMode ? <><BsPencil size={12} /> Visual</> : <><BsCodeSlash size={13} /> HTML</>}
+            </button>
+          </div>
         </div>
 
-          {/* Editor content */}
-        <EditorContent editor={editor} />
+        {/* HTML mode toolbar + textarea */}
+        {htmlMode ? (
+          <>
+            <div className="flex flex-wrap gap-1 px-3 py-2 border-b border-[rgba(139,92,246,0.1)] bg-[rgba(0,0,0,0.15)]">
+              {HTML_TAGS.map(t => (
+                <button key={t.label} type="button"
+                  onMouseDown={e => { e.preventDefault(); taRef.current && insertHtmlTag(taRef.current, t.wrap, onRawChange); }}
+                  className="px-2 py-1 text-xs font-mono font-semibold text-white hover:text-[#c4b5fd] bg-[rgba(139,92,246,0.07)] hover:bg-[rgba(139,92,246,0.18)] rounded-lg transition-all">
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            <textarea
+              ref={taRef}
+              value={rawHtml}
+              onChange={e => onRawChange(e.target.value)}
+              rows={24}
+              spellCheck={false}
+              className="w-full bg-transparent px-4 py-3 text-base text-[#F1F5F9] font-mono outline-none resize-y leading-relaxed"
+            />
+          </>
+        ) : (
+          /* Visual editor */
+          <EditorContent editor={editor} />
+        )}
 
         {/* Footer */}
         <div className="px-4 py-2 border-t border-[rgba(139,92,246,0.08)] flex justify-between text-xs text-white/50 bg-[rgba(0,0,0,0.15)]">
-          <span>{words.toLocaleString()} คำ</span>
-          <span>{chars.toLocaleString()} ตัวอักษร</span>
+          {htmlMode
+            ? <><span>{rawHtml.replace(/<[^>]+>/g, ' ').trim().split(/\s+/).filter(Boolean).length.toLocaleString()} คำ</span>
+                <span>{rawHtml.length.toLocaleString()} ตัวอักษร</span></>
+            : <><span>{words.toLocaleString()} คำ</span>
+                <span>{chars.toLocaleString()} ตัวอักษร</span></>
+          }
         </div>
       </div>
 
