@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import {
   BsCheck2Circle, BsXCircle, BsDashCircle,
-  BsEye, BsPencilSquare, BsSearch,
-  BsCodeSlash, BsPencil, BsGraphUp,
+  BsEye, BsPencilSquare, BsGraphUp,
 } from 'react-icons/bs';
+
+const RichEditor = dynamic(() => import('./RichEditor'), { ssr: false });
 
 // ---- types ----
 export interface BlogForm {
@@ -69,68 +71,12 @@ function useSeoChecks(form: BlogForm): { checks: SeoCheck[]; score: number; colo
   }, [form]);
 }
 
-// ---- HTML toolbar ----
-const TOOLBAR = [
-  { label: 'H1', wrap: '<h1>$</h1>' },
-  { label: 'H2', wrap: '<h2>$</h2>' },
-  { label: 'H3', wrap: '<h3>$</h3>' },
-  { label: 'B',  wrap: '<strong>$</strong>' },
-  { label: 'I',  wrap: '<em>$</em>' },
-  { label: 'U',  wrap: '<u>$</u>' },
-  { label: 'A',  wrap: '<a href="URL">$</a>' },
-  { label: 'IMG',wrap: '<img src="URL" alt="$" />' },
-  { label: 'P',  wrap: '<p>$</p>' },
-  { label: 'UL', wrap: '<ul>\n  <li>$</li>\n</ul>' },
-  { label: 'OL', wrap: '<ol>\n  <li>$</li>\n</ol>' },
-  { label: 'BQ', wrap: '<blockquote>$</blockquote>' },
-  { label: 'CODE', wrap: '<code>$</code>' },
-  { label: 'PRE', wrap: '<pre><code>$</code></pre>' },
-  { label: 'HR', wrap: '\n<hr />\n$' },
-];
-
-function insertTag(
-  textarea: HTMLTextAreaElement,
-  wrap: string,
-  setValue: (v: string) => void,
-) {
-  const start = textarea.selectionStart;
-  const end   = textarea.selectionEnd;
-  const sel   = textarea.value.slice(start, end) || 'ข้อความ';
-  const inserted = wrap.replace('$', sel);
-  const next = textarea.value.slice(0, start) + inserted + textarea.value.slice(end);
-  setValue(next);
-  setTimeout(() => {
-    const cursor = start + inserted.length;
-    textarea.focus();
-    textarea.setSelectionRange(cursor, cursor);
-  }, 0);
-}
-
 // ---- char counter color ----
 function counterColor(len: number, min: number, max: number) {
   if (len === 0) return '#475569';
   if (len < min) return '#f59e0b';
   if (len > max) return '#ef4444';
   return '#22c55e';
-}
-
-// ---- plain ↔ html conversion ----
-function plainToHtml(text: string): string {
-  return text
-    .split(/\n{2,}/)
-    .map(block => block.trim())
-    .filter(Boolean)
-    .map(block => `<p>${block.replace(/\n/g, '<br />')}</p>`)
-    .join('\n');
-}
-
-function htmlToPlain(html: string): string {
-  return html
-    .replace(/<\/p>/gi, '\n\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
 }
 
 // ---- main component ----
@@ -140,10 +86,8 @@ export default function BlogEditor({ initial, postId }: Props) {
   const router  = useRouter();
   const [form,  setForm]   = useState<BlogForm>(initial ?? EMPTY);
   const [tab,   setTab]    = useState<'write' | 'preview' | 'seo'>('write');
-  const [htmlMode, setHtmlMode] = useState(false);
   const [saving, setSave]  = useState(false);
   const [error,  setError] = useState('');
-  const taRef = useRef<HTMLTextAreaElement>(null);
 
   const { checks, score, color } = useSeoChecks(form);
 
@@ -157,8 +101,6 @@ export default function BlogEditor({ initial, postId }: Props) {
   function handleTitle(v: string) {
     setForm(p => ({ ...p, title: v, slug: p.slug || toSlug(v) }));
   }
-
-  function handleContent(v: string) { set('content', v); }
 
   async function save(published: boolean) {
     setSave(true); setError('');
@@ -220,64 +162,11 @@ export default function BlogEditor({ initial, postId }: Props) {
 
         {/* Write tab */}
         {tab === 'write' && (
-          <div className="glass overflow-hidden">
-            {/* Toolbar row */}
-            <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-[rgba(139,92,246,0.1)]">
-              {htmlMode ? (
-                <div className="flex flex-wrap gap-1 flex-1">
-                  {TOOLBAR.map(t => (
-                    <button key={t.label} type="button"
-                      onClick={() => taRef.current && insertTag(taRef.current, t.wrap, v => set('content', v))}
-                      className="px-2.5 py-1 text-sm font-mono font-semibold text-white hover:text-[#c4b5fd] bg-[rgba(139,92,246,0.06)] hover:bg-[rgba(139,92,246,0.15)] rounded-lg transition-all">
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <span className="text-sm text-white flex-1">เขียนปกติ — กด Enter 2 ครั้งเพื่อขึ้นย่อหน้าใหม่</span>
-              )}
-              {/* Mode toggle */}
-              <button type="button"
-                onClick={() => {
-                  if (htmlMode) {
-                    set('content', htmlToPlain(form.content));
-                  } else {
-                    set('content', plainToHtml(form.content));
-                  }
-                  setHtmlMode(m => !m);
-                }}
-                className={[
-                  'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all',
-                  htmlMode
-                    ? 'bg-[rgba(139,92,246,0.2)] text-[#a78bfa] border border-[rgba(139,92,246,0.4)]'
-                    : 'bg-[rgba(255,255,255,0.05)] text-white border border-[rgba(255,255,255,0.08)] hover:text-[#c4b5fd]',
-                ].join(' ')}>
-                {htmlMode
-                  ? <><BsCodeSlash size={13} /> HTML</>
-                  : <><BsPencil size={13} /> ปกติ</>
-                }
-              </button>
-            </div>
-
-            {htmlMode ? (
-              <textarea ref={taRef} value={form.content} onChange={e => handleContent(e.target.value)}
-                placeholder={'<h2>หัวข้อย่อย</h2>\n<p>เนื้อหาบทความ...</p>'}
-                rows={22}
-                className="w-full bg-transparent px-4 py-3 text-base text-[#F1F5F9] font-mono outline-none placeholder-[#64748B] resize-y leading-relaxed"
-              />
-            ) : (
-              <textarea value={form.content} onChange={e => handleContent(e.target.value)}
-                placeholder={'เริ่มเขียนบทความที่นี่...\n\nกด Enter 2 ครั้งเพื่อขึ้นย่อหน้าใหม่'}
-                rows={22}
-                className="w-full bg-transparent px-4 py-3 text-base text-[#F1F5F9] outline-none placeholder-[#64748B] resize-y leading-relaxed"
-              />
-            )}
-
-            <div className="px-4 py-2 border-t border-[rgba(139,92,246,0.08)] flex justify-between text-xs text-white">
-              <span>{countWords(form.content).toLocaleString()} คำ</span>
-              <span>{form.content.length.toLocaleString()} ตัวอักษร</span>
-            </div>
-          </div>
+          <RichEditor
+            value={form.content}
+            onChange={v => set('content', v)}
+            placeholder="เริ่มเขียนบทความที่นี่..."
+          />
         )}
 
         {/* Preview tab */}
