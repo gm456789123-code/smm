@@ -1,4 +1,6 @@
-﻿import { notFound } from 'next/navigation';
+﻿export const dynamic = 'force-dynamic';
+
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import db from '@/lib/db';
