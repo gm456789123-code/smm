@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import {
   BsCheck2Circle, BsXCircle, BsDashCircle,
-  BsEye, BsPencilSquare, BsGraphUp,
+  BsEye, BsPencilSquare, BsGraphUp, BsUpload, BsX,
 } from 'react-icons/bs';
 
 const RichEditor = dynamic(() => import('./RichEditor'), { ssr: false });
@@ -88,6 +88,23 @@ export default function BlogEditor({ initial, postId }: Props) {
   const [tab,   setTab]    = useState<'write' | 'preview' | 'seo'>('write');
   const [saving, setSave]  = useState(false);
   const [error,  setError] = useState('');
+  const [imgUploading, setImgUploading] = useState<Record<string, boolean>>({});
+  const coverRef = useRef<HTMLInputElement>(null);
+  const ogRef    = useRef<HTMLInputElement>(null);
+
+  async function uploadImage(file: File, key: 'cover_image' | 'og_image') {
+    setImgUploading(p => ({ ...p, [key]: true }));
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+      const d = await res.json();
+      if (d.url) set(key, d.url);
+      else setError(d.error ?? 'อัปโหลดไม่สำเร็จ');
+    } finally {
+      setImgUploading(p => ({ ...p, [key]: false }));
+    }
+  }
 
   const { checks, score, color } = useSeoChecks(form);
 
@@ -194,18 +211,68 @@ export default function BlogEditor({ initial, postId }: Props) {
         {/* Excerpt + Cover */}
         <div className="glass p-5 space-y-4">
           <p className="text-sm text-white uppercase tracking-widest font-semibold">รูปภาพและบทสรุป</p>
-          {[
-            { key: 'cover_image', label: 'Cover Image URL', ph: 'https://example.com/image.jpg' },
-            { key: 'og_image',    label: 'OG Image URL (ถ้าต่างจาก cover)', ph: 'https://...' },
-            { key: 'excerpt',     label: 'บทสรุปย่อ (แสดงในรายการบทความ)', ph: 'สรุปสั้นๆ 1-2 ประโยค...' },
-          ].map(f => (
-            <div key={f.key} className="space-y-1.5">
-              <label className="text-sm text-white uppercase tracking-widest">{f.label}</label>
-              <input value={form[f.key as keyof BlogForm]} onChange={e => set(f.key as keyof BlogForm, e.target.value)}
-                placeholder={f.ph}
-                className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] rounded-xl px-4 py-2.5 text-sm text-[#F1F5F9] outline-none placeholder-[#334155] transition-colors" />
+
+          {/* Cover image */}
+          <div className="space-y-2">
+            <label className="text-sm text-white uppercase tracking-widest">Cover Image</label>
+            <input ref={coverRef} type="file" accept="image/*" className="hidden"
+              onChange={e => e.target.files?.[0] && uploadImage(e.target.files[0], 'cover_image')} />
+            {form.cover_image ? (
+              <div className="relative rounded-xl overflow-hidden bg-[rgba(255,255,255,0.03)] border border-[rgba(139,92,246,0.2)]">
+                <img src={form.cover_image} alt="cover" className="w-full max-h-48 object-cover" />
+                <div className="absolute top-2 right-2 flex gap-1.5">
+                  <button type="button" onClick={() => coverRef.current?.click()}
+                    className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-black/60 text-white hover:bg-black/80 backdrop-blur-sm transition-all flex items-center gap-1.5">
+                    <BsUpload size={12} /> เปลี่ยน
+                  </button>
+                  <button type="button" onClick={() => set('cover_image', '')}
+                    className="w-7 h-7 rounded-lg bg-black/60 text-white hover:bg-rose-600/80 backdrop-blur-sm transition-all flex items-center justify-center">
+                    <BsX size={15} />
+                  </button>
+                </div>
+                {imgUploading.cover_image && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-sm text-white">กำลังอัปโหลด...</div>
+                )}
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input value={form.cover_image} onChange={e => set('cover_image', e.target.value)}
+                  placeholder="https://example.com/image.jpg หรืออัปโหลด →"
+                  className="flex-1 bg-[rgba(255,255,255,0.04)] border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] rounded-xl px-4 py-2.5 text-sm text-[#F1F5F9] outline-none placeholder-[#334155] transition-colors" />
+                <button type="button" onClick={() => coverRef.current?.click()} disabled={imgUploading.cover_image}
+                  className="shrink-0 px-3 py-2.5 rounded-xl border border-[rgba(139,92,246,0.3)] text-white hover:bg-[rgba(139,92,246,0.15)] transition-all flex items-center gap-1.5 text-sm disabled:opacity-50">
+                  <BsUpload size={14} /> {imgUploading.cover_image ? '...' : 'อัปโหลด'}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* OG image */}
+          <div className="space-y-2">
+            <label className="text-sm text-white uppercase tracking-widest">OG Image (ถ้าต่างจาก cover)</label>
+            <input ref={ogRef} type="file" accept="image/*" className="hidden"
+              onChange={e => e.target.files?.[0] && uploadImage(e.target.files[0], 'og_image')} />
+            <div className="flex gap-2">
+              <input value={form.og_image} onChange={e => set('og_image', e.target.value)}
+                placeholder="https://... หรืออัปโหลด →"
+                className="flex-1 bg-[rgba(255,255,255,0.04)] border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] rounded-xl px-4 py-2.5 text-sm text-[#F1F5F9] outline-none placeholder-[#334155] transition-colors" />
+              <button type="button" onClick={() => ogRef.current?.click()} disabled={imgUploading.og_image}
+                className="shrink-0 px-3 py-2.5 rounded-xl border border-[rgba(139,92,246,0.3)] text-white hover:bg-[rgba(139,92,246,0.15)] transition-all flex items-center gap-1.5 text-sm disabled:opacity-50">
+                <BsUpload size={14} /> {imgUploading.og_image ? '...' : 'อัปโหลด'}
+              </button>
             </div>
-          ))}
+            {form.og_image && (
+              <img src={form.og_image} alt="og" className="w-full max-h-24 object-cover rounded-lg opacity-70" />
+            )}
+          </div>
+
+          {/* Excerpt */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-white uppercase tracking-widest">บทสรุปย่อ (แสดงในรายการบทความ)</label>
+            <input value={form.excerpt} onChange={e => set('excerpt', e.target.value)}
+              placeholder="สรุปสั้นๆ 1-2 ประโยค..."
+              className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] rounded-xl px-4 py-2.5 text-sm text-[#F1F5F9] outline-none placeholder-[#334155] transition-colors" />
+          </div>
         </div>
 
         {error && <p className="text-sm text-red-400 bg-[rgba(239,68,68,0.08)] px-4 py-3 rounded-xl">{error}</p>}
