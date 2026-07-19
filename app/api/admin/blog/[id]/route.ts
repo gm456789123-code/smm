@@ -44,9 +44,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    console.error('[blog PUT]', msg);
     const isDupe = msg.includes('Duplicate entry');
     return NextResponse.json(
-      { error: isDupe ? 'Slug นี้มีอยู่แล้ว กรุณาเปลี่ยน URL slug' : 'บันทึกไม่สำเร็จ' },
+      { error: isDupe ? 'Slug นี้มีอยู่แล้ว กรุณาเปลี่ยน URL slug' : msg },
       { status: isDupe ? 409 : 500 }
     );
   }

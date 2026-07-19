@@ -1,24 +1,19 @@
 ﻿const ALLOWED_TAGS = new Set([
-  'a',
-  'blockquote',
-  'br',
-  'code',
-  'em',
-  'h1',
-  'h2',
-  'h3',
-  'hr',
-  'img',
-  'li',
-  'ol',
-  'p',
-  'pre',
-  'strong',
-  'u',
-  'ul',
+  // text
+  'p', 'br', 'hr', 'strong', 'b', 'em', 'i', 'u', 's', 'del', 'mark', 'span',
+  // headings
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  // lists
+  'ul', 'ol', 'li',
+  // block
+  'blockquote', 'pre', 'code', 'figure', 'figcaption', 'div',
+  // media
+  'a', 'img',
+  // table
+  'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'colgroup', 'col',
 ]);
 
-const SELF_CLOSING_TAGS = new Set(['br', 'hr', 'img']);
+const SELF_CLOSING_TAGS = new Set(['br', 'hr', 'img', 'col']);
 
 function escapeHtml(value: string): string {
   return value
@@ -61,6 +56,32 @@ export function sanitizeUrl(input: unknown, mode: 'link' | 'image' = 'link'): st
   }
 }
 
+const SAFE_CSS_PROPS = new Set([
+  'text-align', 'width', 'max-width', 'height', 'float', 'display',
+  'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+  'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+  'color', 'background-color', 'font-size', 'font-weight', 'font-style',
+  'text-decoration', 'border', 'border-collapse', 'vertical-align',
+]);
+
+function sanitizeStyle(style: string): string {
+  return style
+    .split(';')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .filter(decl => {
+      const colon = decl.indexOf(':');
+      if (colon < 0) return false;
+      const prop = decl.slice(0, colon).trim().toLowerCase();
+      const val  = decl.slice(colon + 1).trim();
+      if (!SAFE_CSS_PROPS.has(prop)) return false;
+      // reject anything with url(), javascript:, expression(
+      if (/url\s*\(|javascript\s*:|expression\s*\(/i.test(val)) return false;
+      return true;
+    })
+    .join(';');
+}
+
 function sanitizeAttributes(tagName: string, rawAttributes: string): string {
   const attrs: string[] = [];
   const attrRegex = /([A-Za-z_:][-A-Za-z0-9_:.]*)\s*=\s*("([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/g;
@@ -91,15 +112,32 @@ function sanitizeAttributes(tagName: string, rawAttributes: string): string {
         attrs.push(`src="${escapeHtml(safeSrc)}"`);
         continue;
       }
-
       if (name === 'alt' || name === 'title') {
         attrs.push(`${name}="${escapeHtml(value)}"`);
         continue;
       }
-
       if ((name === 'width' || name === 'height') && /^\d{1,4}$/.test(value)) {
         attrs.push(`${name}="${value}"`);
+        continue;
       }
+      if (name === 'style') {
+        const safe = sanitizeStyle(value);
+        if (safe) attrs.push(`style="${escapeHtml(safe)}"`);
+        continue;
+      }
+    }
+
+    // Allow style on layout/text tags (for TipTap alignment, color, etc.)
+    if (['p','span','div','td','th','h1','h2','h3','h4','h5','h6','figure'].includes(tagName) && name === 'style') {
+      const safe = sanitizeStyle(value);
+      if (safe) attrs.push(`style="${escapeHtml(safe)}"`);
+      continue;
+    }
+
+    // Allow colspan/rowspan on table cells
+    if (['td','th'].includes(tagName) && (name === 'colspan' || name === 'rowspan') && /^\d{1,3}$/.test(value)) {
+      attrs.push(`${name}="${value}"`);
+      continue;
     }
   }
 
