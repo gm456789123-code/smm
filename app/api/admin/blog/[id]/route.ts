@@ -35,7 +35,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const updates = Object.entries(body).filter(([key]) => fields.includes(key));
   if (!updates.length) return NextResponse.json({ error: 'No updatable fields were provided.' }, { status: 400 });
 
-  if (body.published === 1) updates.push(['published_at', new Date().toISOString()]);
+  if (body.published === 1) updates.push(['published_at', new Date()]);
 
   const set = updates.map(([key]) => `${key}=?`).join(', ');
   const vals = [...updates.map(([, value]) => value), id];
