@@ -223,7 +223,11 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // StarterKit v3 already bundles Link & Underline — disable to avoid duplicate conflict
+        link: false,
+        underline: false,
+      }),
       Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Link.configure({ openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer' } }),
