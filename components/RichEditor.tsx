@@ -1,8 +1,9 @@
 'use client';
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
+import type { NodeViewProps } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Image } from '@tiptap/extension-image';
+import { Image as TiptapImage } from '@tiptap/extension-image';
 import { Link } from '@tiptap/extension-link';
 import { Underline } from '@tiptap/extension-underline';
 import { TextAlign } from '@tiptap/extension-text-align';
@@ -65,6 +66,109 @@ interface Props {
   onChange: (html: string) => void;
   placeholder?: string;
 }
+
+// ---- Custom Image NodeView ----
+function ImageNodeView({ node, selected, updateAttributes, deleteNode }: NodeViewProps) {
+  const [editing, setEditing] = useState(false);
+  const { src, alt, style } = node.attrs as { src: string; alt: string; style?: string };
+
+  function parseWidth(s?: string) {
+    const m = (s ?? '').match(/width:\s*([^;]+)/);
+    return m ? m[1].trim() : '100%';
+  }
+  function parseAlign(s?: string) {
+    if (!s) return 'none';
+    if (s.includes('margin:0 auto') || s.includes('margin: 0 auto')) return 'center';
+    if (s.includes('float:left') || s.includes('float: left')) return 'left';
+    if (s.includes('float:right') || s.includes('float: right')) return 'right';
+    return 'none';
+  }
+
+  const [editAlt,   setEditAlt]   = useState(alt   ?? '');
+  const [editWidth, setEditWidth] = useState(() => parseWidth(style));
+  const [editAlign, setEditAlign] = useState(() => parseAlign(style));
+
+  function applyEdit() {
+    const parts: string[] = [];
+    if (editWidth) parts.push(`width:${editWidth}`);
+    if (editAlign === 'center') parts.push('display:block;margin:0 auto');
+    if (editAlign === 'left')   parts.push('float:left;margin-right:1em');
+    if (editAlign === 'right')  parts.push('float:right;margin-left:1em');
+    updateAttributes({ alt: editAlt, style: parts.join(';') || undefined });
+    setEditing(false);
+  }
+
+  return (
+    <NodeViewWrapper className="relative inline-block max-w-full my-2">
+      {/* Selected ring */}
+      <div className={selected ? 'ring-2 ring-[#a78bfa] ring-offset-2 ring-offset-transparent rounded-xl' : ''}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={src} alt={alt} style={style ? Object.fromEntries(style.split(';').filter(Boolean).map(p => { const [k,v] = p.split(':'); return [k.trim().replace(/-([a-z])/g, (_,c) => c.toUpperCase()), v?.trim()]; })) : undefined}
+          className="max-w-full rounded-xl block" draggable={false} />
+      </div>
+
+      {/* Floating toolbar */}
+      {selected && !editing && (
+        <div className="absolute -top-9 left-0 flex items-center gap-1 bg-[#1a1530]/95 border border-[rgba(139,92,246,0.4)] rounded-lg px-2 py-1 shadow-xl backdrop-blur-sm z-10">
+          <button type="button" onMouseDown={e => { e.preventDefault(); setEditAlt(alt ?? ''); setEditWidth(parseWidth(style)); setEditAlign(parseAlign(style)); setEditing(true); }}
+            className="text-xs text-[#a78bfa] hover:text-white px-2 py-0.5 rounded hover:bg-[rgba(139,92,246,0.2)] transition-all flex items-center gap-1">
+            <BsPencil size={11} /> แก้ไข
+          </button>
+          <div className="w-px h-4 bg-white/10" />
+          <button type="button" onMouseDown={e => { e.preventDefault(); deleteNode(); }}
+            className="text-xs text-rose-400 hover:text-rose-300 px-2 py-0.5 rounded hover:bg-rose-500/10 transition-all flex items-center gap-1">
+            <BsX size={14} /> ลบ
+          </button>
+        </div>
+      )}
+
+      {/* Inline edit panel */}
+      {selected && editing && (
+        <div className="absolute top-full left-0 mt-1 z-20 bg-[#1a1530] border border-[rgba(139,92,246,0.4)] rounded-xl p-3 shadow-xl space-y-2 min-w-72">
+          <div className="space-y-1">
+            <label className="text-[10px] text-white/50 uppercase tracking-widest">Alt text (SEO)</label>
+            <input value={editAlt} onChange={e => setEditAlt(e.target.value)} autoFocus
+              placeholder="คำอธิบายรูปภาพ"
+              className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(139,92,246,0.25)] rounded-lg px-2.5 py-1.5 text-sm text-white outline-none focus:border-[rgba(139,92,246,0.6)]" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="text-[10px] text-white/50 uppercase tracking-widest">ขนาด (width)</label>
+              <input value={editWidth} onChange={e => setEditWidth(e.target.value)}
+                placeholder="100% หรือ 600px"
+                className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(139,92,246,0.25)] rounded-lg px-2.5 py-1.5 text-sm text-white outline-none focus:border-[rgba(139,92,246,0.6)]" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] text-white/50 uppercase tracking-widest">การจัด</label>
+              <select value={editAlign} onChange={e => setEditAlign(e.target.value)}
+                className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(139,92,246,0.25)] rounded-lg px-2.5 py-1.5 text-sm text-white outline-none">
+                <option value="none">ปกติ</option>
+                <option value="left">ซ้าย</option>
+                <option value="center">กลาง</option>
+                <option value="right">ขวา</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button type="button" onMouseDown={e => { e.preventDefault(); setEditing(false); }}
+              className="flex-1 py-1.5 rounded-lg text-xs text-white/50 border border-white/10 hover:text-white transition-colors">ยกเลิก</button>
+            <button type="button" onMouseDown={e => { e.preventDefault(); applyEdit(); }}
+              className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-[rgba(139,92,246,0.7)] hover:bg-[rgba(139,92,246,1)] text-white transition-colors flex items-center justify-center gap-1">
+              <BsCheck size={13} /> บันทึก
+            </button>
+          </div>
+        </div>
+      )}
+    </NodeViewWrapper>
+  );
+}
+
+// ---- Custom Image extension with NodeView ----
+const EditableImage = TiptapImage.extend({
+  addNodeView() {
+    return ReactNodeViewRenderer(ImageNodeView);
+  },
+});
 
 // ---- Link modal ----
 function LinkModal({ onConfirm, onClose, initial }: {
@@ -287,7 +391,7 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
       Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Link.configure({ openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer' } }),
-      Image.configure({ inline: false, allowBase64: true }),
+      EditableImage.configure({ inline: false, allowBase64: true }),
       Table.configure({ resizable: true }),
       TableRow,
       TableHeader,
