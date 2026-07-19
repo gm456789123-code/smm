@@ -122,8 +122,32 @@ export default async function BlogPostPage({ params }: Props) {
         </p>
       )}
 
+      <style>{`
+        .blog-content a{color:#a78bfa;text-decoration:underline;text-underline-offset:2px}
+        .blog-content a:hover{color:#c4b5fd}
+        .blog-content img{max-width:100%;height:auto;border-radius:0.5rem;display:block}
+        .blog-content img[style*="float:left"],.blog-content img[style*="float: left"]{margin-right:1.25rem;margin-bottom:0.5rem}
+        .blog-content img[style*="float:right"],.blog-content img[style*="float: right"]{margin-left:1.25rem;margin-bottom:0.5rem;float:right}
+        .blog-content h1,.blog-content h2,.blog-content h3,.blog-content h4,.blog-content h5,.blog-content h6{color:#f1f5f9;font-weight:700;line-height:1.3;margin-top:1.6em;margin-bottom:0.6em}
+        .blog-content h1{font-size:2rem}.blog-content h2{font-size:1.6rem}.blog-content h3{font-size:1.3rem}
+        .blog-content h4{font-size:1.15rem}.blog-content h5,.blog-content h6{font-size:1rem}
+        .blog-content p{margin-bottom:1em}
+        .blog-content ul,.blog-content ol{padding-left:1.5rem;margin-bottom:1em}
+        .blog-content ul{list-style-type:disc}.blog-content ol{list-style-type:decimal}
+        .blog-content li{margin-bottom:0.25em}
+        .blog-content blockquote{border-left:3px solid rgba(139,92,246,0.5);padding-left:1rem;color:#94a3b8;font-style:italic;margin:1em 0}
+        .blog-content pre{background:rgba(0,0,0,0.35);border:1px solid rgba(139,92,246,0.2);border-radius:0.5rem;padding:1rem;overflow-x:auto;font-size:0.85rem;margin-bottom:1em}
+        .blog-content code{background:rgba(139,92,246,0.12);border-radius:0.25rem;padding:0.1em 0.35em;font-size:0.9em}
+        .blog-content pre code{background:none;padding:0;font-size:inherit}
+        .blog-content table{width:100%;border-collapse:collapse;margin-bottom:1em;font-size:0.9rem}
+        .blog-content th,.blog-content td{border:1px solid rgba(139,92,246,0.2);padding:0.5rem 0.75rem;text-align:left}
+        .blog-content th{background:rgba(139,92,246,0.12);color:#e2e8f0;font-weight:600}
+        .blog-content hr{border:none;border-top:1px solid rgba(139,92,246,0.15);margin:2em 0}
+        .blog-content strong,.blog-content b{color:#e2e8f0}
+        .blog-content mark{background:rgba(139,92,246,0.3);color:#f1f5f9;border-radius:0.2em;padding:0 0.15em}
+      `}</style>
       <article
-        className="prose prose-invert prose-sm max-w-none text-[#94A3B8] leading-relaxed"
+        className="blog-content max-w-none text-[#94A3B8] leading-relaxed select-text"
         dangerouslySetInnerHTML={{ __html: safeContent }}
       />
 

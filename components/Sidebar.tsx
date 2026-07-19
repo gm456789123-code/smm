@@ -74,6 +74,10 @@ const ADMIN_NAV = [
     icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>,
   },
   {
+    href: '/admin/media', label: 'คลังภาพ',
+    icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path strokeLinecap="round" d="M21 15l-5-5L5 21"/></svg>,
+  },
+  {
     href: '/admin/angpao', label: 'ซองอั้งเปา',
     icon: <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" d="M20 12v7a1 1 0 01-1 1H5a1 1 0 01-1-1v-7M1 7h22v5H1zM12 7V4a1 1 0 00-1-1H9a1 1 0 00-1 1v3" /></svg>,
   },
