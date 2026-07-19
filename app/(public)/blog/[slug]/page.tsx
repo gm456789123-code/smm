@@ -2,7 +2,6 @@
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import { BsArrowLeft, BsClockHistory, BsPersonCircle } from 'react-icons/bs';
@@ -96,12 +95,6 @@ export default async function BlogPostPage({ params }: Props) {
         <span>/</span>
         <span className="text-[#475569] truncate max-w-[200px]">{post.title}</span>
       </nav>
-
-      {safeCoverImage && (
-        <div className="aspect-video rounded-2xl overflow-hidden bg-[rgba(139,92,246,0.08)]">
-          <Image src={safeCoverImage} alt={post.title} width={1200} height={675} className="w-full h-full object-cover" />
-        </div>
-      )}
 
       <div className="space-y-4">
         <h1 className="font-[family-name:var(--font-jakarta)] text-3xl md:text-4xl font-extrabold text-white leading-tight">
