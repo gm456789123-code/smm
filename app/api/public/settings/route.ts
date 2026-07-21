@@ -2,7 +2,13 @@ import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 
-const PUBLIC_KEYS = new Set(['logo_url', 'brand_name', 'brand_tagline', 'line_url']);
+const PUBLIC_KEYS = new Set([
+  'logo_url', 'brand_name', 'brand_tagline',
+  'line_url', 'line_active',
+  'facebook_url', 'facebook_active',
+  'telegram_url', 'telegram_active',
+  'discord_url',  'discord_active',
+]);
 
 export const dynamic = 'force-dynamic';
 

@@ -2,7 +2,7 @@
 import type { CSSProperties } from 'react';
 import './globals.css';
 import LocaleProvider from '@/components/LocaleProvider';
-import LineFloatButtonServer from '@/components/LineFloatButtonServer';
+import SocialFloatServer from '@/components/SocialFloatServer';
 import { getMessages, LOCALES, type Locale } from '@/lib/i18n';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_OG_IMAGE, SITE_TITLE, SITE_URL } from '@/lib/site';
 
@@ -95,7 +95,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="h-full">
         <LocaleProvider initialLocale={locale} initialMessages={messages}>
           {children}
-          <LineFloatButtonServer />
+          <SocialFloatServer />
         </LocaleProvider>
       </body>
     </html>
