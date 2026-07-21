@@ -75,11 +75,11 @@ export const metadata: Metadata = {
   category: 'technology',
   icons: {
     icon: [
-      { url: '/icon.png', type: 'image/png' },
+      { url: '/api/favicon', type: 'image/png' },
       { url: '/favicon.ico', type: 'image/x-icon' },
     ],
-    shortcut: '/icon.png',
-    apple: '/icon.png',
+    shortcut: '/api/favicon',
+    apple: '/api/favicon',
   },
 };
 

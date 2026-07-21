@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface Setting { key: string; label: string; value: string }
 
 const SETTING_LABELS: Record<string, string> = {
-  logo_url:      'URL โลโก้ (ใส่ลิงก์รูป หรือ /logo.png ถ้าวางในโฟลเดอร์ public)',
+  logo_url:      'โลโก้ (URL หรือแนบไฟล์)',
+  favicon_url:   'Favicon — ไอคอนบน Tab (URL หรือแนบไฟล์ แนะนำ .png สี่เหลี่ยมจัตุรัส)',
   brand_name:    'ชื่อแบรนด์',
   brand_tagline: 'Tagline',
   brand_desc:    'คำอธิบายแบรนด์',
@@ -27,6 +28,10 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Setting[]>([]);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const logoFileRef    = useRef<HTMLInputElement>(null);
+  const faviconFileRef = useRef<HTMLInputElement>(null);
 
   // Default values for settings that may not exist in DB yet
   const DEFAULTS: Record<string, string> = {
@@ -51,6 +56,30 @@ export default function AdminSettingsPage() {
 
   function handleChange(key: string, value: string) {
     setSettings((prev) => prev.map((s) => s.key === key ? { ...s, value } : s));
+  }
+
+  async function uploadSetting(file: File, key: string, setLoading: (v: boolean) => void) {
+    setLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!data.url) return;
+      const updated = settings.map((s) => s.key === key ? { ...s, value: data.url } : s);
+      setSettings(updated);
+      setSaving(true);
+      await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.fromEntries(updated.map((s) => [s.key, s.value]))),
+      });
+      setSaving(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function handleSave() {
@@ -84,6 +113,44 @@ export default function AdminSettingsPage() {
                 onChange={(e) => handleChange(key, e.target.value)}
                 className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors resize-none"
               />
+            ) : key === 'logo_url' || key === 'favicon_url' ? (
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    value={value}
+                    onChange={(e) => handleChange(key, e.target.value)}
+                    className="glass flex-1 px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors"
+                  />
+                  {key === 'logo_url' && (
+                    <>
+                      <input ref={logoFileRef} type="file" accept="image/*" className="hidden"
+                        onChange={(e) => e.target.files?.[0] && uploadSetting(e.target.files[0], 'logo_url', setUploading)} />
+                      <button type="button" onClick={() => logoFileRef.current?.click()} disabled={uploading}
+                        className="shrink-0 px-3 py-2 rounded-xl text-xs font-medium border border-[rgba(139,92,246,0.35)] text-[#a78bfa] hover:bg-[rgba(139,92,246,0.15)] transition-all disabled:opacity-50 whitespace-nowrap">
+                        {uploading ? 'กำลังอัปโหลด...' : '📎 แนบไฟล์'}
+                      </button>
+                    </>
+                  )}
+                  {key === 'favicon_url' && (
+                    <>
+                      <input ref={faviconFileRef} type="file" accept="image/*" className="hidden"
+                        onChange={(e) => e.target.files?.[0] && uploadSetting(e.target.files[0], 'favicon_url', setUploadingFavicon)} />
+                      <button type="button" onClick={() => faviconFileRef.current?.click()} disabled={uploadingFavicon}
+                        className="shrink-0 px-3 py-2 rounded-xl text-xs font-medium border border-[rgba(139,92,246,0.35)] text-[#a78bfa] hover:bg-[rgba(139,92,246,0.15)] transition-all disabled:opacity-50 whitespace-nowrap">
+                        {uploadingFavicon ? 'กำลังอัปโหลด...' : '📎 แนบไฟล์'}
+                      </button>
+                    </>
+                  )}
+                </div>
+                {value && (
+                  <div className="flex items-center gap-3 p-2.5 glass rounded-xl">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={value} alt="preview" className="h-8 w-8 object-contain rounded"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    <span className="text-xs text-[#64748B] truncate">{value}</span>
+                  </div>
+                )}
+              </div>
             ) : (
               <input
                 value={value}
@@ -93,26 +160,6 @@ export default function AdminSettingsPage() {
             )}
           </div>
         ))}
-
-        {/* Logo preview */}
-        {settings.find(s => s.key === 'logo_url')?.value && (
-          <div className="space-y-1.5">
-            <p className="text-xs text-[#94A3B8] uppercase tracking-wider">ตัวอย่างโลโก้</p>
-            <div className="glass p-4 rounded-xl flex items-center gap-4">
-              {/* Dark bg preview */}
-              <div className="flex-1 flex items-center justify-center bg-[#0D1220] rounded-xl p-3 h-16">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={settings.find(s => s.key === 'logo_url')?.value}
-                  alt="logo preview"
-                  className="max-h-10 max-w-full object-contain"
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-              </div>
-              <p className="text-xs text-[#94A3B8] shrink-0">ตัวอย่างใน Sidebar<br/>(พื้นหลังเข้ม)</p>
-            </div>
-          </div>
-        )}
 
         <button
           onClick={handleSave}
