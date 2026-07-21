@@ -4,7 +4,7 @@ import { RowDataPacket } from 'mysql2';
 
 const PUBLIC_KEYS = new Set(['logo_url', 'brand_name', 'brand_tagline', 'line_url']);
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
