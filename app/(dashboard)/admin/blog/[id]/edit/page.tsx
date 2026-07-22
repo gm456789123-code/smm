@@ -31,7 +31,7 @@ export default function EditBlogPage() {
   if (loading) {
     return (
       <main className="flex-1 p-6 flex items-center justify-center">
-        <p className="text-[#475569] animate-pulse">กำลังโหลด...</p>
+        <p className="text-[#94A3B8] animate-pulse">กำลังโหลด...</p>
       </main>
     );
   }
@@ -40,7 +40,7 @@ export default function EditBlogPage() {
     <main className="flex-1 p-4 lg:p-6 space-y-5">
       <div>
         <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">แก้ไขบทความ</h1>
-        <p className="text-[#475569] text-sm mt-0.5">แก้ไขเนื้อหาและ SEO</p>
+        <p className="text-[#94A3B8] text-sm mt-0.5">แก้ไขเนื้อหาและ SEO</p>
       </div>
       <BlogEditor initial={initial!} postId={Number(id)} />
     </main>

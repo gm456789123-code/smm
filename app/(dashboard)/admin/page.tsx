@@ -1,4 +1,4 @@
-import db from '@/lib/db';
+﻿import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import Link from 'next/link';
 
@@ -70,7 +70,7 @@ export default async function AdminDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {statCards.map((s) => (
           <div key={s.label} className="glass p-4">
-            <p className="text-[9px] text-[#475569] uppercase tracking-widest leading-tight">{s.label}</p>
+            <p className="text-[9px] text-[#94A3B8] uppercase tracking-widest leading-tight">{s.label}</p>
             <p className={`font-[family-name:var(--font-inter)] text-xl font-bold mt-1.5 ${s.color}`}>{s.value}</p>
           </div>
         ))}
@@ -122,7 +122,7 @@ export default async function AdminDashboardPage() {
           </div>
           <div className="space-y-2">
             {users.length === 0 ? (
-              <p className="py-4 text-center text-[#475569] text-sm">ยังไม่มีผู้ใช้</p>
+              <p className="py-4 text-center text-[#94A3B8] text-sm">ยังไม่มีผู้ใช้</p>
             ) : users.map((u: RowDataPacket) => (
               <div key={u.id} className="flex items-center gap-3 py-1.5">
                 <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#06B6D4] flex items-center justify-center text-xs font-bold text-white shrink-0">
@@ -130,7 +130,7 @@ export default async function AdminDashboardPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#F1F5F9] truncate">{u.username}</p>
-                  <p className="text-xs text-[#475569] truncate">{u.email}</p>
+                  <p className="text-xs text-[#94A3B8] truncate">{u.email}</p>
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${u.email_verified ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
                   {u.email_verified ? 'ยืนยันแล้ว' : 'รอยืนยัน'}
@@ -148,12 +148,12 @@ export default async function AdminDashboardPage() {
           </div>
           <div className="space-y-2">
             {topups.length === 0 ? (
-              <p className="py-4 text-center text-[#475569] text-sm">ยังไม่มีรายการเติมเงิน</p>
+              <p className="py-4 text-center text-[#94A3B8] text-sm">ยังไม่มีรายการเติมเงิน</p>
             ) : topups.map((t: RowDataPacket) => (
               <div key={t.id} className="flex items-center gap-3 py-1.5">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-[#F1F5F9]">{t.username}</p>
-                  <p className="text-xs text-[#475569]">
+                  <p className="text-xs text-[#94A3B8]">
                     {new Date(t.created_at).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>

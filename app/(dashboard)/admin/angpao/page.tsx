@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { BsCheckCircle, BsXCircle, BsClockHistory } from 'react-icons/bs';
@@ -64,7 +64,7 @@ export default function AdminAngpaoPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">ซองอั้งเปา</h1>
-          <p className="text-[#475569] text-sm mt-0.5">รหัสซองที่รอตรวจสอบจากผู้ใช้</p>
+          <p className="text-[#94A3B8] text-sm mt-0.5">รหัสซองที่รอตรวจสอบจากผู้ใช้</p>
         </div>
         <button onClick={load} className="glass-tab px-4 py-2 text-sm text-[#94A3B8] hover:text-white">
           รีเฟรช
@@ -72,9 +72,9 @@ export default function AdminAngpaoPage() {
       </div>
 
       {loading ? (
-        <div className="glass p-8 text-center text-[#475569] text-sm animate-pulse">กำลังโหลด...</div>
+        <div className="glass p-8 text-center text-[#94A3B8] text-sm animate-pulse">กำลังโหลด...</div>
       ) : pending.length === 0 && processed.length === 0 ? (
-        <div className="glass p-8 text-center text-[#475569] text-sm">ยังไม่มีซองอั้งเปา</div>
+        <div className="glass p-8 text-center text-[#94A3B8] text-sm">ยังไม่มีซองอั้งเปา</div>
       ) : (
         <>
           {/* Pending */}
@@ -90,11 +90,11 @@ export default function AdminAngpaoPage() {
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                       <div className="space-y-1">
                         <p className="text-white font-semibold">{tx.username}</p>
-                        <p className="text-[#475569] text-xs">{tx.email}</p>
-                        <p className="text-xs text-[#334155]">{new Date(tx.created_at).toLocaleString('th-TH')}</p>
+                        <p className="text-[#94A3B8] text-xs">{tx.email}</p>
+                        <p className="text-xs text-[#94A3B8]">{new Date(tx.created_at).toLocaleString('th-TH')}</p>
                       </div>
                       <div className="space-y-1 text-right">
-                        <p className="text-xs text-[#475569] uppercase tracking-wider">รหัสซอง</p>
+                        <p className="text-xs text-[#94A3B8] uppercase tracking-wider">รหัสซอง</p>
                         <p className="font-mono text-sm text-amber-400 break-all">{code}</p>
                         <a
                           href={`https://gift.truemoney.com/campaign/?v=${code}`}
@@ -108,7 +108,7 @@ export default function AdminAngpaoPage() {
 
                     <div className="flex items-center gap-3 flex-wrap border-t border-amber-500/10 pt-4">
                       <div className="flex items-center gap-2">
-                        <label className="text-xs text-[#475569]">มูลค่า (฿)</label>
+                        <label className="text-xs text-[#94A3B8]">มูลค่า (฿)</label>
                         <input
                           type="number"
                           min={1} max={5000}
@@ -148,11 +148,11 @@ export default function AdminAngpaoPage() {
           {/* Processed history */}
           {processed.length > 0 && (
             <div className="space-y-3">
-              <h2 className="text-sm font-semibold text-[#475569]">ประวัติที่ดำเนินการแล้ว</h2>
+              <h2 className="text-sm font-semibold text-[#94A3B8]">ประวัติที่ดำเนินการแล้ว</h2>
               <div className="glass overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-[rgba(139,92,246,0.1)] text-[#475569] text-xs uppercase tracking-wider">
+                    <tr className="border-b border-[rgba(139,92,246,0.1)] text-[#94A3B8] text-xs uppercase tracking-wider">
                       <th className="text-left px-4 py-3">ผู้ใช้</th>
                       <th className="text-left px-4 py-3">รหัสซอง</th>
                       <th className="text-left px-4 py-3">มูลค่า</th>
@@ -173,7 +173,7 @@ export default function AdminAngpaoPage() {
                             {tx.tx_status === 'completed' ? 'อนุมัติแล้ว' : 'ปฏิเสธ'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[#475569] text-xs">{new Date(tx.created_at).toLocaleDateString('th-TH')}</td>
+                        <td className="px-4 py-3 text-[#94A3B8] text-xs">{new Date(tx.created_at).toLocaleDateString('th-TH')}</td>
                       </tr>
                     ))}
                   </tbody>

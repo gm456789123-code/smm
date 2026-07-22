@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { BsArrowRepeat, BsExclamationTriangle, BsCheckCircle } from 'react-icons/bs';
@@ -76,7 +76,7 @@ export default function AdminOrdersPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">จัดการออเดอร์</h1>
-          <p className="text-[#475569] text-sm mt-0.5">
+          <p className="text-[#94A3B8] text-sm mt-0.5">
             {orders.length} รายการ · รายได้รวม ฿{total.toLocaleString()}
             {failedCount > 0 && (
               <span className="ml-2 text-red-400 font-medium">· {failedCount} รายการ API Error</span>
@@ -108,7 +108,7 @@ export default function AdminOrdersPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-[#475569] uppercase tracking-widest border-b border-[rgba(139,92,246,0.10)]">
+              <tr className="text-left text-xs text-[#94A3B8] uppercase tracking-widest border-b border-[rgba(139,92,246,0.10)]">
                 <th className="pb-3 pr-4">ID</th>
                 <th className="pb-3 pr-4">User</th>
                 <th className="pb-3 pr-4">ประเภท</th>
@@ -121,15 +121,15 @@ export default function AdminOrdersPage() {
             </thead>
             <tbody className="divide-y divide-[rgba(139,92,246,0.05)]">
               {loading ? (
-                <tr><td colSpan={8} className="py-10 text-center text-[#475569] animate-pulse">กำลังโหลด...</td></tr>
+                <tr><td colSpan={8} className="py-10 text-center text-[#94A3B8] animate-pulse">กำลังโหลด...</td></tr>
               ) : orders.length === 0 ? (
-                <tr><td colSpan={8} className="py-10 text-center text-[#475569]">ยังไม่มีออเดอร์</td></tr>
+                <tr><td colSpan={8} className="py-10 text-center text-[#94A3B8]">ยังไม่มีออเดอร์</td></tr>
               ) : orders.map((o) => (
                 <tr key={o.id} className={[
                   'hover:bg-[rgba(139,92,246,0.04)] transition-colors',
                   o.api_failed ? 'bg-[rgba(239,68,68,0.03)]' : '',
                 ].join(' ')}>
-                  <td className="py-3 pr-4 font-mono text-xs text-[#475569]">{o.id}</td>
+                  <td className="py-3 pr-4 font-mono text-xs text-[#94A3B8]">{o.id}</td>
                   <td className="py-3 pr-4 text-[#a78bfa] font-medium">{o.username}</td>
                   <td className="py-3 pr-4">
                     <span className="text-xs px-2 py-0.5 rounded-full bg-[rgba(139,92,246,0.1)] text-[#a78bfa]">{o.tx_type}</span>
@@ -145,18 +145,18 @@ export default function AdminOrdersPage() {
                             {o.provider ?? 'unknown'}
                           </span>
                           {o.service_id && (
-                            <span className="text-[10px] text-[#475569]">svc #{o.service_id} · qty {o.qty?.toLocaleString()}</span>
+                            <span className="text-[10px] text-[#94A3B8]">svc #{o.service_id} · qty {o.qty?.toLocaleString()}</span>
                           )}
                         </div>
                         <p className="text-xs text-red-400/80 truncate" title={o.api_error ?? ''}>
                           {o.api_error ?? 'API error'}
                         </p>
                         {o.link_url && (
-                          <p className="text-[10px] text-[#334155] truncate">{o.link_url}</p>
+                          <p className="text-[10px] text-[#94A3B8] truncate">{o.link_url}</p>
                         )}
                       </div>
                     ) : (
-                      <span className="text-xs text-[#475569] truncate block">{o.ref ?? o.note ?? '—'}</span>
+                      <span className="text-xs text-[#94A3B8] truncate block">{o.ref ?? o.note ?? '—'}</span>
                     )}
                   </td>
 
@@ -168,15 +168,15 @@ export default function AdminOrdersPage() {
                         API Error
                       </span>
                     ) : (
-                      <span className={`text-xs px-2 py-0.5 rounded-full border ${STATUS_STYLE[o.tx_status] ?? 'bg-[rgba(71,85,105,0.2)] text-[#475569] border-transparent'}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full border ${STATUS_STYLE[o.tx_status] ?? 'bg-[rgba(71,85,105,0.2)] text-[#94A3B8] border-transparent'}`}>
                         {o.tx_status}
                       </span>
                     )}
                   </td>
 
-                  <td className="py-3 pr-4 text-xs text-[#475569]">
+                  <td className="py-3 pr-4 text-xs text-[#94A3B8]">
                     {new Date(o.created_at).toLocaleDateString('th-TH')}<br />
-                    <span className="text-[10px] text-[#334155]">
+                    <span className="text-[10px] text-[#94A3B8]">
                       {new Date(o.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </td>
@@ -198,7 +198,7 @@ export default function AdminOrdersPage() {
                         {retrying === o.id ? 'กำลังส่ง...' : 'Retry'}
                       </button>
                     ) : (
-                      <span className="text-[#334155]">—</span>
+                      <span className="text-[#94A3B8]">—</span>
                     )}
                   </td>
                 </tr>

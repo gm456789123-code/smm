@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { BsArrowClockwise, BsPlusCircle, BsDashCircle } from 'react-icons/bs';
@@ -94,7 +94,7 @@ export default function AdminUsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[10px] text-[#475569] uppercase tracking-widest border-b border-[rgba(139,92,246,0.10)]">
+                <tr className="text-left text-[10px] text-[#94A3B8] uppercase tracking-widest border-b border-[rgba(139,92,246,0.10)]">
                   <th className="pb-3 pr-4">ID</th>
                   <th className="pb-3 pr-4">Username</th>
                   <th className="pb-3 pr-4">Email</th>
@@ -108,10 +108,10 @@ export default function AdminUsersPage() {
               </thead>
               <tbody className="divide-y divide-[rgba(139,92,246,0.05)]">
                 {users.length === 0 ? (
-                  <tr><td colSpan={9} className="py-10 text-center text-[#475569]">ยังไม่มีผู้ใช้</td></tr>
+                  <tr><td colSpan={9} className="py-10 text-center text-[#94A3B8]">ยังไม่มีผู้ใช้</td></tr>
                 ) : users.map((u) => (
                   <tr key={u.id} className="hover:bg-[rgba(139,92,246,0.04)] transition-colors">
-                    <td className="py-3 pr-4 text-[#475569] font-mono text-xs">{u.id}</td>
+                    <td className="py-3 pr-4 text-[#94A3B8] font-mono text-xs">{u.id}</td>
                     <td className="py-3 pr-4 font-semibold text-[#F1F5F9]">{u.username}</td>
                     <td className="py-3 pr-4 text-[#94A3B8] text-xs">{u.email}</td>
                     <td className="py-3 pr-4 text-[#94A3B8] text-xs">{u.phone ?? '—'}</td>
@@ -126,7 +126,7 @@ export default function AdminUsersPage() {
                         {u.role}
                       </span>
                     </td>
-                    <td className="py-3 pr-4 text-[#64748B] text-xs">
+                    <td className="py-3 pr-4 text-[#94A3B8] text-xs">
                       {new Date(u.created_at).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: '2-digit' })}
                     </td>
                     <td className="py-3">

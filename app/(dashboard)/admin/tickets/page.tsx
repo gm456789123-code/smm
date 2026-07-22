@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { BsArrowClockwise, BsCheckCircle, BsChatSquareText, BsXCircle } from 'react-icons/bs';
@@ -116,7 +116,7 @@ export default function AdminTicketsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold text-white text-sm">{t.username}</span>
-                          <span className="text-xs text-[#64748B]">#{t.id}</span>
+                          <span className="text-xs text-[#94A3B8]">#{t.id}</span>
                           <span className={`text-[10px] px-2 py-0.5 rounded-full border ${st.cls}`}>{st.label}</span>
                           {t.order_ref && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-[rgba(6,182,212,0.1)] text-cyan-400 border border-cyan-500/20">
@@ -131,13 +131,13 @@ export default function AdminTicketsPage() {
                         )}
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-xs text-[#64748B]">
+                        <p className="text-xs text-[#94A3B8]">
                           {new Date(t.created_at).toLocaleDateString('th-TH', {
                             day: '2-digit', month: 'short', year: '2-digit',
                             hour: '2-digit', minute: '2-digit',
                           })}
                         </p>
-                        <p className="text-[10px] text-[#475569] mt-0.5">{isOpen ? '▲ ปิด' : '▼ ตอบ'}</p>
+                        <p className="text-[10px] text-[#94A3B8] mt-0.5">{isOpen ? '▲ ปิด' : '▼ ตอบ'}</p>
                       </div>
                     </div>
                   </button>
@@ -147,11 +147,11 @@ export default function AdminTicketsPage() {
                     <div className="px-4 pb-4 bg-[rgba(139,92,246,0.03)] border-t border-[rgba(139,92,246,0.08)]">
                       <div className="space-y-3 pt-3">
                         <div>
-                          <label className="text-[10px] text-[#475569] uppercase tracking-widest block mb-1.5">รายละเอียดเต็ม</label>
+                          <label className="text-[10px] text-[#94A3B8] uppercase tracking-widest block mb-1.5">รายละเอียดเต็ม</label>
                           <p className="text-sm text-[#CBD5E1] whitespace-pre-wrap glass p-3 rounded-xl">{t.detail}</p>
                         </div>
                         <div>
-                          <label className="text-[10px] text-[#475569] uppercase tracking-widest block mb-1.5">สถานะ</label>
+                          <label className="text-[10px] text-[#94A3B8] uppercase tracking-widest block mb-1.5">สถานะ</label>
                           <select
                             value={form.status}
                             onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
@@ -163,7 +163,7 @@ export default function AdminTicketsPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="text-[10px] text-[#475569] uppercase tracking-widest block mb-1.5">หมายเหตุ Admin</label>
+                          <label className="text-[10px] text-[#94A3B8] uppercase tracking-widest block mb-1.5">หมายเหตุ Admin</label>
                           <textarea
                             value={form.note}
                             onChange={e => setForm(f => ({ ...f, note: e.target.value }))}

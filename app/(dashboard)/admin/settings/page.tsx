@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -166,7 +166,7 @@ export default function AdminSettingsPage() {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={value} alt="preview" className="h-8 w-8 object-contain rounded"
                       onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    <span className="text-xs text-[#64748B] truncate">{value}</span>
+                    <span className="text-xs text-[#94A3B8] truncate">{value}</span>
                   </div>
                 )}
               </div>
@@ -187,7 +187,7 @@ export default function AdminSettingsPage() {
       <div className="glass p-6 space-y-4">
         <div>
           <h2 className="text-base font-semibold text-white">ช่องทางติดต่อ (ลอยมุมขวาล่าง)</h2>
-          <p className="text-xs text-[#64748B] mt-0.5">เปิด/ปิดและตั้งค่า URL แต่ละช่องทาง</p>
+          <p className="text-xs text-[#94A3B8] mt-0.5">เปิด/ปิดและตั้งค่า URL แต่ละช่องทาง</p>
         </div>
 
         {SOCIAL_PLATFORMS.map(({ key, label, color, icon }) => {

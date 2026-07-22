@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { BsArrowClockwise, BsCheckCircle, BsClockHistory, BsXCircle } from 'react-icons/bs';
@@ -57,15 +57,15 @@ export default function AdminTopupsPage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div className="glass p-4">
-          <p className="text-[10px] text-[#475569] uppercase tracking-widest">รายได้รวม (สำเร็จ)</p>
+          <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">รายได้รวม (สำเร็จ)</p>
           <p className="text-xl font-bold text-emerald-400 mt-1">฿{totalCompleted.toLocaleString('th-TH', { minimumFractionDigits: 2 })}</p>
         </div>
         <div className="glass p-4">
-          <p className="text-[10px] text-[#475569] uppercase tracking-widest">รอดำเนินการ</p>
+          <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">รอดำเนินการ</p>
           <p className="text-xl font-bold text-amber-400 mt-1">{pendingCount} รายการ</p>
         </div>
         <div className="glass p-4">
-          <p className="text-[10px] text-[#475569] uppercase tracking-widest">ทั้งหมด</p>
+          <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">ทั้งหมด</p>
           <p className="text-xl font-bold text-[#8B5CF6] mt-1">{rows.length} รายการ</p>
         </div>
       </div>
@@ -94,7 +94,7 @@ export default function AdminTopupsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-[10px] text-[#475569] uppercase tracking-widest border-b border-[rgba(139,92,246,0.10)]">
+                <tr className="text-left text-[10px] text-[#94A3B8] uppercase tracking-widest border-b border-[rgba(139,92,246,0.10)]">
                   <th className="pb-3 px-4">ID</th>
                   <th className="pb-3 pr-4">ผู้ใช้</th>
                   <th className="pb-3 pr-4">จำนวน</th>
@@ -109,7 +109,7 @@ export default function AdminTopupsPage() {
                   const st = STATUS[row.tx_status] ?? STATUS['pending'];
                   return (
                     <tr key={row.id} className="hover:bg-[rgba(139,92,246,0.04)] transition-colors">
-                      <td className="py-3 px-4 text-[#475569] font-mono text-xs">{row.id}</td>
+                      <td className="py-3 px-4 text-[#94A3B8] font-mono text-xs">{row.id}</td>
                       <td className="py-3 pr-4 font-semibold text-[#F1F5F9]">{row.username}</td>
                       <td className="py-3 pr-4 font-mono font-bold text-emerald-400">฿{Number(row.amount).toFixed(2)}</td>
                       <td className="py-3 pr-4 font-mono text-xs text-[#94A3B8]">{row.ref ?? '—'}</td>
@@ -121,10 +121,10 @@ export default function AdminTopupsPage() {
                           {st.label}
                         </span>
                       </td>
-                      <td className="py-3 pr-4 text-xs text-[#64748B] max-w-[260px] truncate" title={row.note ?? ''}>
+                      <td className="py-3 pr-4 text-xs text-[#94A3B8] max-w-[260px] truncate" title={row.note ?? ''}>
                         {row.note ?? '—'}
                       </td>
-                      <td className="py-3 pr-4 text-xs text-[#64748B] whitespace-nowrap">
+                      <td className="py-3 pr-4 text-xs text-[#94A3B8] whitespace-nowrap">
                         {new Date(row.created_at).toLocaleDateString('th-TH', {
                           day: '2-digit', month: 'short', year: '2-digit',
                           hour: '2-digit', minute: '2-digit',
