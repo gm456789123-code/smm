@@ -33,13 +33,13 @@ export async function GET(req: NextRequest) {
 
     // Fetch all metadata in one query
     const names = files.filter(f => IMAGE_EXTS.has(extname(f).toLowerCase()));
-    const [metaRows] = await db.query<{ filename: string; alt_text: string; title: string; caption: string; description: string }[] & { [key: number]: never }>(
+    const [metaRows] = await db.query<RowDataPacket[]>(
       names.length
         ? `SELECT filename, alt_text, title, caption, description FROM media_meta WHERE filename IN (${names.map(() => '?').join(',')})`
         : 'SELECT filename, alt_text, title, caption, description FROM media_meta WHERE 1=0',
       names
     );
-    const metaMap = Object.fromEntries((metaRows as { filename: string; alt_text: string; title: string; caption: string; description: string }[]).map(r => [r.filename, r]));
+    const metaMap = Object.fromEntries(metaRows.map(r => [r.filename as string, r]));
 
     const items = await Promise.all(
       names.map(async f => {
