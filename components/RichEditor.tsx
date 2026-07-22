@@ -17,6 +17,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import { Highlight } from '@tiptap/extension-highlight';
 import { CharacterCount } from '@tiptap/extension-character-count';
 import { Youtube } from '@tiptap/extension-youtube';
+import { Typography } from '@tiptap/extension-typography';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   BsTypeBold, BsTypeItalic, BsTypeUnderline, BsTypeStrikethrough,
@@ -447,6 +448,7 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
       Highlight.configure({ multicolor: true }),
       CharacterCount,
       Youtube.configure({ width: 640, height: 360, nocookie: true }),
+      Typography,
     ],
     content: value,
     onUpdate({ editor }) { onChange(editor.getHTML()); },
