@@ -673,13 +673,14 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
             {/* Context menu */}
             {ctxMenu && (
               <div ref={ctxRef}
-                className="absolute z-50 min-w-[200px] glass border border-[rgba(139,92,246,0.3)] rounded-xl py-1.5 shadow-2xl overflow-hidden"
+                className="absolute z-50 min-w-[200px] border border-[rgba(139,92,246,0.4)] rounded-xl py-1.5 shadow-2xl overflow-hidden"
+                style={{ background: 'rgba(13,15,26,0.98)', backdropFilter: 'blur(20px)' }}
                 style={{ top: ctxMenu.y, left: Math.min(ctxMenu.x, 500) }}
                 onMouseDown={e => e.stopPropagation()}>
 
                 {/* Formatting */}
                 <div className="px-2 pb-1 pt-0.5">
-                  <p className="text-[9px] text-[#94A3B8] uppercase tracking-widest px-2 pb-1">จัดรูปแบบ</p>
+                  <p className="text-[9px] text-[#a78bfa] uppercase tracking-widest px-2 pb-1">จัดรูปแบบ</p>
                   <div className="grid grid-cols-2 gap-0.5">
                     {[
                       { label: 'Bold',        icon: 'B',  action: () => editor.chain().focus().toggleBold().run(),        active: editor.isActive('bold') },
@@ -690,7 +691,7 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
                       <button key={item.label} type="button"
                         onMouseDown={e => { e.preventDefault(); item.action(); setCtxMenu(null); }}
                         className={['flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-all',
-                          item.active ? 'bg-[rgba(139,92,246,0.25)] text-white' : 'text-[#94A3B8] hover:bg-[rgba(139,92,246,0.12)] hover:text-white'
+                          item.active ? 'bg-[rgba(139,92,246,0.35)] text-white' : 'text-[#e2e8f0] hover:bg-[rgba(139,92,246,0.2)] hover:text-white'
                         ].join(' ')}>
                         <span className="font-bold w-4 text-center">{item.icon}</span> {item.label}
                       </button>
@@ -702,13 +703,13 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
 
                 {/* Headings */}
                 <div className="px-2 pb-1">
-                  <p className="text-[9px] text-[#94A3B8] uppercase tracking-widest px-2 pb-1">หัวข้อ</p>
+                  <p className="text-[9px] text-[#a78bfa] uppercase tracking-widest px-2 pb-1">หัวข้อ</p>
                   <div className="grid grid-cols-3 gap-0.5">
                     {([1,2,3] as const).map(level => (
                       <button key={level} type="button"
                         onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleHeading({ level }).run(); setCtxMenu(null); }}
                         className={['px-2 py-1.5 rounded-lg text-xs font-bold transition-all',
-                          editor.isActive('heading', { level }) ? 'bg-[rgba(139,92,246,0.25)] text-white' : 'text-[#94A3B8] hover:bg-[rgba(139,92,246,0.12)] hover:text-white'
+                          editor.isActive('heading', { level }) ? 'bg-[rgba(139,92,246,0.35)] text-white' : 'text-[#e2e8f0] hover:bg-[rgba(139,92,246,0.2)] hover:text-white'
                         ].join(' ')}>
                         H{level}
                       </button>
@@ -720,7 +721,7 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
 
                 {/* Insert */}
                 <div className="px-2 pb-1">
-                  <p className="text-[9px] text-[#94A3B8] uppercase tracking-widest px-2 pb-1">แทรก</p>
+                  <p className="text-[9px] text-[#a78bfa] uppercase tracking-widest px-2 pb-1">แทรก</p>
                   {[
                     { label: 'แทรกลิงก์',  icon: '🔗', action: () => { setLinkModal(true); setCtxMenu(null); } },
                     { label: 'แทรกรูปภาพ', icon: '🖼', action: () => { setImgModal(true);  setCtxMenu(null); } },
@@ -729,7 +730,7 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
                   ].map(item => (
                     <button key={item.label} type="button"
                       onMouseDown={e => { e.preventDefault(); item.action(); }}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-[#94A3B8] hover:bg-[rgba(139,92,246,0.12)] hover:text-white transition-all">
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-[#e2e8f0] hover:bg-[rgba(139,92,246,0.2)] hover:text-white transition-all">
                       <span className="w-4 text-center">{item.icon}</span> {item.label}
                     </button>
                   ))}
@@ -746,9 +747,9 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
                   ].map(item => (
                     <button key={item.label} type="button"
                       onMouseDown={e => { e.preventDefault(); item.action(); }}
-                      className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs text-[#94A3B8] hover:bg-[rgba(139,92,246,0.12)] hover:text-white transition-all">
+                      className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs text-[#e2e8f0] hover:bg-[rgba(139,92,246,0.2)] hover:text-white transition-all">
                       <span>{item.label}</span>
-                      <span className="text-[#475569] font-mono">{item.shortcut}</span>
+                      <span className="text-[#94A3B8] font-mono">{item.shortcut}</span>
                     </button>
                   ))}
                 </div>
