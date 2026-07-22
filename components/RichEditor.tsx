@@ -674,8 +674,7 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
             {ctxMenu && (
               <div ref={ctxRef}
                 className="absolute z-50 min-w-[200px] border border-[rgba(139,92,246,0.4)] rounded-xl py-1.5 shadow-2xl overflow-hidden"
-                style={{ background: 'rgba(13,15,26,0.98)', backdropFilter: 'blur(20px)' }}
-                style={{ top: ctxMenu.y, left: Math.min(ctxMenu.x, 500) }}
+                style={{ background: 'rgba(13,15,26,0.98)', backdropFilter: 'blur(20px)', top: ctxMenu.y, left: Math.min(ctxMenu.x, 500) }}
                 onMouseDown={e => e.stopPropagation()}>
 
                 {/* Formatting */}

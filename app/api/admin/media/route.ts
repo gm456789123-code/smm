@@ -3,7 +3,7 @@ import { getRequestUser } from '@/lib/auth';
 import { readdir, stat, unlink } from 'fs/promises';
 import { join, extname } from 'path';
 import db from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+import { RowDataPacket } from 'mysql2/promise';
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.avif']);
