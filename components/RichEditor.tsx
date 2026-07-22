@@ -483,6 +483,25 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
   const words = editor?.storage.characterCount.words() ?? 0;
   const chars = editor?.storage.characterCount.characters() ?? 0;
 
+  // ---- Context menu ----
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
+  const ctxRef = useRef<HTMLDivElement>(null);
+
+  function openCtxMenu(e: React.MouseEvent) {
+    if (htmlMode) return;
+    e.preventDefault();
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setCtxMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }
+
+  useEffect(() => {
+    if (!ctxMenu) return;
+    const close = () => setCtxMenu(null);
+    window.addEventListener('mousedown', close);
+    window.addEventListener('keydown', (e) => e.key === 'Escape' && close());
+    return () => window.removeEventListener('mousedown', close);
+  }, [ctxMenu]);
+
   if (!editor) return null;
 
   const canUndo = editor.can().chain().focus().undo().run();
@@ -646,7 +665,94 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
           </>
         ) : (
           /* Visual editor */
-          <EditorContent editor={editor} />
+          <div className="relative" onContextMenu={openCtxMenu}>
+            <EditorContent editor={editor} />
+
+            {/* Context menu */}
+            {ctxMenu && (
+              <div ref={ctxRef}
+                className="absolute z-50 min-w-[200px] glass border border-[rgba(139,92,246,0.3)] rounded-xl py-1.5 shadow-2xl overflow-hidden"
+                style={{ top: ctxMenu.y, left: Math.min(ctxMenu.x, 500) }}
+                onMouseDown={e => e.stopPropagation()}>
+
+                {/* Formatting */}
+                <div className="px-2 pb-1 pt-0.5">
+                  <p className="text-[9px] text-[#94A3B8] uppercase tracking-widest px-2 pb-1">จัดรูปแบบ</p>
+                  <div className="grid grid-cols-2 gap-0.5">
+                    {[
+                      { label: 'Bold',        icon: 'B',  action: () => editor.chain().focus().toggleBold().run(),        active: editor.isActive('bold') },
+                      { label: 'Italic',      icon: 'I',  action: () => editor.chain().focus().toggleItalic().run(),      active: editor.isActive('italic') },
+                      { label: 'Underline',   icon: 'U',  action: () => editor.chain().focus().toggleUnderline().run(),   active: editor.isActive('underline') },
+                      { label: 'Strikethrough', icon: 'S', action: () => editor.chain().focus().toggleStrike().run(),    active: editor.isActive('strike') },
+                    ].map(item => (
+                      <button key={item.label} type="button"
+                        onMouseDown={e => { e.preventDefault(); item.action(); setCtxMenu(null); }}
+                        className={['flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-all',
+                          item.active ? 'bg-[rgba(139,92,246,0.25)] text-white' : 'text-[#94A3B8] hover:bg-[rgba(139,92,246,0.12)] hover:text-white'
+                        ].join(' ')}>
+                        <span className="font-bold w-4 text-center">{item.icon}</span> {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="h-px bg-[rgba(139,92,246,0.15)] mx-2 my-1" />
+
+                {/* Headings */}
+                <div className="px-2 pb-1">
+                  <p className="text-[9px] text-[#94A3B8] uppercase tracking-widest px-2 pb-1">หัวข้อ</p>
+                  <div className="grid grid-cols-3 gap-0.5">
+                    {([1,2,3] as const).map(level => (
+                      <button key={level} type="button"
+                        onMouseDown={e => { e.preventDefault(); editor.chain().focus().toggleHeading({ level }).run(); setCtxMenu(null); }}
+                        className={['px-2 py-1.5 rounded-lg text-xs font-bold transition-all',
+                          editor.isActive('heading', { level }) ? 'bg-[rgba(139,92,246,0.25)] text-white' : 'text-[#94A3B8] hover:bg-[rgba(139,92,246,0.12)] hover:text-white'
+                        ].join(' ')}>
+                        H{level}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="h-px bg-[rgba(139,92,246,0.15)] mx-2 my-1" />
+
+                {/* Insert */}
+                <div className="px-2 pb-1">
+                  <p className="text-[9px] text-[#94A3B8] uppercase tracking-widest px-2 pb-1">แทรก</p>
+                  {[
+                    { label: 'แทรกลิงก์',  icon: '🔗', action: () => { setLinkModal(true); setCtxMenu(null); } },
+                    { label: 'แทรกรูปภาพ', icon: '🖼', action: () => { setImgModal(true);  setCtxMenu(null); } },
+                    { label: 'แทรกตาราง',  icon: '⊞', action: () => { editor.chain().focus().insertTable({ rows:3, cols:3, withHeaderRow:true }).run(); setCtxMenu(null); } },
+                    { label: 'เส้นคั่น',   icon: '—',  action: () => { editor.chain().focus().setHorizontalRule().run(); setCtxMenu(null); } },
+                  ].map(item => (
+                    <button key={item.label} type="button"
+                      onMouseDown={e => { e.preventDefault(); item.action(); }}
+                      className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-[#94A3B8] hover:bg-[rgba(139,92,246,0.12)] hover:text-white transition-all">
+                      <span className="w-4 text-center">{item.icon}</span> {item.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="h-px bg-[rgba(139,92,246,0.15)] mx-2 my-1" />
+
+                {/* Native copy/cut/paste */}
+                <div className="px-2 pb-1">
+                  {[
+                    { label: 'Copy',  shortcut: 'Ctrl+C', action: () => { document.execCommand('copy');  setCtxMenu(null); } },
+                    { label: 'Cut',   shortcut: 'Ctrl+X', action: () => { document.execCommand('cut');   setCtxMenu(null); } },
+                    { label: 'Paste', shortcut: 'Ctrl+V', action: () => { editor.commands.focus(); document.execCommand('paste'); setCtxMenu(null); } },
+                  ].map(item => (
+                    <button key={item.label} type="button"
+                      onMouseDown={e => { e.preventDefault(); item.action(); }}
+                      className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs text-[#94A3B8] hover:bg-[rgba(139,92,246,0.12)] hover:text-white transition-all">
+                      <span>{item.label}</span>
+                      <span className="text-[#475569] font-mono">{item.shortcut}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Footer */}
