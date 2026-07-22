@@ -488,13 +488,34 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
   // ---- Context menu ----
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
   const ctxRef = useRef<HTMLDivElement>(null);
+  const ctxClamped = useRef(false);
 
   function openCtxMenu(e: React.MouseEvent) {
     if (htmlMode) return;
     e.preventDefault();
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    ctxClamped.current = false;
     setCtxMenu({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   }
+
+  // Clamp menu so it never overflows the editor container
+  useEffect(() => {
+    if (!ctxMenu || ctxClamped.current || !ctxRef.current) return;
+    const menu = ctxRef.current;
+    const parent = menu.parentElement;
+    if (!parent) return;
+    const pw = parent.clientWidth;
+    const ph = parent.clientHeight;
+    const mw = menu.offsetWidth;
+    const mh = menu.offsetHeight;
+    let { x, y } = ctxMenu;
+    if (x + mw > pw - 4) x = pw - mw - 4;
+    if (y + mh > ph - 4) y = ph - mh - 4;
+    if (x < 4) x = 4;
+    if (y < 4) y = 4;
+    ctxClamped.current = true;
+    setCtxMenu({ x, y });
+  }, [ctxMenu]);
 
   useEffect(() => {
     if (!ctxMenu) return;
@@ -674,7 +695,7 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
             {ctxMenu && (
               <div ref={ctxRef}
                 className="absolute z-50 min-w-[200px] border border-[rgba(139,92,246,0.4)] rounded-xl py-1.5 shadow-2xl overflow-hidden"
-                style={{ background: 'rgba(13,15,26,0.98)', backdropFilter: 'blur(20px)', top: ctxMenu.y, left: Math.min(ctxMenu.x, 500) }}
+                style={{ background: 'rgba(13,15,26,0.98)', backdropFilter: 'blur(20px)', top: ctxMenu.y, left: ctxMenu.x }}
                 onMouseDown={e => e.stopPropagation()}>
 
                 {/* Formatting */}
@@ -722,10 +743,11 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
                 <div className="px-2 pb-1">
                   <p className="text-[9px] text-[#a78bfa] uppercase tracking-widest px-2 pb-1">แทรก</p>
                   {[
-                    { label: 'แทรกลิงก์',  icon: '🔗', action: () => { setLinkModal(true); setCtxMenu(null); } },
-                    { label: 'แทรกรูปภาพ', icon: '🖼', action: () => { setImgModal(true);  setCtxMenu(null); } },
-                    { label: 'แทรกตาราง',  icon: '⊞', action: () => { editor.chain().focus().insertTable({ rows:3, cols:3, withHeaderRow:true }).run(); setCtxMenu(null); } },
-                    { label: 'เส้นคั่น',   icon: '—',  action: () => { editor.chain().focus().setHorizontalRule().run(); setCtxMenu(null); } },
+                    { label: 'แทรกลิงก์',        icon: '🔗', action: () => { setLinkModal(true); setCtxMenu(null); } },
+                    { label: 'แทรกรูปภาพ',        icon: '🖼', action: () => { setImgModal(true);  setCtxMenu(null); } },
+                    { label: 'ข้อความอ้างอิง',    icon: '❝',  action: () => { editor.chain().focus().toggleBlockquote().run(); setCtxMenu(null); } },
+                    { label: 'แทรกตาราง',         icon: '⊞', action: () => { editor.chain().focus().insertTable({ rows:3, cols:3, withHeaderRow:true }).run(); setCtxMenu(null); } },
+                    { label: 'เส้นคั่น',          icon: '—',  action: () => { editor.chain().focus().setHorizontalRule().run(); setCtxMenu(null); } },
                   ].map(item => (
                     <button key={item.label} type="button"
                       onMouseDown={e => { e.preventDefault(); item.action(); }}
