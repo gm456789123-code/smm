@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { BsShieldFill } from 'react-icons/bs';
 import { useEffect, useState } from 'react';
@@ -97,7 +96,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
   const { t } = useLocale();
   const [open, setOpen]       = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string>('');
+  const logoUrl = '/logo.png';
   const isCMS = path.startsWith('/admin');
 
   useEffect(() => {
@@ -105,12 +104,6 @@ export default function Sidebar({ role, username }: SidebarProps) {
       if (d && !d.error) setBalance(Number(d.balance));
     }).catch(() => null);
   }, [path]);
-
-  useEffect(() => {
-    fetch('/api/public/settings').then(r => r.json()).then(d => {
-      if (d?.logo_url) setLogoUrl(d.logo_url);
-    }).catch(() => null);
-  }, []);
 
   useEffect(() => { setOpen(false); }, [path]);
 
@@ -138,15 +131,8 @@ export default function Sidebar({ role, username }: SidebarProps) {
             <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        {logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={logoUrl} alt="logo" className="max-h-8 max-w-[140px] object-contain" onError={() => setLogoUrl('')} />
-        ) : (
-          <p className="font-[family-name:var(--font-jakarta)] text-xl font-extrabold tracking-tight">
-            <span className="text-[#8B5CF6] text-glow-indigo">AURA</span>
-            <span className="text-white"> SMM</span>
-          </p>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoUrl} alt="logo" className="max-h-8 max-w-[140px] object-contain" />
         {/* <div className="ml-auto">
           <LangSwitcher />
         </div> */}
@@ -176,12 +162,8 @@ export default function Sidebar({ role, username }: SidebarProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.4)]">
-                {logoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={logoUrl} alt="logo" className="w-full h-full object-cover" onError={() => setLogoUrl('')} />
-                ) : (
-                  <Image src="/icon.png" alt="AURA Panel" width={32} height={32} className="w-full h-full object-cover" priority />
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logoUrl} alt="AURA Panel" className="w-full h-full object-cover" />
               </div>
               <div>
                 <p className="font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">

@@ -11,9 +11,6 @@ backend/dist/
 .DS_Store
 Thumbs.db
 
-# Uploaded media (stored on server, not in git)
-public/uploads/
-
 # Exclude other markdown files except README.md
 *.md
 !README.md

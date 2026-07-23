@@ -20,13 +20,7 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
-  const [logoUrl, setLogoUrl] = useState('/icon.png');
-
-  useEffect(() => {
-    fetch('/api/public/settings').then(r => r.json()).then(d => {
-      if (d?.logo_url) setLogoUrl(d.logo_url);
-    }).catch(() => null);
-  }, []);
+  const logoUrl = '/logo.png';
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -67,7 +61,7 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
           <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
             <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-[0_0_16px_rgba(139,92,246,0.5)] group-hover:shadow-[0_0_24px_rgba(139,92,246,0.7)] transition-shadow">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={logoUrl} alt={brandName ?? 'AURA Panel'} className="w-full h-full object-cover" onError={() => setLogoUrl('/icon.png')} />
+              <img src={logoUrl} alt={brandName ?? 'AURA Panel'} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/icon.png'; }} />
             </div>
             <span className="hidden md:block font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
               <span className="text-gradient-animated">{first}</span>
