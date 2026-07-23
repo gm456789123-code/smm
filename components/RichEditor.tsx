@@ -24,9 +24,10 @@ import {
   BsListUl, BsListOl, BsBlockquoteLeft, BsCode, BsCodeSquare,
   BsLink45Deg, BsImage, BsTable, BsYoutube, BsTextLeft, BsTextCenter,
   BsTextRight, BsJustify, BsArrowCounterclockwise, BsArrowClockwise,
-  BsHighlighter, BsX, BsCheck, BsUpload, BsSlashCircle,
+  BsHighlighter, BsX, BsCheck, BsSlashCircle,
   BsCodeSlash, BsPencil,
 } from 'react-icons/bs';
+import MediaLibraryModal, { type MediaPickResult } from './MediaLibraryModal';
 
 // ---- HTML toolbar tags ----
 const HTML_TAGS = [
@@ -71,7 +72,7 @@ interface Props {
 // ---- Custom Image NodeView ----
 function ImageNodeView({ node, selected, updateAttributes, deleteNode }: NodeViewProps) {
   const [editing, setEditing] = useState(false);
-  const { src, alt, style } = node.attrs as { src: string; alt: string; style?: string };
+  const { src, alt, style, title } = node.attrs as { src: string; alt: string; style?: string; title?: string };
 
   function parseWidth(s?: string) {
     const m = (s ?? '').match(/width:\s*([^;]+)/);
@@ -104,7 +105,8 @@ function ImageNodeView({ node, selected, updateAttributes, deleteNode }: NodeVie
       {/* Selected ring */}
       <div className={selected ? 'ring-2 ring-[#a78bfa] ring-offset-2 ring-offset-transparent rounded-xl' : ''}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt} style={style ? Object.fromEntries(style.split(';').filter(Boolean).map(p => { const [k,v] = p.split(':'); return [k.trim().replace(/-([a-z])/g, (_,c) => c.toUpperCase()), v?.trim()]; })) : undefined}
+        <img src={src} alt={alt} title={title || undefined}
+          style={style ? Object.fromEntries(style.split(';').filter(Boolean).map(p => { const [k,v] = p.split(':'); return [k.trim().replace(/-([a-z])/g, (_,c) => c.toUpperCase()), v?.trim()]; })) : undefined}
           className="max-w-full rounded-xl block" draggable={false} />
       </div>
 
@@ -164,8 +166,29 @@ function ImageNodeView({ node, selected, updateAttributes, deleteNode }: NodeVie
   );
 }
 
-// ---- Custom Image extension with NodeView ----
+// ---- Custom Image extension with NodeView + style/title for SEO ----
 const EditableImage = TiptapImage.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      style: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('style'),
+        renderHTML: (attributes: Record<string, unknown>) => {
+          if (!attributes.style) return {};
+          return { style: attributes.style as string };
+        },
+      },
+      title: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('title'),
+        renderHTML: (attributes: Record<string, unknown>) => {
+          if (!attributes.title) return {};
+          return { title: attributes.title as string };
+        },
+      },
+    };
+  },
   addNodeView() {
     return ReactNodeViewRenderer(ImageNodeView);
   },
@@ -211,139 +234,6 @@ function LinkModal({ onConfirm, onClose, initial }: {
         <div className="flex gap-2">
           <button onClick={onClose} className="flex-1 py-2 rounded-xl text-sm text-white/60 border border-[rgba(255,255,255,0.1)] hover:text-white transition-colors">ยกเลิก</button>
           <button onClick={() => href && onConfirm(href, target, title)}
-            className="flex-1 py-2 rounded-xl text-sm font-semibold bg-[rgba(139,92,246,0.8)] hover:bg-[rgba(139,92,246,1)] text-white transition-colors flex items-center justify-center gap-1.5">
-            <BsCheck size={16} /> แทรก
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---- Image modal ----
-interface MediaItem { name: string; url: string; size: number; mtime: string }
-
-function ImageModal({ onConfirm, onClose }: {
-  onConfirm: (src: string, alt: string, width: string, align: string) => void;
-  onClose: () => void;
-}) {
-  const [tab,    setTab]    = useState<'upload'|'library'>('library');
-  const [src,    setSrc]    = useState('');
-  const [alt,    setAlt]    = useState('');
-  const [width,  setWidth]  = useState('100%');
-  const [align,  setAlign]  = useState('none');
-  const [uploading, setUploading] = useState(false);
-  const [media,  setMedia]  = useState<MediaItem[]>([]);
-  const [loadingMedia, setLoadingMedia] = useState(false);
-  const [picked, setPicked] = useState<string>('');
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (tab !== 'library') return;
-    setLoadingMedia(true);
-    fetch('/api/admin/media').then(r => r.json()).then(d => { setMedia(d); setLoadingMedia(false); });
-  }, [tab]);
-
-  async function uploadFile(file: File) {
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-      const d = await res.json();
-      if (d.url) { setSrc(d.url); setTab('upload'); }
-    } finally { setUploading(false); }
-  }
-
-  function pickFromLibrary(url: string) {
-    setPicked(url);
-    setSrc(url);
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="glass w-full max-w-lg rounded-2xl p-6 space-y-4 border border-[rgba(139,92,246,0.3)]">
-        <div className="flex items-center justify-between">
-          <h3 className="text-white font-semibold">แทรกรูปภาพ</h3>
-          <button onClick={onClose} className="text-white/50 hover:text-white"><BsX size={20} /></button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-1 bg-[rgba(255,255,255,0.04)] p-1 rounded-xl">
-          {(['library','upload'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={['flex-1 py-1.5 rounded-lg text-sm font-medium transition-all', tab === t ? 'bg-[rgba(139,92,246,0.3)] text-white' : 'text-white/50 hover:text-white'].join(' ')}>
-              {t === 'library' ? '🖼 คลังภาพ' : '⬆ อัปโหลด/URL'}
-            </button>
-          ))}
-        </div>
-
-        {/* Library tab */}
-        {tab === 'library' && (
-          <div className="space-y-3">
-            {loadingMedia ? (
-              <div className="grid grid-cols-4 gap-2">
-                {Array.from({length:8}).map((_,i) => <div key={i} className="aspect-square glass rounded-lg animate-pulse" />)}
-              </div>
-            ) : media.length === 0 ? (
-              <p className="text-center text-white/40 py-6 text-sm">ยังไม่มีภาพในคลัง — อัปโหลดก่อน</p>
-            ) : (
-              <div className="grid grid-cols-4 gap-2 max-h-56 overflow-y-auto pr-1">
-                {media.map(m => (
-                  <button key={m.name} onClick={() => pickFromLibrary(m.url)} type="button"
-                    className={['relative aspect-square rounded-lg overflow-hidden border-2 transition-all', picked === m.url ? 'border-[#a78bfa]' : 'border-transparent hover:border-[rgba(139,92,246,0.5)]'].join(' ')}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={m.url} alt={m.name} className="w-full h-full object-cover" />
-                    {picked === m.url && <div className="absolute inset-0 bg-[rgba(139,92,246,0.3)] flex items-center justify-center"><BsCheck size={20} className="text-white" /></div>}
-                  </button>
-                ))}
-              </div>
-            )}
-            {picked && <p className="text-xs text-[#a78bfa] truncate">เลือก: {picked}</p>}
-          </div>
-        )}
-
-        {/* Upload/URL tab */}
-        {tab === 'upload' && (
-          <div className="space-y-3">
-            <input ref={fileRef} type="file" accept="image/*" className="hidden"
-              onChange={e => e.target.files?.[0] && uploadFile(e.target.files[0])} />
-            <button onClick={() => fileRef.current?.click()} disabled={uploading}
-              className="w-full py-2.5 rounded-xl text-sm border border-dashed border-[rgba(139,92,246,0.4)] text-white/60 hover:text-white hover:border-[rgba(139,92,246,0.8)] transition-all flex items-center justify-center gap-2">
-              <BsUpload size={14} />{uploading ? 'กำลังอัปโหลด...' : 'อัปโหลดจากเครื่อง'}
-            </button>
-            <div className="relative flex items-center gap-2">
-              <div className="flex-1 h-px bg-[rgba(255,255,255,0.1)]" />
-              <span className="text-xs text-white/30">หรือวาง URL</span>
-              <div className="flex-1 h-px bg-[rgba(255,255,255,0.1)]" />
-            </div>
-            <input value={src} onChange={e => setSrc(e.target.value)}
-              placeholder="https://example.com/image.jpg"
-              className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)] rounded-xl px-3 py-2 text-sm text-white outline-none" />
-            {src && <img src={src} alt="" className="w-full max-h-28 object-contain rounded-lg bg-[rgba(255,255,255,0.04)]" />}
-          </div>
-        )}
-
-        {/* Common: alt + size + align */}
-        {(src || picked) && (
-          <div className="space-y-2 border-t border-[rgba(139,92,246,0.1)] pt-3">
-            <input value={alt} onChange={e => setAlt(e.target.value)} placeholder="Alt text (SEO) *"
-              className="w-full bg-[rgba(255,255,255,0.06)] border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)] rounded-xl px-3 py-2 text-sm text-white outline-none" />
-            <div className="grid grid-cols-2 gap-2">
-              <input value={width} onChange={e => setWidth(e.target.value)} placeholder="100% หรือ 600px"
-                className="bg-[rgba(255,255,255,0.06)] border border-[rgba(139,92,246,0.2)] rounded-xl px-3 py-2 text-sm text-white outline-none" />
-              <select value={align} onChange={e => setAlign(e.target.value)}
-                className="bg-[rgba(255,255,255,0.06)] border border-[rgba(139,92,246,0.2)] rounded-xl px-3 py-2 text-sm text-white outline-none">
-                <option value="none">ปกติ</option><option value="left">ซ้าย</option>
-                <option value="center">กลาง</option><option value="right">ขวา</option>
-              </select>
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 py-2 rounded-xl text-sm text-white/60 border border-[rgba(255,255,255,0.1)] hover:text-white transition-colors">ยกเลิก</button>
-          <button onClick={() => { const url = src || picked; url && onConfirm(url, alt, width, align); }}
             className="flex-1 py-2 rounded-xl text-sm font-semibold bg-[rgba(139,92,246,0.8)] hover:bg-[rgba(139,92,246,1)] text-white transition-colors flex items-center justify-center gap-1.5">
             <BsCheck size={16} /> แทรก
           </button>
@@ -465,15 +355,37 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
     setLinkModal(false);
   }, [editor]);
 
-  const insertImage = useCallback((src: string, alt: string, width: string, align: string) => {
+  const insertImage = useCallback((item: MediaPickResult) => {
     if (!editor) return;
+    const width = item.width || '100%';
+    const align = item.align || 'none';
     const style = [
       width ? `width:${width}` : '',
       align === 'center' ? 'display:block;margin:0 auto' : '',
       align === 'left'   ? 'float:left;margin-right:1em' : '',
       align === 'right'  ? 'float:right;margin-left:1em' : '',
     ].filter(Boolean).join(';');
-    editor.chain().focus().setImage({ src, alt, ...(style ? { style } : {}) }).run();
+
+    // Insert image with SEO attrs from media library (alt + title)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const attrs: any = {
+      src: item.url,
+      alt: item.alt || '',
+    };
+    if (item.title) attrs.title = item.title;
+    if (style) attrs.style = style;
+    editor.chain().focus().setImage(attrs).run();
+
+    // Optional caption as a muted paragraph under the image (WP-like)
+    if (item.caption?.trim()) {
+      const safe = item.caption.trim()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      editor.chain().focus()
+        .insertContent(`<p style="text-align:center;font-size:0.875em;opacity:0.7;margin-top:0.25em">${safe}</p>`)
+        .run();
+    }
     setImgModal(false);
   }, [editor]);
 
@@ -534,7 +446,14 @@ export default function RichEditor({ value, onChange, placeholder }: Props) {
     <>
       {linkModal  && <LinkModal  onConfirm={insertLink}   onClose={() => setLinkModal(false)}
         initial={editor.getAttributes('link') as { href: string; target: string; title: string } | undefined} />}
-      {imgModal   && <ImageModal onConfirm={insertImage}  onClose={() => setImgModal(false)} />}
+      {imgModal && (
+        <MediaLibraryModal
+          mode="insert"
+          title="เลือกภาพจากคลัง"
+          onSelect={insertImage}
+          onClose={() => setImgModal(false)}
+        />
+      )}
       {ytModal    && <YoutubeModal onConfirm={insertYoutube} onClose={() => setYtModal(false)} />}
 
       <div className="glass overflow-hidden border border-[rgba(139,92,246,0.15)] rounded-2xl">

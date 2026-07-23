@@ -180,7 +180,7 @@ export default async function LandingPage() {
             </h1>
 
             <p className="anim-fade-up anim-fade-up-1 text-base md:text-lg leading-loose max-w-lg text-white font-light">
-              SMM Panel จากทีมคนไทย เพิ่มยอดผู้ติดตาม ไลค์ วิว ทุกแพลตฟอร์ม ราคาถูกกว่าตลาด ระบบอัตโนมัติ 24/7 เริ่มต้นเพียง 100 บาท
+              SMM Panel จากทีมคนไทย เพิ่มยอดผู้ติดตาม ไลค์ วิว ทุกแพลตฟอร์ม ราคาถูกกว่าตลาด ระบบอัตโนมัติ 24/7 เริ่มต้นแค่ 10 บาท
             </p>
 
             <div className="anim-fade-up anim-fade-up-2 flex flex-wrap gap-4 items-center">
