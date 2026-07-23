@@ -1,12 +1,13 @@
 ﻿'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import MediaLibraryModal from '@/components/MediaLibraryModal';
 
 interface Setting { key: string; label: string; value: string }
 
 const SETTING_LABELS: Record<string, string> = {
-  logo_url:      'โลโก้ (URL หรือแนบไฟล์)',
-  favicon_url:   'Favicon — ไอคอนบน Tab (URL หรือแนบไฟล์ แนะนำ .png สี่เหลี่ยมจัตุรัส)',
+  logo_url:      'โลโก้ (URL หรือเลือกจากคลังภาพ)',
+  favicon_url:   'Favicon — ไอคอนบน Tab (เลือกจากคลังภาพ แนะนำ .png สี่เหลี่ยมจัตุรัส)',
   brand_name:    'ชื่อแบรนด์',
   brand_tagline: 'Tagline',
   brand_desc:    'คำอธิบายแบรนด์',
@@ -49,10 +50,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Setting[]>([]);
   const [saving, setSaving]     = useState(false);
   const [saved, setSaved]       = useState(false);
-  const [uploading, setUploading]               = useState(false);
-  const [uploadingFavicon, setUploadingFavicon] = useState(false);
-  const logoFileRef    = useRef<HTMLInputElement>(null);
-  const faviconFileRef = useRef<HTMLInputElement>(null);
+  const [mediaPick, setMediaPick] = useState<'logo_url' | 'favicon_url' | null>(null);
 
   const DEFAULTS: Record<string, string> = {
     announcement_active:     '0',
@@ -96,31 +94,34 @@ export default function AdminSettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  async function uploadSetting(file: File, key: string, setLoading: (v: boolean) => void) {
-    setLoading(true);
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!data.url) return;
-      const updated = settings.map(s => s.key === key ? { ...s, value: data.url } : s);
-      setSettings(updated);
-      setSaving(true);
-      await fetch('/api/admin/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.fromEntries(updated.map(s => [s.key, s.value]))),
-      });
-      setSaving(false);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    } finally { setLoading(false); }
+  async function pickFromLibrary(key: 'logo_url' | 'favicon_url', url: string) {
+    const updated = settings.map(s => s.key === key ? { ...s, value: url } : s);
+    setSettings(updated);
+    setMediaPick(null);
+    // auto-save like previous upload flow
+    setSaving(true);
+    await fetch('/api/admin/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.fromEntries(updated.map(s => [s.key, s.value]))),
+    });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   }
 
   const mainSettings = settings.filter(s => SETTING_LABELS[s.key]);
 
   return (
+    <>
+    {mediaPick && (
+      <MediaLibraryModal
+        mode="pick"
+        title={mediaPick === 'logo_url' ? 'เลือกโลโก้จากคลังภาพ' : 'เลือก Favicon จากคลังภาพ'}
+        onSelect={(item) => pickFromLibrary(mediaPick, item.url)}
+        onClose={() => setMediaPick(null)}
+      />
+    )}
     <main className="flex-1 p-6 space-y-6 max-w-2xl">
       <div>
         <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">ตั้งค่าเว็บ (CMS)</h1>
@@ -139,34 +140,29 @@ export default function AdminSettingsPage() {
               <div className="space-y-2">
                 <div className="flex gap-2">
                   <input value={value} onChange={e => set(key, e.target.value)}
+                    placeholder="https://... หรือเลือกจากคลังภาพ →"
                     className="glass flex-1 px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
-                  {key === 'logo_url' && (
-                    <>
-                      <input ref={logoFileRef} type="file" accept="image/*" className="hidden"
-                        onChange={e => e.target.files?.[0] && uploadSetting(e.target.files[0], 'logo_url', setUploading)} />
-                      <button type="button" onClick={() => logoFileRef.current?.click()} disabled={uploading}
-                        className="shrink-0 px-3 py-2 rounded-xl text-xs font-medium border border-[rgba(139,92,246,0.35)] text-[#a78bfa] hover:bg-[rgba(139,92,246,0.15)] transition-all disabled:opacity-50 whitespace-nowrap">
-                        {uploading ? 'กำลังอัปโหลด...' : '📎 แนบไฟล์'}
-                      </button>
-                    </>
-                  )}
-                  {key === 'favicon_url' && (
-                    <>
-                      <input ref={faviconFileRef} type="file" accept="image/*" className="hidden"
-                        onChange={e => e.target.files?.[0] && uploadSetting(e.target.files[0], 'favicon_url', setUploadingFavicon)} />
-                      <button type="button" onClick={() => faviconFileRef.current?.click()} disabled={uploadingFavicon}
-                        className="shrink-0 px-3 py-2 rounded-xl text-xs font-medium border border-[rgba(139,92,246,0.35)] text-[#a78bfa] hover:bg-[rgba(139,92,246,0.15)] transition-all disabled:opacity-50 whitespace-nowrap">
-                        {uploadingFavicon ? 'กำลังอัปโหลด...' : '📎 แนบไฟล์'}
-                      </button>
-                    </>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setMediaPick(key)}
+                    className="shrink-0 px-3 py-2 rounded-xl text-xs font-medium border border-[rgba(139,92,246,0.35)] text-[#a78bfa] hover:bg-[rgba(139,92,246,0.15)] transition-all whitespace-nowrap"
+                  >
+                    🖼 คลังภาพ
+                  </button>
                 </div>
                 {value && (
                   <div className="flex items-center gap-3 p-2.5 glass rounded-xl">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={value} alt="preview" className="h-8 w-8 object-contain rounded"
                       onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                    <span className="text-xs text-[#94A3B8] truncate">{value}</span>
+                    <span className="text-xs text-[#94A3B8] truncate flex-1">{value}</span>
+                    <button
+                      type="button"
+                      onClick={() => set(key, '')}
+                      className="text-[11px] text-rose-400 hover:text-rose-300 shrink-0"
+                    >
+                      ลบ
+                    </button>
                   </div>
                 )}
               </div>
@@ -226,5 +222,6 @@ export default function AdminSettingsPage() {
         </button>
       </div>
     </main>
+    </>
   );
 }
