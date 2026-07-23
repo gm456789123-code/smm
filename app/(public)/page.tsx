@@ -79,6 +79,20 @@ export default async function LandingPage() {
   const desc = s.brand_desc ?? 'Boost followers, likes, views, and engagement across major social platforms.';
   const cta = s.hero_cta ?? 'Get started for free';
 
+  // Social URLs from CMS (only active channels)
+  const sameAs = (['line', 'facebook', 'telegram', 'discord'] as const)
+    .filter((k) => s[`${k}_active`] === '1' && s[`${k}_url`])
+    .map((k) => String(s[`${k}_url`]).trim())
+    .filter(Boolean);
+
+  const logoAbs = (() => {
+    const raw = sanitizeUrl(s.logo_url, 'image');
+    if (!raw) return SITE_ICON;
+    if (raw.startsWith('http')) return raw;
+    if (raw.startsWith('/')) return `${SITE_URL}${raw}`;
+    return SITE_ICON;
+  })();
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -87,9 +101,9 @@ export default async function LandingPage() {
         '@id': `${SITE_URL}/#organization`,
         name: brand,
         url: SITE_URL,
-        logo: { '@type': 'ImageObject', url: SITE_ICON },
+        logo: { '@type': 'ImageObject', url: logoAbs },
         description: desc,
-        sameAs: [],
+        ...(sameAs.length > 0 ? { sameAs } : {}),
       },
       {
         '@type': 'WebSite',
@@ -98,11 +112,7 @@ export default async function LandingPage() {
         name: brand,
         description: tagline,
         publisher: { '@id': `${SITE_URL}/#organization` },
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/blog?q={search_term_string}` },
-          'query-input': 'required name=search_term_string',
-        },
+        // No SearchAction — blog search is not implemented
       },
       {
         '@type': 'WebPage',
@@ -137,7 +147,7 @@ export default async function LandingPage() {
         offers: {
           '@type': 'AggregateOffer',
           priceCurrency: 'THB',
-          lowPrice: '100',
+          lowPrice: '10',
           offerCount: '3',
         },
       },

@@ -3,17 +3,13 @@ import type { CSSProperties } from 'react';
 import './globals.css';
 import LocaleProvider from '@/components/LocaleProvider';
 import SocialFloat from '@/components/SocialFloat';
-import { getMessages, LOCALES, type Locale } from '@/lib/i18n';
+import { getMessages, type Locale } from '@/lib/i18n';
 import { SITE_DESCRIPTION, SITE_NAME, SITE_OG_IMAGE, SITE_TITLE, SITE_URL } from '@/lib/site';
 
 const fontVars = {
   '--font-jakarta': 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
   '--font-inter': 'system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
 } as CSSProperties;
-
-const localeAlternates = Object.fromEntries(
-  LOCALES.map((l) => [l, `${SITE_URL}/?lang=${l}`])
-);
 
 export const viewport: Viewport = {
   themeColor: '#8B5CF6',
@@ -71,7 +67,8 @@ export const metadata: Metadata = {
     images: [SITE_OG_IMAGE],
     creator: '@aurasmm',
   },
-  alternates: { canonical: SITE_URL, languages: localeAlternates },
+  // No fake hreflang until real multi-language routes exist
+  alternates: { canonical: SITE_URL },
   category: 'technology',
   icons: {
     icon: [

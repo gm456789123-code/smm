@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import db from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+import { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 async function requireAdmin(req: NextRequest) {
   const user = await getRequestUser(req);
@@ -23,16 +23,6 @@ export async function POST(
   const body = await req.json().catch(() => ({}));
   const action = String(body.action ?? '');
 
-  const [rows] = await db.query<RowDataPacket[]>(
-    `SELECT id, user_id, tx_status, ref FROM transactions WHERE id = ? AND tx_type = 'angpao'`,
-    [txId]
-  );
-  const tx = rows[0];
-  if (!tx) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  if (tx.tx_status !== 'pending') {
-    return NextResponse.json({ error: 'Transaction is not pending' }, { status: 409 });
-  }
-
   if (action === 'approve') {
     const amount = Number(body.amount);
     if (!amount || amount <= 0 || amount > 5000) {
@@ -42,10 +32,36 @@ export async function POST(
     const conn = await db.getConnection();
     try {
       await conn.beginTransaction();
-      await conn.query(
-        `UPDATE transactions SET tx_status = 'completed', amount = ?, note = CONCAT(note, ' | อนุมัติโดย admin ฿${amount}') WHERE id = ?`,
-        [amount, txId]
+
+      // Lock row so two admins cannot approve the same pending voucher
+      const [rows] = await conn.query<RowDataPacket[]>(
+        `SELECT id, user_id, tx_status, ref FROM transactions
+         WHERE id = ? AND tx_type = 'angpao' FOR UPDATE`,
+        [txId]
       );
+      const tx = rows[0];
+      if (!tx) {
+        await conn.rollback();
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      }
+      if (tx.tx_status !== 'pending') {
+        await conn.rollback();
+        return NextResponse.json({ error: 'Transaction is not pending' }, { status: 409 });
+      }
+
+      const [upd] = await conn.query<ResultSetHeader>(
+        `UPDATE transactions
+         SET tx_status = 'completed',
+             amount = ?,
+             note = CONCAT(IFNULL(note,''), ' | อนุมัติโดย admin ฿', ?)
+         WHERE id = ? AND tx_status = 'pending'`,
+        [amount, String(amount), txId]
+      );
+      if (upd.affectedRows === 0) {
+        await conn.rollback();
+        return NextResponse.json({ error: 'Transaction is not pending' }, { status: 409 });
+      }
+
       await conn.query('UPDATE users SET balance = balance + ? WHERE id = ?', [amount, tx.user_id]);
       await conn.commit();
       return NextResponse.json({ success: true, amount });
@@ -59,11 +75,40 @@ export async function POST(
   }
 
   if (action === 'reject') {
-    await db.query(
-      `UPDATE transactions SET tx_status = 'cancelled', note = CONCAT(note, ' | ปฏิเสธโดย admin') WHERE id = ?`,
-      [txId]
-    );
-    return NextResponse.json({ success: true });
+    const conn = await db.getConnection();
+    try {
+      await conn.beginTransaction();
+      const [rows] = await conn.query<RowDataPacket[]>(
+        `SELECT id, tx_status FROM transactions
+         WHERE id = ? AND tx_type = 'angpao' FOR UPDATE`,
+        [txId]
+      );
+      const tx = rows[0];
+      if (!tx) {
+        await conn.rollback();
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+      }
+      if (tx.tx_status !== 'pending') {
+        await conn.rollback();
+        return NextResponse.json({ error: 'Transaction is not pending' }, { status: 409 });
+      }
+
+      await conn.query(
+        `UPDATE transactions
+         SET tx_status = 'cancelled',
+             note = CONCAT(IFNULL(note,''), ' | ปฏิเสธโดย admin')
+         WHERE id = ? AND tx_status = 'pending'`,
+        [txId]
+      );
+      await conn.commit();
+      return NextResponse.json({ success: true });
+    } catch (err) {
+      await conn.rollback();
+      console.error('[angpao/reject]', err);
+      return NextResponse.json({ error: 'DB error' }, { status: 500 });
+    } finally {
+      conn.release();
+    }
   }
 
   return NextResponse.json({ error: 'action ต้องเป็น approve หรือ reject' }, { status: 400 });

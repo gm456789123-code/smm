@@ -45,7 +45,9 @@ CREATE TABLE IF NOT EXISTS transactions (
   created_at   TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   INDEX idx_user_id (user_id),
-  INDEX idx_api_failed (api_failed)
+  INDEX idx_api_failed (api_failed),
+  -- Idempotent top-ups / slips / angpao (NULL refs allowed multiple times)
+  UNIQUE KEY uniq_transactions_ref (ref)
 );
 
 -- Migration for existing databases (run once on production):
@@ -56,6 +58,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 --   ADD COLUMN IF NOT EXISTS service_id INT          DEFAULT NULL,
 --   ADD COLUMN IF NOT EXISTS link_url   TEXT         DEFAULT NULL,
 --   ADD COLUMN IF NOT EXISTS qty        INT          DEFAULT NULL;
+-- Also run: database/migrations/001_transactions_unique_ref.sql
 
 CREATE TABLE IF NOT EXISTS sessions (
   id         INT AUTO_INCREMENT PRIMARY KEY,

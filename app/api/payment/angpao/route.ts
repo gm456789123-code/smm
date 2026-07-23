@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
-import db from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { TmnVoucherClient } from '@prakrit_m/tmn-voucher';
 import { sendAngpaoPendingAdminEmail } from '@/lib/email';
+import { creditTopupAtomic, insertPendingTx } from '@/lib/credit-topup';
 
 const voucherClient = new TmnVoucherClient();
 const PHONE = process.env.TRUEMONEY_REDEEM_PHONE ?? '';
@@ -59,18 +58,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Voucher code format is invalid.' }, { status: 400 });
   }
 
-  // Prevent duplicate use / duplicate pending
-  const [existing] = await db.query<RowDataPacket[]>(
-    'SELECT id, tx_status FROM transactions WHERE ref = ? LIMIT 1',
-    [`angpao:${code}`]
-  );
-  if (existing.length > 0) {
-    const status = existing[0].tx_status;
-    if (status === 'pending') {
-      return NextResponse.json({ error: 'รหัสนี้อยู่ระหว่างรอแอดมินตรวจสอบแล้ว' }, { status: 409 });
-    }
-    return NextResponse.json({ error: 'ซองอั้งเปานี้ถูกใช้ไปแล้ว' }, { status: 409 });
-  }
+  const angpaoRef = `angpao:${code}`;
 
   let phone: string;
   try {
@@ -83,18 +71,30 @@ export async function POST(req: NextRequest) {
   const url = `https://gift.truemoney.com/campaign/?v=${code}`;
   const result = await voucherClient.redeemVoucher(phone, url);
 
-  // SUCCESS → credit immediately
+  // SUCCESS → credit immediately (atomic + unique ref)
   if (result.success) {
     const amountBaht = result.data.amount / 100;
     if (!amountBaht || amountBaht <= 0) {
       return NextResponse.json({ error: 'Voucher amount was not found.' }, { status: 422 });
     }
-    await db.query('UPDATE users SET balance = balance + ? WHERE id = ?', [amountBaht, user.userId]);
-    await db.query(
-      `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note)
-       VALUES (?, 'topup', ?, ?, 'completed', ?)`,
-      [user.userId, amountBaht, `angpao:${code}`, `TrueMoney angpao ฿${amountBaht}`]
-    );
+
+    const credit = await creditTopupAtomic({
+      userId: user.userId,
+      amount: amountBaht,
+      ref: angpaoRef,
+      note: `TrueMoney angpao ฿${amountBaht}`,
+      provider: 'angpao',
+      // If earlier attempt stored a pending hold, upgrade it instead of double-ref
+      completeIfPending: true,
+    });
+
+    if (credit.status === 'duplicate') {
+      return NextResponse.json({ error: 'ซองอั้งเปานี้ถูกใช้ไปแล้ว' }, { status: 409 });
+    }
+    if (credit.status === 'error') {
+      return NextResponse.json({ error: credit.message }, { status: 500 });
+    }
+
     return NextResponse.json({ success: true, amount: amountBaht, ref: code });
   }
 
@@ -102,19 +102,27 @@ export async function POST(req: NextRequest) {
 
   // SERVER BLOCKED by Cloudflare → save pending, notify admin
   if (SERVER_BLOCKED_CODES.has(result.code)) {
-    await db.query(
-      `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note)
-       VALUES (?, 'angpao', 0, ?, 'pending', ?)`,
-      [user.userId, `angpao:${code}`, `Angpao pending | user: ${user.username} | code: ${code}`]
-    );
-    // Notify admin (non-blocking)
+    const pending = await insertPendingTx({
+      userId: user.userId,
+      amount: 0,
+      ref: angpaoRef,
+      txType: 'angpao',
+      note: `Angpao pending | user: ${user.username} | code: ${code}`,
+    });
+
+    if (pending.status === 'duplicate') {
+      return NextResponse.json({ error: 'รหัสนี้อยู่ระหว่างรอแอดมินตรวจสอบแล้ว หรือถูกใช้ไปแล้ว' }, { status: 409 });
+    }
+    if (pending.status === 'error') {
+      return NextResponse.json({ error: pending.message }, { status: 500 });
+    }
+
     if (ADMIN_EMAIL) {
       sendAngpaoPendingAdminEmail(ADMIN_EMAIL, user.username, code).catch(() => {});
     }
     return NextResponse.json({ pending: true, code }, { status: 202 });
   }
 
-  // Known TrueMoney error → return message
   const errMsg = ERROR_MSG[result.code] ?? `แลกซองไม่สำเร็จ (${result.code}) กรุณาลองใหม่หรือติดต่อแอดมิน`;
   return NextResponse.json({ error: errMsg }, { status: 422 });
 }

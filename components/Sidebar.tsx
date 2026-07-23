@@ -96,7 +96,8 @@ export default function Sidebar({ role, username }: SidebarProps) {
   const { t } = useLocale();
   const [open, setOpen]       = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
-  const logoUrl = '/logo.png';
+  const [logoUrl, setLogoUrl] = useState('/logo.png');
+  const [brandName, setBrandName] = useState('AURA SMM');
   const isCMS = path.startsWith('/admin');
 
   useEffect(() => {
@@ -105,7 +106,21 @@ export default function Sidebar({ role, username }: SidebarProps) {
     }).catch(() => null);
   }, [path]);
 
+  useEffect(() => {
+    fetch('/api/public/settings')
+      .then(r => r.json())
+      .then((d: { logo_url?: string; brand_name?: string }) => {
+        if (d?.logo_url) setLogoUrl(d.logo_url);
+        if (d?.brand_name) setBrandName(d.brand_name);
+      })
+      .catch(() => null);
+  }, []);
+
   useEffect(() => { setOpen(false); }, [path]);
+
+  const brandParts = brandName.trim().split(/\s+/).filter(Boolean);
+  const brandFirst = brandParts[0] || 'AURA';
+  const brandRest = brandParts.slice(1).join(' ') || 'SMM';
 
   async function handleLogout() {
     try {
@@ -132,7 +147,12 @@ export default function Sidebar({ role, username }: SidebarProps) {
           </svg>
         </button>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logoUrl} alt="logo" className="max-h-8 max-w-[140px] object-contain" />
+        <img
+          src={logoUrl}
+          alt={brandName}
+          className="max-h-8 max-w-[140px] object-contain"
+          onError={(e) => { (e.target as HTMLImageElement).src = '/icon.png'; }}
+        />
         {/* <div className="ml-auto">
           <LangSwitcher />
         </div> */}
@@ -163,12 +183,17 @@ export default function Sidebar({ role, username }: SidebarProps) {
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 shadow-[0_0_12px_rgba(139,92,246,0.4)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logoUrl} alt="AURA Panel" className="w-full h-full object-cover" />
+                <img
+                  src={logoUrl}
+                  alt={brandName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/icon.png'; }}
+                />
               </div>
               <div>
                 <p className="font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
-                  <span className="text-gradient-animated">AURA</span>
-                  <span className="text-white"> Panel</span>
+                  <span className="text-gradient-animated">{brandFirst}</span>
+                  {brandRest ? <span className="text-white"> {brandRest}</span> : null}
                 </p>
                 <p className="text-[10px] text-[#94A3B8] mt-0.5 uppercase tracking-widest">Social Media Panel</p>
               </div>
@@ -256,10 +281,10 @@ export default function Sidebar({ role, username }: SidebarProps) {
         {/* Balance */}
         <div className="rounded-xl px-3 py-3 mt-2 border border-[rgba(6,182,212,0.25)] bg-[rgba(6,182,212,0.07)]">
           <p className="text-[10px] text-[#94A3B8] uppercase tracking-wider font-semibold">{t('dash.sideBalance')}</p>
-          <p className="text-[#06B6D4] text-glow-cyan font-bold font-[family-name:var(--font-inter)] text-base mt-0.5">
+          <p className="text-white font-bold font-[family-name:var(--font-inter)] text-base mt-0.5">
             {balance === null
               ? <span className="animate-pulse text-[#334155]">{t('dash.loading')}</span>
-              : <>{balance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} <span className="text-[#64748B] text-xs font-normal">{t('dash.sideThb')}</span></>
+              : <>{balance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} <span className="text-[#94A3B8] text-xs font-normal">{t('dash.sideThb')}</span></>
             }
           </p>
         </div>

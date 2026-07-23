@@ -1,8 +1,7 @@
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import stripe from '@/lib/stripe';
-import db from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+import { creditTopupAtomic } from '@/lib/credit-topup';
 
 export const runtime = 'nodejs';
 
@@ -22,30 +21,30 @@ export async function POST(request: Request) {
 
   if (event.type === 'payment_intent.succeeded') {
     const intent = event.data.object as Stripe.PaymentIntent;
-    const userId   = intent.metadata?.userId;
+    const userId = intent.metadata?.userId;
     const amountThb = Number(intent.metadata?.amountThb ?? 0);
 
     if (!userId || !amountThb) {
       return new Response('Missing metadata', { status: 400 });
     }
 
-    const [existing] = await db.query<RowDataPacket[]>(
-      'SELECT id FROM transactions WHERE ref = ? LIMIT 1',
-      [intent.id]
-    );
-    if ((existing as RowDataPacket[]).length > 0) {
-      return Response.json({ received: true, duplicate: true });
+    // Stripe may retry webhooks — UNIQUE(ref) + atomic credit makes this idempotent
+    const result = await creditTopupAtomic({
+      userId: Number(userId),
+      amount: amountThb,
+      ref: intent.id,
+      note: `Stripe top-up THB ${amountThb}`,
+      provider: 'stripe',
+    });
+
+    if (result.status === 'error') {
+      console.error('Stripe top-up credit failed:', result.message, intent.id);
+      return new Response('Credit failed', { status: 500 });
     }
 
-    await db.query(
-      'UPDATE users SET balance = balance + ? WHERE id = ?',
-      [amountThb, Number(userId)]
-    );
-    await db.query(
-      `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note)
-       VALUES (?, 'topup', ?, ?, 'completed', ?)`,
-      [Number(userId), amountThb, intent.id, `Stripe top-up THB ${amountThb}`]
-    );
+    if (result.status === 'duplicate') {
+      return Response.json({ received: true, duplicate: true });
+    }
 
     console.log(`Top-up completed: user ${userId} +THB ${amountThb} (${intent.id})`);
   }

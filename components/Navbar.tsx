@@ -11,22 +11,39 @@ import {
 import { useLocale } from './LocaleProvider';
 import AuthModal from './auth/AuthModal';
 
-interface NavbarProps { brandName?: string }
+interface NavbarProps {
+  brandName?: string;
+  logoUrl?: string;
+}
 
-export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
+export default function Navbar({ brandName = 'AURA SMM', logoUrl: logoProp }: NavbarProps) {
   const path = usePathname();
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
-  const logoUrl = '/logo.png';
+  const [logoUrl, setLogoUrl] = useState(logoProp || '/logo.png');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Prefer server prop; otherwise load from CMS public settings
+  useEffect(() => {
+    if (logoProp) {
+      setLogoUrl(logoProp);
+      return;
+    }
+    fetch('/api/public/settings')
+      .then(r => r.json())
+      .then((d: { logo_url?: string }) => {
+        if (d?.logo_url) setLogoUrl(d.logo_url);
+      })
+      .catch(() => null);
+  }, [logoProp]);
 
   const navItems = [
     { href: '/', label: t('nav.home'), icon: BsHouseDoorFill },
@@ -35,7 +52,9 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
     { href: '/blog', label: t('nav.blog'), icon: BsFileText },
   ];
 
-  const [first, ...rest] = brandName.split(' ');
+  const parts = brandName.trim().split(/\s+/).filter(Boolean);
+  const first = parts[0] || 'AURA';
+  const rest = parts.slice(1).join(' ') || 'SMM';
 
   return (
     <>
@@ -65,7 +84,7 @@ export default function Navbar({ brandName = 'AURA SMM' }: NavbarProps) {
             </div>
             <span className="hidden md:block font-[family-name:var(--font-jakarta)] text-base font-extrabold tracking-tight">
               <span className="text-gradient-animated">{first}</span>
-              <span className="text-white"> Panel</span>
+              {rest ? <span className="text-white"> {rest}</span> : null}
             </span>
           </Link>
 

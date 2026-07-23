@@ -1,15 +1,35 @@
-﻿export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import { BsArrowLeft, BsClockHistory, BsPersonCircle } from 'react-icons/bs';
 import type { Metadata } from 'next';
-import { SITE_ICON, SITE_OG_IMAGE, SITE_URL } from '@/lib/site';
+import { SITE_ICON, SITE_NAME, SITE_OG_IMAGE, SITE_URL } from '@/lib/site';
 import { sanitizeHtml, sanitizeUrl } from '@/lib/sanitize-html';
 
 interface Props { params: Promise<{ slug: string }> }
+
+function absUrl(pathOrUrl: string): string {
+  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl;
+  if (pathOrUrl.startsWith('/')) return `${SITE_URL}${pathOrUrl}`;
+  return pathOrUrl;
+}
+
+function seoTitleOf(post: RowDataPacket): string {
+  const custom = typeof post.meta_title === 'string' ? post.meta_title.trim() : '';
+  return custom || String(post.title ?? '');
+}
+
+function seoDescriptionOf(post: RowDataPacket): string {
+  const custom = typeof post.meta_description === 'string' ? post.meta_description.trim() : '';
+  if (custom) return custom;
+  const excerpt = typeof post.excerpt === 'string' ? post.excerpt.trim() : '';
+  if (excerpt) return excerpt;
+  return 'Read the latest social media marketing insights from AURA SMM.';
+}
 
 async function getPost(slug: string) {
   try {
@@ -29,23 +49,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPost(slug);
   if (!post) return { title: 'Post Not Found', robots: { index: false, follow: false } };
 
-  const title = `${post.title} | AURA SMM Blog`;
-  const description = post.excerpt || 'Read the latest social media marketing insights from AURA SMM.';
-  const image = sanitizeUrl(post.og_image || post.cover_image, 'image') || SITE_OG_IMAGE;
+  const title = seoTitleOf(post);
+  const description = seoDescriptionOf(post);
+  const imagePath = sanitizeUrl(post.og_image || post.cover_image, 'image');
+  const image = imagePath ? absUrl(imagePath) : SITE_OG_IMAGE;
+  const keywords = typeof post.focus_keyword === 'string' && post.focus_keyword.trim()
+    ? post.focus_keyword.split(/[,|]/).map((k: string) => k.trim()).filter(Boolean)
+    : undefined;
 
   return {
+    // Let root template append " | AURA SMM Panel" unless meta_title already looks complete
     title,
     description,
+    keywords,
     alternates: { canonical: `${SITE_URL}/blog/${slug}` },
     openGraph: {
       type: 'article',
       url: `${SITE_URL}/blog/${slug}`,
+      siteName: SITE_NAME,
       title,
       description,
-      publishedTime: post.published_at,
-      modifiedTime: post.updated_at,
-      authors: post.author_name ? [post.author_name] : [],
-      images: [{ url: image, width: 1200, height: 630, alt: post.title }],
+      publishedTime: post.published_at ?? undefined,
+      modifiedTime: post.updated_at ?? undefined,
+      authors: post.author_name ? [String(post.author_name)] : [SITE_NAME],
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
     },
     twitter: {
       card: 'summary_large_image',
@@ -61,25 +88,36 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await getPost(slug);
   if (!post) notFound();
 
+  const title = String(post.title ?? '');
+  const seoTitle = seoTitleOf(post);
+  const seoDescription = seoDescriptionOf(post);
   const safeCoverImage = sanitizeUrl(post.cover_image, 'image');
+  const coverAbs = safeCoverImage ? absUrl(safeCoverImage) : null;
   const safeContent = sanitizeHtml(post.content ?? '');
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: post.title,
-    description: post.excerpt,
-    image: safeCoverImage ? [safeCoverImage] : [SITE_OG_IMAGE],
+    headline: seoTitle,
+    name: title,
+    description: seoDescription,
+    image: coverAbs ? [coverAbs] : [SITE_OG_IMAGE],
     datePublished: post.published_at,
     dateModified: post.updated_at ?? post.published_at,
-    author: { '@type': 'Person', name: post.author_name ?? 'AURA SMM' },
-    publisher: { '@type': 'Organization', name: 'AURA SMM', logo: { '@type': 'ImageObject', url: SITE_ICON } },
+    keywords: typeof post.focus_keyword === 'string' ? post.focus_keyword : undefined,
+    author: { '@type': 'Person', name: post.author_name ?? SITE_NAME },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      logo: { '@type': 'ImageObject', url: SITE_ICON },
+    },
     mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE_URL}/blog/${slug}` },
     breadcrumb: {
       '@type': 'BreadcrumbList',
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
         { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
-        { '@type': 'ListItem', position: 3, name: post.title, item: `${SITE_URL}/blog/${slug}` },
+        { '@type': 'ListItem', position: 3, name: title, item: `${SITE_URL}/blog/${slug}` },
       ],
     },
   };
@@ -93,12 +131,12 @@ export default async function BlogPostPage({ params }: Props) {
         <span>/</span>
         <Link href="/blog" className="hover:text-[#8B5CF6] transition-colors">Blog</Link>
         <span>/</span>
-        <span className="text-[#475569] truncate max-w-[200px]">{post.title}</span>
+        <span className="text-[#475569] truncate max-w-[200px]">{title}</span>
       </nav>
 
       <div className="space-y-4">
         <h1 className="font-[family-name:var(--font-jakarta)] text-3xl md:text-4xl font-extrabold text-white leading-tight">
-          {post.title}
+          {title}
         </h1>
         <div className="flex items-center gap-4 text-xs text-[#475569]">
           {post.author_name && (
@@ -115,6 +153,19 @@ export default async function BlogPostPage({ params }: Props) {
           )}
         </div>
       </div>
+
+      {safeCoverImage && (
+        <figure className="overflow-hidden rounded-2xl border border-[rgba(139,92,246,0.15)] bg-[rgba(139,92,246,0.05)]">
+          <Image
+            src={safeCoverImage}
+            alt={seoTitle}
+            width={1200}
+            height={630}
+            priority
+            className="w-full max-h-[28rem] object-cover"
+          />
+        </figure>
+      )}
 
       {post.excerpt && (
         <p className="text-[#94A3B8] text-lg leading-relaxed border-l-2 border-[rgba(139,92,246,0.4)] pl-4 italic">
@@ -159,4 +210,3 @@ export default async function BlogPostPage({ params }: Props) {
     </div>
   );
 }
-

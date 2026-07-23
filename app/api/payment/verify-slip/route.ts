@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import { verifyBankSlip, verifyTrueWallet } from '@/lib/easyslip';
-import db from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+import { creditTopupAtomic } from '@/lib/credit-topup';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { sendTopupEmail } from '@/lib/email';
 
@@ -35,6 +34,7 @@ export async function POST(req: NextRequest) {
   let senderName: string;
   let note: string;
   let isDuplicate: boolean;
+  let provider: string;
 
   try {
     if (slipType === 'truewallet') {
@@ -45,7 +45,6 @@ export async function POST(req: NextRequest) {
       }
       const { rawSlip, amountInSlip, isDuplicate: dup, matchedAccount } = result.data;
 
-      // EasySlip matchedAccount — fall back to receiver phone check
       const twLast4 = (process.env.NEXT_PUBLIC_TRUEWALLET_ID ?? '').slice(-4);
       const isOurTW = !!matchedAccount || rawSlip.receiver?.phone?.endsWith(twLast4);
 
@@ -59,8 +58,8 @@ export async function POST(req: NextRequest) {
       amountThb = amountInSlip;
       senderName = rawSlip.sender.name;
       isDuplicate = dup;
+      provider = 'truewallet';
       note = `TrueMoney: ${senderName} -> ${rawSlip.receiver.name} THB ${amountThb}`;
-
     } else {
       const result = await verifyBankSlip(file, file.name);
       if (!result.success || !result.data) {
@@ -69,7 +68,6 @@ export async function POST(req: NextRequest) {
       }
       const { rawSlip, amountInSlip, isDuplicate: dup, matchedAccount } = result.data;
 
-      // EasySlip matchedAccount (not returned on all plans) — fall back to proxy/account suffix check
       const proxy        = rawSlip.receiver?.account?.proxy;
       const ppLast4      = (process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER ?? '').slice(-4);
       const bankAccLast4 = (process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? '').replace(/[-\s]/g, '').slice(-4);
@@ -89,6 +87,7 @@ export async function POST(req: NextRequest) {
       amountThb = amountInSlip;
       senderName = rawSlip.sender.account.name.th || rawSlip.sender.account.name.en || 'Unknown sender';
       isDuplicate = dup;
+      provider = 'bank';
       const receiverName = rawSlip.receiver.account.name.th || rawSlip.receiver.account.name.en || 'Unknown receiver';
       const receiverBank = rawSlip.receiver.bank?.short ?? proxy?.type ?? 'PromptPay';
       note = `Bank (${rawSlip.sender.bank.short}->${receiverBank}): ${senderName} -> ${receiverName} THB ${amountThb}`;
@@ -101,43 +100,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This slip has already been used.' }, { status: 409 });
   }
 
-  const [existing] = await db.query<RowDataPacket[]>(
-    'SELECT id FROM transactions WHERE ref = ? LIMIT 1',
-    [ref]
-  );
-  if (existing.length > 0) {
-    return NextResponse.json({ error: 'This slip has already been used.' }, { status: 409 });
+  if (!ref || !(amountThb > 0)) {
+    return NextResponse.json({ error: 'Invalid slip data.' }, { status: 422 });
   }
 
-  await db.query('UPDATE users SET balance = balance + ? WHERE id = ?', [amountThb, user.userId]);
-  await db.query(
-    `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note)
-     VALUES (?, 'topup', ?, ?, 'completed', ?)`,
-    [user.userId, amountThb, ref, note]
-  );
+  // Atomic credit + UNIQUE(ref) — concurrent uploads of same slip cannot double-pay
+  const result = await creditTopupAtomic({
+    userId: user.userId,
+    amount: amountThb,
+    ref,
+    note,
+    provider,
+    referral: true,
+  });
 
-  // Referral commission
-  try {
-    const [userRows] = await db.query<RowDataPacket[]>(
-      'SELECT referred_by FROM users WHERE id = ?', [user.userId]
-    );
-    const referredBy = userRows[0]?.referred_by;
-    if (referredBy) {
-      const [settingRows] = await db.query<RowDataPacket[]>(
-        "SELECT setting_value FROM site_settings WHERE setting_key = 'referral_commission_pct'"
-      );
-      const pct        = Number(settingRows[0]?.setting_value ?? 5);
-      const commission = Math.round(amountThb * pct) / 100;
-      if (commission > 0) {
-        await db.query('UPDATE users SET balance = balance + ? WHERE id = ?', [commission, referredBy]);
-        await db.query(
-          `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note)
-           VALUES (?, 'referral', ?, ?, 'completed', ?)`,
-          [referredBy, commission, ref, `Commission ${pct}% จาก topup ฿${amountThb} (ref: ${user.username})`]
-        );
-      }
-    }
-  } catch { /* non-critical */ }
+  if (result.status === 'duplicate') {
+    return NextResponse.json({ error: 'This slip has already been used.' }, { status: 409 });
+  }
+  if (result.status === 'error') {
+    return NextResponse.json({ error: result.message }, { status: 500 });
+  }
 
   if (user.email) {
     sendTopupEmail(user.email, user.username, amountThb, ref).catch(() => {});
