@@ -139,18 +139,27 @@ export default function AdminSettingsPage() {
             ) : key === 'logo_url' || key === 'favicon_url' ? (
               <div className="space-y-2">
                 <div className="flex gap-2">
-                  <input value={value} onChange={e => set(key, e.target.value)}
+                  <input value={key === 'logo_url' ? '/logo.png (ฝังในโค้ด)' : value}
+                    readOnly={key === 'logo_url'}
+                    onChange={key === 'logo_url' ? undefined : e => set(key, e.target.value)}
                     placeholder="https://... หรือเลือกจากคลังภาพ →"
-                    className="glass flex-1 px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
+                    className={`glass flex-1 px-3 py-2.5 text-sm bg-transparent outline-none placeholder-[#475569] transition-colors ${key === 'logo_url' ? 'text-[#64748B] cursor-not-allowed select-none' : 'text-[#F1F5F9] focus:border-[rgba(139,92,246,0.45)]'}`} />
                   <button
                     type="button"
-                    onClick={() => setMediaPick(key)}
-                    className="shrink-0 px-3 py-2 rounded-xl text-xs font-medium border border-[rgba(139,92,246,0.35)] text-[#a78bfa] hover:bg-[rgba(139,92,246,0.15)] transition-all whitespace-nowrap"
+                    disabled={key === 'logo_url'}
+                    onClick={key === 'logo_url' ? undefined : () => setMediaPick(key as 'favicon_url')}
+                    className={`shrink-0 px-3 py-2 rounded-xl text-xs font-medium border transition-all whitespace-nowrap ${key === 'logo_url' ? 'border-[rgba(139,92,246,0.15)] text-[#475569] cursor-not-allowed opacity-40' : 'border-[rgba(139,92,246,0.35)] text-[#a78bfa] hover:bg-[rgba(139,92,246,0.15)]'}`}
                   >
-                    🖼 คลังภาพ
+                    {key === 'logo_url' ? '🔒 ล็อก' : '🖼 คลังภาพ'}
                   </button>
                 </div>
-                {value && (
+                {key === 'logo_url' ? (
+                  <div className="flex items-center gap-3 p-2.5 glass rounded-xl">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo.png" alt="logo" className="h-8 w-8 object-contain rounded" />
+                    <span className="text-xs text-[#64748B] flex-1">โลโก้ฝังในโค้ด — แก้ไขผ่าน public/logo.png</span>
+                  </div>
+                ) : value ? (
                   <div className="flex items-center gap-3 p-2.5 glass rounded-xl">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={value} alt="preview" className="h-8 w-8 object-contain rounded"
@@ -164,7 +173,7 @@ export default function AdminSettingsPage() {
                       ลบ
                     </button>
                   </div>
-                )}
+                ) : null}
               </div>
             ) : (
               <input value={value} onChange={e => set(key, e.target.value)}

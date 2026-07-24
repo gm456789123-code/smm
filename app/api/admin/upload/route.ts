@@ -3,6 +3,7 @@ import { getRequestUser } from '@/lib/auth';
 import { writeFile, mkdir } from 'fs/promises';
 import { join, extname } from 'path';
 import { randomUUID } from 'crypto';
+import { getUploadDir } from '@/lib/upload-dir';
 
 export async function POST(req: NextRequest) {
   const user = await getRequestUser(req);
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   const ext = extname(file.name) || '.jpg';
   const name = `${randomUUID()}${ext}`;
-  const dir = join(process.cwd(), 'public', 'uploads');
+  const dir = getUploadDir();
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, name), Buffer.from(await file.arrayBuffer()));
 

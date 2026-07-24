@@ -96,7 +96,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
   const { t } = useLocale();
   const [open, setOpen]       = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
-  const [logoUrl, setLogoUrl] = useState('/logo.png');
+  const logoUrl = '/logo.png';
   const [brandName, setBrandName] = useState('AURA SMM');
   const isCMS = path.startsWith('/admin');
 
@@ -109,8 +109,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
   useEffect(() => {
     fetch('/api/public/settings')
       .then(r => r.json())
-      .then((d: { logo_url?: string; brand_name?: string }) => {
-        if (d?.logo_url) setLogoUrl(d.logo_url);
+      .then((d: { brand_name?: string }) => {
         if (d?.brand_name) setBrandName(d.brand_name);
       })
       .catch(() => null);

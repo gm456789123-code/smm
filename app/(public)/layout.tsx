@@ -33,13 +33,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const { name, logoUrl } = await getBrand();
+  const { name } = await getBrand();
   const brandParts = name.trim().split(/\s+/).filter(Boolean);
   const brandFirst = brandParts[0] || 'AURA';
   const brandRest = brandParts.slice(1).join(' ');
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar brandName={name} logoUrl={logoUrl} />
+      <Navbar brandName={name} logoUrl="/logo.png" />
       <main className="flex-1 pt-16">{children}</main>
       <footer className="border-t border-[rgba(139,92,246,0.10)] py-10">
         <div className="max-w-5xl mx-auto px-5">

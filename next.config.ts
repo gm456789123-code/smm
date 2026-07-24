@@ -31,6 +31,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return {
+      beforeFiles: [
+        { source: '/uploads/:filename', destination: '/api/files/:filename' },
+      ],
+    };
+  },
   async headers() {
     return [
       {

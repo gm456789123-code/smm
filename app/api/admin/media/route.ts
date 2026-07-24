@@ -4,8 +4,9 @@ import { readdir, stat, unlink } from 'fs/promises';
 import { join, extname } from 'path';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2/promise';
+import { getUploadDir } from '@/lib/upload-dir';
 
-const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads');
+const UPLOAD_DIR = getUploadDir();
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.avif']);
 
 async function checkAdmin(req: NextRequest) {
