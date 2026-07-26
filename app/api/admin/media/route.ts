@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
         const m = metaMap[f];
         return {
           name:        f,
-          url:         `/uploads/${f}`,
+          url:         `/api/files/${f}`,
           size:        s.size,
           mtime:       s.mtime.toISOString(),
           alt_text:    m?.alt_text    ?? '',
