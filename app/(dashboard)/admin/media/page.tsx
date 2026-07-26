@@ -125,22 +125,32 @@ export default function MediaPage() {
           ) : (
             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {items.map(item => (
-                <button key={item.name} type="button" onClick={() => select(item)}
+                <div key={item.name}
                   className={['relative aspect-square rounded-xl overflow-hidden border-2 transition-all group',
                     selected?.name === item.name
                       ? 'border-[#a78bfa] shadow-[0_0_0_3px_rgba(167,139,250,0.25)]'
                       : 'border-transparent hover:border-[rgba(139,92,246,0.4)]',
                   ].join(' ')}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.url} alt={item.alt_text || item.name} className="w-full h-full object-cover" />
+                  <img src={item.url} alt={item.alt_text || item.name}
+                    onClick={() => select(item)}
+                    className="w-full h-full object-cover cursor-pointer" />
                   {/* Green dot = has alt text */}
                   {item.alt_text && (
-                    <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shadow">
+                    <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center shadow pointer-events-none">
                       <BsCheck2 size={9} className="text-white" />
                     </span>
                   )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all" />
-                </button>
+                  <div onClick={() => select(item)} className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all cursor-pointer" />
+                  {/* Delete button on hover */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); del(item); }}
+                    className="absolute bottom-1.5 right-1.5 w-7 h-7 rounded-lg bg-rose-600/80 hover:bg-rose-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg z-10"
+                    title="ลบภาพ"
+                  >
+                    <BsTrash size={12} />
+                  </button>
+                </div>
               ))}
             </div>
           )}
