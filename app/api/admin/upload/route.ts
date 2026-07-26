@@ -4,7 +4,6 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join, extname } from 'path';
 import { randomUUID } from 'crypto';
 import { getUploadDir } from '@/lib/upload-dir';
-import db from '@/lib/db';
 
 export async function POST(req: NextRequest) {
   const user = await getRequestUser(req);
@@ -27,12 +26,6 @@ export async function POST(req: NextRequest) {
   const dir = getUploadDir();
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, name), Buffer.from(await file.arrayBuffer()));
-
-  await db.query(
-    `INSERT IGNORE INTO media_meta (filename, alt_text, title, caption, description)
-     VALUES (?, '', '', '', '')`,
-    [name],
-  ).catch(() => null);
 
   return NextResponse.json({ url: `/uploads/${name}` });
 }
