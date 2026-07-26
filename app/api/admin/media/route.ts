@@ -6,7 +6,6 @@ import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2/promise';
 import { getUploadDir } from '@/lib/upload-dir';
 
-const UPLOAD_DIR = getUploadDir();
 const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.avif']);
 
 async function checkAdmin(req: NextRequest) {
@@ -31,6 +30,7 @@ export async function GET(req: NextRequest) {
   if (!await checkAdmin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   try {
     await ensureTable();
+    const UPLOAD_DIR = getUploadDir();
     const files = await readdir(UPLOAD_DIR);
 
     // Fetch all metadata in one query
@@ -92,7 +92,7 @@ export async function DELETE(req: NextRequest) {
   if (!name || name.includes('/') || name.includes('..')) {
     return NextResponse.json({ error: 'Invalid filename' }, { status: 400 });
   }
-  await unlink(join(UPLOAD_DIR, name));
+  await unlink(join(getUploadDir(), name));
   await db.query('DELETE FROM media_meta WHERE filename = ?', [name]).catch(() => null);
   return NextResponse.json({ ok: true });
 }
