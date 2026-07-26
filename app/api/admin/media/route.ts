@@ -48,8 +48,10 @@ export async function GET(req: NextRequest) {
 
     const dbFilenames = new Set(metaRows.map((r) => r.filename as string));
 
+    type Item = { name: string; url: string; size: number; mtime: string; onDisk: boolean; alt_text: string; title: string; caption: string; description: string };
+
     // 3. Merge: DB rows + filesystem-only files
-    const items = await Promise.all([
+    const items: Item[] = (await Promise.all([
       // DB records (with optional disk stat)
       ...metaRows.map(async (m) => {
         let size = 0;
@@ -75,26 +77,34 @@ export async function GET(req: NextRequest) {
         };
       }),
       // Filesystem-only files (uploaded but no DB record yet)
-      ...[...fsFiles]
-        .filter((f) => !dbFilenames.has(f))
-        .map(async (f) => {
-          const s = await stat(join(uploadDir, f));
-          return {
-            name:        f,
-            url:         `/uploads/${f}`,
-            size:        s.size,
-            mtime:       s.mtime.toISOString(),
-            onDisk:      true,
-            alt_text:    '',
-            title:       '',
-            caption:     '',
-            description: '',
-          };
-        }),
-    ]);
+      ...(await Promise.all(
+        [...fsFiles]
+          .filter((f) => !dbFilenames.has(f))
+          .map(async (f) => {
+            try {
+              const s = await stat(join(uploadDir, f));
+              return {
+                name:        f,
+                url:         `/uploads/${f}`,
+                size:        s.size,
+                mtime:       s.mtime.toISOString(),
+                onDisk:      true,
+                alt_text:    '',
+                title:       '',
+                caption:     '',
+                description: '',
+              };
+            } catch {
+              return null;
+            }
+          })
+      )).filter(Boolean),
+    ])).filter((x): x is Item => x !== null);
 
     items.sort((a, b) => b.mtime.localeCompare(a.mtime));
-    return NextResponse.json(items);
+    return NextResponse.json(items, {
+      headers: { 'X-Upload-Dir': uploadDir },
+    });
   } catch (err) {
     console.error('[media GET]', err);
     return NextResponse.json([]);
