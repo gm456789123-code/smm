@@ -2,18 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import db from '@/lib/db';
 
-async function checkAdmin(req: NextRequest) {
+async function adminOnly(req: NextRequest) {
   const user = await getRequestUser(req);
   return user?.role === 'admin' ? user : null;
 }
 
+export async function GET(req: NextRequest) {
+  if (!await adminOnly(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+
+  const endpoint = req.nextUrl.searchParams.get('endpoint');
+  if (!endpoint) return NextResponse.json({ subscribed: false });
+
+  const [rows] = await db.query<any[]>(
+    'SELECT id FROM push_subscriptions WHERE endpoint = ? LIMIT 1',
+    [endpoint],
+  );
+  return NextResponse.json({ subscribed: rows.length > 0 });
+}
+
 export async function POST(req: NextRequest) {
-  if (!await checkAdmin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!await adminOnly(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const body = await req.json();
   const { endpoint, keys } = body;
+
   if (!endpoint || !keys?.p256dh || !keys?.auth) {
-    return NextResponse.json({ error: 'Invalid subscription object' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid subscription' }, { status: 400 });
   }
 
   await db.query(
@@ -27,7 +41,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  if (!await checkAdmin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  if (!await adminOnly(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const { endpoint } = await req.json();
   if (!endpoint) return NextResponse.json({ error: 'endpoint required' }, { status: 400 });
