@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { BsBell, BsBellFill, BsBellSlash } from 'react-icons/bs';
+import { BsSendCheck } from 'react-icons/bs';
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -16,6 +17,7 @@ export default function PushBell() {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [supported, setSupported] = useState(false);
 
   useEffect(() => {
@@ -84,19 +86,43 @@ export default function PushBell() {
     }
   }
 
+  async function sendTest() {
+    setTesting(true);
+    try {
+      await fetch('/api/admin/push/test', { method: 'POST' });
+    } catch (err) {
+      console.error('[PushBell test]', err);
+    } finally {
+      setTesting(false);
+    }
+  }
+
   return (
-    <button
-      onClick={toggle}
-      disabled={loading}
-      title={subscribed ? 'ปิดการแจ้งเตือนออเดอร์' : 'เปิดรับแจ้งเตือนออเดอร์ใหม่'}
-      className={[
-        'p-2 rounded-lg transition-all disabled:opacity-50',
-        subscribed
-          ? 'text-[#a78bfa] bg-[rgba(139,92,246,0.15)] hover:bg-[rgba(139,92,246,0.25)]'
-          : 'text-[#475569] hover:text-white hover:bg-[rgba(255,255,255,0.07)]',
-      ].join(' ')}
-    >
-      {subscribed ? <BsBellFill size={17} /> : <BsBell size={17} />}
-    </button>
+    <div className="flex items-center gap-1">
+      <button
+        onClick={toggle}
+        disabled={loading}
+        title={subscribed ? 'ปิดการแจ้งเตือนออเดอร์' : 'เปิดรับแจ้งเตือนออเดอร์ใหม่'}
+        className={[
+          'p-2 rounded-lg transition-all disabled:opacity-50',
+          subscribed
+            ? 'text-[#a78bfa] bg-[rgba(139,92,246,0.15)] hover:bg-[rgba(139,92,246,0.25)]'
+            : 'text-[#475569] hover:text-white hover:bg-[rgba(255,255,255,0.07)]',
+        ].join(' ')}
+      >
+        {subscribed ? <BsBellFill size={17} /> : <BsBell size={17} />}
+      </button>
+
+      {subscribed && (
+        <button
+          onClick={sendTest}
+          disabled={testing}
+          title="ส่งแจ้งเตือนทดสอบ"
+          className="p-2 rounded-lg transition-all disabled:opacity-50 text-[#475569] hover:text-[#a78bfa] hover:bg-[rgba(139,92,246,0.15)]"
+        >
+          <BsSendCheck size={15} />
+        </button>
+      )}
+    </div>
   );
 }
