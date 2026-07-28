@@ -525,3 +525,157 @@ body {
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:rgba(139,92,246,0.25); border-radius:2px; }
 ::-webkit-scrollbar-thumb:hover { background:rgba(139,92,246,0.45); }
+
+/* ─── Pastel Glass public theme (pg-) ────────────────── */
+.pastel-layout {
+  background:
+    linear-gradient(135deg,
+      #E8D5F2 0%,
+      #C9B1E8 28%,
+      #B5D4E8 52%,
+      #F5C6D0 78%,
+      #F8D5C2 100%);
+  background-attachment: fixed;
+  color: #2D1B4E;
+}
+
+/* Glass variants */
+.pg-glass {
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.42);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(91,58,140,0.08), inset 0 1px 0 rgba(255,255,255,0.55);
+}
+.pg-glass-strong {
+  background: rgba(255,255,255,0.32);
+  backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255,255,255,0.52);
+  border-radius: 24px;
+  box-shadow: 0 12px 40px rgba(91,58,140,0.10), inset 0 1px 0 rgba(255,255,255,0.6);
+  overflow: hidden;
+}
+
+/* Nav */
+.pg-nav {
+  background: rgba(255,255,255,0.28);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.46);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(91,58,140,0.08);
+  transition: background .25s ease, box-shadow .25s ease;
+}
+.pg-nav-scrolled {
+  background: rgba(255,255,255,0.42);
+  box-shadow: 0 8px 36px rgba(91,58,140,0.13);
+}
+.pg-nav-link {
+  color: #4A3B63; font-size: 0.9375rem; font-weight: 500;
+  text-decoration: none; padding: 7px 16px; border-radius: 9999px;
+  transition: background .15s ease, color .15s ease;
+}
+.pg-nav-link:hover   { background: rgba(255,255,255,0.38); color: #2D1B4E; }
+.pg-nav-link-active  { background: rgba(255,255,255,0.50); color: #2D1B4E; font-weight: 600; }
+
+/* Buttons */
+.pg-btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(90deg, #C9B1E8, #F5C6D0);
+  color: #2D1B4E; border: 0; border-radius: 14px;
+  font-weight: 600; font-size: 0.9375rem;
+  cursor: pointer; text-decoration: none;
+  box-shadow: 0 6px 20px rgba(201,177,232,0.40);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.pg-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(201,177,232,0.52); }
+
+.pg-btn-outline {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.30); color: #2D1B4E;
+  border: 1px solid rgba(255,255,255,0.55); border-radius: 14px;
+  font-weight: 600; font-size: 0.9375rem;
+  cursor: pointer; text-decoration: none;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  transition: background .15s ease;
+}
+.pg-btn-outline:hover { background: rgba(255,255,255,0.48); }
+
+/* Labels */
+.pg-label {
+  font-size: 0.65rem; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase; color: #8B7A9E;
+}
+
+/* Feature pastel fills */
+.pg-card-purple { background: rgba(201,177,232,0.38); border-radius: 20px; border: 1px solid rgba(255,255,255,0.45); }
+.pg-card-pink   { background: rgba(245,198,208,0.38); border-radius: 20px; border: 1px solid rgba(255,255,255,0.45); }
+.pg-card-mint   { background: rgba(184,224,210,0.38); border-radius: 20px; border: 1px solid rgba(255,255,255,0.45); }
+.pg-card-peach  { background: rgba(248,213,194,0.38); border-radius: 20px; border: 1px solid rgba(255,255,255,0.45); }
+.pg-card-blue   { background: rgba(181,212,232,0.38); border-radius: 20px; border: 1px solid rgba(255,255,255,0.45); }
+
+/* Stat, platform, blog cards */
+.pg-stat {
+  background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.40); border-radius: 20px;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+.pg-platform-card {
+  background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.40); border-radius: 20px;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  transition: background .18s ease, transform .18s ease;
+}
+.pg-platform-card:hover { background: rgba(255,255,255,0.36); transform: translateY(-3px); }
+
+.pg-blog-card {
+  background: rgba(255,255,255,0.28); border: 1px solid rgba(255,255,255,0.45); border-radius: 20px;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  text-decoration: none; display: block;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.pg-blog-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(91,58,140,0.12); }
+
+/* Pricing */
+.pg-pricing {
+  background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.40); border-radius: 20px;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); overflow: hidden;
+}
+.pg-pricing-col-highlight { background: rgba(201,177,232,0.18); }
+.pg-pricing-popular-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(201,177,232,0.35); border: 1px solid rgba(201,177,232,0.60);
+  border-radius: 9999px; color: #6D3BAF;
+  font-size: 0.625rem; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase;
+}
+
+/* FAQ */
+.pg-faq-wrap {
+  background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.40); border-radius: 20px;
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); overflow: hidden;
+}
+.pg-faq-item  { border-bottom: 1px solid rgba(255,255,255,0.30); }
+.pg-faq-item:last-child { border-bottom: 0; }
+
+/* Footer */
+.pg-footer {
+  background: rgba(255,255,255,0.15);
+  border-top: 1px solid rgba(255,255,255,0.30);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+}
+
+/* Text gradient */
+.pg-text-gradient {
+  background: linear-gradient(120deg, #9B6DD5 0%, #E88FAA 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Orbs */
+@keyframes pg-float { 0%,100%{ transform:translateY(0) scale(1); } 50%{ transform:translateY(-22px) scale(1.06); } }
+@keyframes pg-drift { 0%,100%{ transform:translate(0,0); } 33%{ transform:translate(16px,-14px); } 66%{ transform:translate(-12px,10px); } }
+.pg-orb-a { animation: pg-float 14s ease-in-out infinite; }
+.pg-orb-b { animation: pg-drift 20s ease-in-out infinite; }
+.pg-orb-c { animation: pg-float 18s ease-in-out infinite reverse; }
+.pg-orb-d { animation: pg-drift 25s ease-in-out infinite reverse; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-orb-a,.pg-orb-b,.pg-orb-c,.pg-orb-d { animation: none !important; }
+}

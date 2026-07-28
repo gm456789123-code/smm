@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import db from '@/lib/db';
@@ -12,10 +12,10 @@ async function getBrand() {
     );
     const s = Object.fromEntries(rows.map((r) => [r.setting_key, r.setting_value]));
     return {
-      name: s.brand_name ?? 'AURA SMM',
-      tagline: s.brand_tagline ?? '',
-      desc: s.brand_desc ?? '',
-      logoUrl: s.logo_url || '/logo.png',
+      name:     s.brand_name    ?? 'AURA SMM',
+      tagline:  s.brand_tagline ?? '',
+      desc:     s.brand_desc    ?? '',
+      logoUrl:  s.logo_url      || '/logo.png',
     };
   } catch {
     return { name: 'AURA SMM', tagline: '', desc: '', logoUrl: '/logo.png' };
@@ -34,30 +34,36 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const { name } = await getBrand();
-  const brandParts = name.trim().split(/\s+/).filter(Boolean);
-  const brandFirst = brandParts[0] || 'AURA';
-  const brandRest = brandParts.slice(1).join(' ');
+  const parts      = name.trim().split(/\s+/).filter(Boolean);
+  const brandFirst = parts[0] || 'AURA';
+  const brandRest  = parts.slice(1).join(' ');
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="pastel-layout min-h-screen flex flex-col">
       <Navbar brandName={name} logoUrl="/logo.png" />
-      <main className="flex-1 pt-16">{children}</main>
-      <footer className="border-t border-[rgba(139,92,246,0.10)] py-10">
+      {/* pt-24 accounts for floating nav (16px top offset + 56px height + gap) */}
+      <main className="flex-1 pt-24">{children}</main>
+      <footer className="pg-footer py-10">
         <div className="max-w-5xl mx-auto px-5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
-              <p className="font-[family-name:var(--font-jakarta)] font-extrabold text-sm">
-                <span className="text-gradient-animated">{brandFirst}</span>
-                {brandRest ? <span className="text-white"> {brandRest}</span> : null}
+              <p className="font-bold text-sm">
+                <span className="pg-text-gradient">{brandFirst}</span>
+                {brandRest ? <span className="text-[#2D1B4E]"> {brandRest}</span> : null}
               </p>
-              <p className="text-xs text-[#94A3B8] mt-1">© {new Date().getFullYear()} {name} · Developed by <span className="text-[#C4B5FD]">Saint</span></p>
+              <p className="text-xs text-[#8B7A9E] mt-1">
+                © {new Date().getFullYear()} {name} · Developed by <span className="text-[#9B6DD5]">Saint</span>
+              </p>
             </div>
-            <nav className="flex items-center gap-4 text-xs text-[#CBD5E1]">
-              <Link href="/blog" className="hover:text-white transition-colors">Blog</Link>
-              <Link href="/#services" className="hover:text-white transition-colors">Services</Link>
-              <Link href="/#pricing" className="hover:text-white transition-colors">Pricing</Link>
-              <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
-              <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-              <Link href="/register" className="text-[#C4B5FD] hover:text-white transition-colors">Register</Link>
+            <nav className="flex items-center flex-wrap justify-center gap-5 text-sm text-[#4A3B63]">
+              <Link href="/blog"      className="hover:text-[#2D1B4E] transition-colors">Blog</Link>
+              <Link href="/#services" className="hover:text-[#2D1B4E] transition-colors">Services</Link>
+              <Link href="/#pricing"  className="hover:text-[#2D1B4E] transition-colors">Pricing</Link>
+              <Link href="/terms"     className="hover:text-[#2D1B4E] transition-colors">Terms</Link>
+              <Link href="/privacy"   className="hover:text-[#2D1B4E] transition-colors">Privacy</Link>
+              <Link href="/register"  className="text-[#9B6DD5] hover:text-[#2D1B4E] transition-colors font-semibold">
+                Register
+              </Link>
             </nav>
           </div>
         </div>
