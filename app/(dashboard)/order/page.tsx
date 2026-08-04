@@ -84,6 +84,8 @@ export default function OrderPage() {
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Drip-feed
+  const [category,   setCategory] = useState('');
+
   const [dripFeed, setDripFeed]   = useState(false);
   const [runs,     setRuns]       = useState('2');
   const [dripInterval, setDripInterval] = useState('60');
@@ -149,20 +151,31 @@ export default function OrderPage() {
 
   const tr = (text: string) => trMap.get(text) ?? text;
 
-  const filtered = useMemo(() => {
+  const platformFiltered = useMemo(() => {
     const p = PLATFORMS.find(p => p.label === platform) ?? PLATFORMS[0];
-    return services.filter(s => {
-      const okPlatform = p.match(s.category);
+    return services.filter(s => p.match(s.category));
+  }, [services, platform]);
+
+  const categories = useMemo(() => {
+    const seen = new Set<string>();
+    for (const s of platformFiltered) if (s.category) seen.add(s.category);
+    return [...seen].sort((a, b) => a.localeCompare(b, 'th'));
+  }, [platformFiltered]);
+
+  const filtered = useMemo(() => {
+    return platformFiltered.filter(s => {
+      const okCategory = !category || s.category === category;
       const okSearch   = !search || s.name.toLowerCase().includes(search.toLowerCase())
         || String(s.service).includes(search);
-      return okPlatform && okSearch;
+      return okCategory && okSearch;
     });
-  }, [services, platform, search]);
+  }, [platformFiltered, category, search]);
 
   const displayed = filtered.slice(0, visible);
   const hasMore   = visible < filtered.length;
 
-  useEffect(() => { setVisible(PAGE_SIZE); setSelected(null); setShowModal(false); }, [platform, search]);
+  useEffect(() => { setCategory(''); setVisible(PAGE_SIZE); setSelected(null); setShowModal(false); }, [platform]);
+  useEffect(() => { setVisible(PAGE_SIZE); setSelected(null); setShowModal(false); }, [search, category]);
   useEffect(() => { setQty(''); setMsg(null); setDripFeed(false); setRuns('2'); setDripInterval('60'); }, [selected]);
 
   const loadMore = useCallback(() => setVisible(v => v + PAGE_SIZE), []);
@@ -489,10 +502,24 @@ export default function OrderPage() {
 
         {/* Service list panel */}
         <div className="glass flex flex-col lg:w-[720px] xl:w-[800px] shrink-0 overflow-hidden">
-          <div className="p-3 border-b border-[rgba(139,92,246,0.10)]">
+          <div className="p-3 border-b border-[rgba(139,92,246,0.10)] flex flex-col gap-2">
             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder={trUI.searchPlaceholder}
               className="w-full glass px-4 py-3 text-base text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] transition-colors" />
+            {categories.length > 1 && (
+              <select
+                value={category}
+                onChange={e => setCategory(e.target.value)}
+                className="w-full glass px-4 py-2.5 text-sm text-[#F1F5F9] bg-[rgba(13,18,34,0.85)] outline-none rounded-xl border border-[rgba(139,92,246,0.15)] focus:border-[rgba(139,92,246,0.45)] transition-colors cursor-pointer"
+              >
+                <option value="" className="bg-[#0d1222]">
+                  {locale === 'zh' ? '— ทุกหมวดหมู่ —' : locale === 'en' ? '— All categories —' : '— ทุกหมวดหมู่ —'}
+                </option>
+                {categories.map(c => (
+                  <option key={c} value={c} className="bg-[#0d1222]">{tr(c)}</option>
+                ))}
+              </select>
+            )}
           </div>
           <div className="px-4 py-2 border-b border-[rgba(139,92,246,0.06)]">
             <span className="text-xs text-[#334155] uppercase tracking-widest">
