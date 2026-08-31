@@ -105,6 +105,14 @@ export async function POST(req: NextRequest) {
       // คืนเงินลูกค้าทันที
       await conn.query('UPDATE users SET balance = balance + ? WHERE id = ?', [costThb, user.userId]);
       await conn.commit();
+
+      sendAdminPush({
+        title: '🚨 SMM API ขัดข้อง (Order Failed)',
+        body: `[${provider.toUpperCase()}] ${service.name} ส่งไม่สำเร็จ: ${apiError.slice(0, 80)} (คืนเงินแล้ว)`,
+        url: '/admin/orders',
+        tag: 'order-api-error',
+      }).catch(() => {});
+
       return NextResponse.json({
         error: 'ขณะนี้บริการนี้ไม่พร้อมใช้งานชั่วคราว กรุณาลองใหม่ภายหลัง',
       }, { status: 503 });
@@ -131,8 +139,8 @@ export async function POST(req: NextRequest) {
     await conn.commit();
 
     sendAdminPush({
-      title: '📦 ออเดอร์ใหม่ — pending',
-      body: `[${provider.toUpperCase()}] ${service.name} · ฿${costThb} · ${quantity.toLocaleString()} pcs`,
+      title: '📦 ออเดอร์ใหม่',
+      body: `ผู้ใช้ ${user.username} สั่ง [${provider.toUpperCase()}] ${service.name} · ฿${costThb} (${quantity.toLocaleString()} ชิ้น)`,
       url: '/admin/orders',
       tag: `order-${smmOrderId}`,
     }).catch(() => {});

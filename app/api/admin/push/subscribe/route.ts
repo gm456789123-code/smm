@@ -10,14 +10,15 @@ async function adminOnly(req: NextRequest) {
 export async function GET(req: NextRequest) {
   if (!await adminOnly(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
+  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || '';
   const endpoint = req.nextUrl.searchParams.get('endpoint');
-  if (!endpoint) return NextResponse.json({ subscribed: false });
+  if (!endpoint) return NextResponse.json({ subscribed: false, vapidPublicKey });
 
   const [rows] = await db.query<any[]>(
     'SELECT id FROM push_subscriptions WHERE endpoint = ? LIMIT 1',
     [endpoint],
   );
-  return NextResponse.json({ subscribed: rows.length > 0 });
+  return NextResponse.json({ subscribed: rows.length > 0, vapidPublicKey });
 }
 
 export async function POST(req: NextRequest) {

@@ -5,9 +5,11 @@ self.addEventListener('push', (event) => {
       body: data.body ?? '',
       icon: '/icon.png',
       badge: '/icon.png',
-      tag: data.tag ?? 'order',
+      tag: data.tag ?? `notification-${Date.now()}`,
       renotify: true,
-      data: { url: data.url ?? '/admin/orders' },
+      vibrate: [200, 100, 200],
+      timestamp: Date.now(),
+      data: { url: data.url ?? '/admin' },
     })
   );
 });

@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import stripe from '@/lib/stripe';
 import { creditTopupAtomic } from '@/lib/credit-topup';
+import { sendAdminPush } from '@/lib/push';
 
 export const runtime = 'nodejs';
 
@@ -45,6 +46,13 @@ export async function POST(request: Request) {
     if (result.status === 'duplicate') {
       return Response.json({ received: true, duplicate: true });
     }
+
+    sendAdminPush({
+      title: '💳 เงินเข้าใหม่ (บัตรเครดิต/Stripe)',
+      body: `ผู้ใช้ ID #${userId} เติมเงิน ฿${amountThb.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`,
+      url: '/admin/topups',
+      tag: `topup-stripe-${intent.id}`,
+    }).catch(() => {});
 
     console.log(`Top-up completed: user ${userId} +THB ${amountThb} (${intent.id})`);
   }

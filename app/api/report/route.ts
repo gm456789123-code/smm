@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import db from '@/lib/db';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { sendAdminPush } from '@/lib/push';
 
 export async function POST(req: NextRequest) {
   const user = await getRequestUser(req);
@@ -23,6 +24,13 @@ export async function POST(req: NextRequest) {
      VALUES (?, ?, ?, ?, 'open')`,
     [user.userId, category, orderId?.trim() || null, detail.trim()]
   );
+
+  sendAdminPush({
+    title: '🎫 มี Ticket แจ้งปัญหาใหม่',
+    body: `[${category}] จากคุณ ${user.username}: ${detail.trim().slice(0, 80)}`,
+    url: '/admin/tickets',
+    tag: 'ticket-new',
+  }).catch(() => {});
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

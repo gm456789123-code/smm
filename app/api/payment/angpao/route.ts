@@ -4,6 +4,7 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { TmnVoucherClient } from '@prakrit_m/tmn-voucher';
 import { sendAngpaoPendingAdminEmail } from '@/lib/email';
 import { creditTopupAtomic, insertPendingTx } from '@/lib/credit-topup';
+import { sendAdminPush } from '@/lib/push';
 
 const voucherClient = new TmnVoucherClient();
 const PHONE = process.env.TRUEMONEY_REDEEM_PHONE ?? '';
@@ -95,6 +96,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: credit.message }, { status: 500 });
     }
 
+    sendAdminPush({
+      title: '🧧 เงินเข้าใหม่ (ซองอั้งเปา)',
+      body: `ผู้ใช้ ${user.username} เติมเงินผ่านซองอั้งเปา ฿${amountBaht.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`,
+      url: '/admin/topups',
+      tag: `topup-angpao-${code}`,
+    }).catch(() => {});
+
     return NextResponse.json({ success: true, amount: amountBaht, ref: code });
   }
 
@@ -116,6 +124,13 @@ export async function POST(req: NextRequest) {
     if (pending.status === 'error') {
       return NextResponse.json({ error: pending.message }, { status: 500 });
     }
+
+    sendAdminPush({
+      title: '⚠️ มีซองอั้งเปารอตรวจสอบ',
+      body: `ผู้ใช้ ${user.username} ส่งซอง ${code} รอแอดมินแลก`,
+      url: '/admin/angpao',
+      tag: `angpao-pending-${code}`,
+    }).catch(() => {});
 
     if (ADMIN_EMAIL) {
       sendAngpaoPendingAdminEmail(ADMIN_EMAIL, user.username, code).catch(() => {});

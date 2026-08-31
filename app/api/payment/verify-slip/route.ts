@@ -4,6 +4,7 @@ import { verifyBankSlip, verifyTrueWallet } from '@/lib/easyslip';
 import { creditTopupAtomic } from '@/lib/credit-topup';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { sendTopupEmail } from '@/lib/email';
+import { sendAdminPush } from '@/lib/push';
 
 const ERROR_MSG: Record<string, string> = {
   SLIP_NOT_FOUND:        'ไม่พบข้อมูลสลิป กรุณาถ่ายภาพให้ชัดขึ้น',
@@ -124,6 +125,13 @@ export async function POST(req: NextRequest) {
   if (user.email) {
     sendTopupEmail(user.email, user.username, amountThb, ref).catch(() => {});
   }
+
+  sendAdminPush({
+    title: '💰 เงินเข้าใหม่ (สลิปโอนเงิน)',
+    body: `ผู้ใช้ ${user.username} เติมเงิน ฿${amountThb.toLocaleString('th-TH', { minimumFractionDigits: 2 })} (${senderName})`,
+    url: '/admin/topups',
+    tag: `topup-slip-${ref}`,
+  }).catch(() => {});
 
   return NextResponse.json({ success: true, amount: amountThb, ref, senderName });
 }

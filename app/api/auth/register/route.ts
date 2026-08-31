@@ -4,6 +4,7 @@ import db from '@/lib/db';
 import { generateReferralCode, hashPassword, setAuthCookie } from '@/lib/auth';
 import { signToken } from '@/lib/jwt';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { sendAdminPush } from '@/lib/push';
 
 interface RegisterBody {
   username: string;
@@ -97,6 +98,13 @@ export async function POST(req: NextRequest) {
 
     const userId = result.insertId;
     const jwtToken = await signToken({ userId, username, email, role: 'user', emailVerified: true });
+
+    sendAdminPush({
+      title: '👤 มีสมาชิกใหม่ลงทะเบียน',
+      body: `ยินดีต้อนรับคุณ ${username} (${email})`,
+      url: '/admin/users',
+      tag: `user-register-${userId}`,
+    }).catch(() => {});
 
     const res = NextResponse.json({ message: 'Registration successful.' }, { status: 201 });
     setAuthCookie(res, jwtToken);

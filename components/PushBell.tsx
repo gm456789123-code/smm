@@ -24,13 +24,14 @@ const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? '';
 
 export default function PushBell() {
   const [state, setState] = useState<State>('checking');
+  const [vapidKey, setVapidKey] = useState<string>(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? '');
   const [msg, setMsg] = useState('');
   const msgTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function flash(text: string) {
+  function flash(text: string, duration = 4000) {
     setMsg(text);
     if (msgTimer.current) clearTimeout(msgTimer.current);
-    msgTimer.current = setTimeout(() => setMsg(''), 3000);
+    msgTimer.current = setTimeout(() => setMsg(''), duration);
   }
 
   useEffect(() => {
@@ -42,25 +43,38 @@ export default function PushBell() {
       return;
     }
 
-    // 2. VAPID key baked into bundle
-    if (!VAPID_KEY) {
-      setState('no-vapid');
-      return;
-    }
-
-    // 3. permission already denied
+    // 2. notification permission denied
     if (Notification.permission === 'denied') {
       setState('denied');
       return;
     }
 
-    // 4. check if already subscribed
-    navigator.serviceWorker
-      .register('/sw.js')
-      .then((reg) => navigator.serviceWorker.ready.then(() => reg))
-      .then((reg) => reg.pushManager.getSubscription())
-      .then((sub) => setState(sub ? 'subscribed' : 'idle'))
-      .catch(() => setState('idle'));
+    async function init() {
+      try {
+        let key = vapidKey;
+        // Dynamically fetch VAPID key from backend if not present
+        const res = await fetch('/api/admin/push/subscribe').then(r => r.json()).catch(() => null);
+        if (res?.vapidPublicKey) {
+          key = res.vapidPublicKey;
+          setVapidKey(key);
+        }
+
+        if (!key) {
+          setState('no-vapid');
+          return;
+        }
+
+        const reg = await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        setState(sub ? 'subscribed' : 'idle');
+      } catch (err) {
+        console.error('[PushBell] init:', err);
+        setState('idle');
+      }
+    }
+
+    init();
   }, []);
 
   // ── nothing to show ─────────────────────────────────────────────────────────
@@ -69,24 +83,51 @@ export default function PushBell() {
   // ── VAPID not configured (env var missing) ───────────────────────────────────
   if (state === 'no-vapid') {
     return (
-      <button
-        title="Push ยังไม่ได้ตั้งค่า — ขาด NEXT_PUBLIC_VAPID_PUBLIC_KEY"
-        className="p-2 rounded-lg text-yellow-500 cursor-not-allowed opacity-60"
-      >
-        <BsBellSlash size={17} />
-      </button>
+      <div className="relative flex items-center">
+        {msg && (
+          <span className="absolute right-full mr-2 whitespace-nowrap rounded-md bg-black/90 px-2.5 py-1 text-xs text-amber-300 border border-amber-500/30 shadow-xl z-50">
+            {msg}
+          </span>
+        )}
+        <button
+          onClick={async () => {
+            try {
+              const res = await fetch('/api/admin/push/subscribe').then((r) => r.json());
+              if (res?.vapidPublicKey) {
+                setVapidKey(res.vapidPublicKey);
+                setState('idle');
+                flash('ดึงกุญแจ VAPID สำเร็จแล้ว กดกระดิ่งอีกครั้งเพื่อเปิดรับแจ้งเตือน ✅');
+                return;
+              }
+            } catch {}
+            flash('ยังไม่ได้ตั้งค่า VAPID Keys ในเซิร์ฟเวอร์');
+          }}
+          title="VAPID ยังไม่พร้อม — คลิกเพื่อดึงกุญแจใหม่"
+          className="p-2 rounded-lg text-yellow-500 hover:text-yellow-400 hover:bg-yellow-500/10 transition-colors cursor-pointer"
+        >
+          <BsBellSlash size={17} />
+        </button>
+      </div>
     );
   }
 
   // ── notification permission denied ───────────────────────────────────────────
   if (state === 'denied') {
     return (
-      <button
-        title="เบราว์เซอร์บล็อกการแจ้งเตือน — แก้ในการตั้งค่าเบราว์เซอร์"
-        className="p-2 rounded-lg text-[#475569] cursor-not-allowed"
-      >
-        <BsBellSlash size={17} />
-      </button>
+      <div className="relative flex items-center">
+        {msg && (
+          <span className="absolute right-full mr-2 whitespace-nowrap rounded-md bg-black/90 px-2.5 py-1 text-xs text-red-300 border border-red-500/30 shadow-xl z-50">
+            {msg}
+          </span>
+        )}
+        <button
+          onClick={() => flash('⚠️ กรุณากดไอคอน 🔒 หรือ ⚙️ ที่แถบ Address bar ด้านบน แล้วเปลี่ยนการแจ้งเตือนเป็น "อนุญาต" (Allow)', 6000)}
+          title="เบราว์เซอร์บล็อกการแจ้งเตือน — คลิกเพื่อดูวิธีเปิด"
+          className="p-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-400/10 transition-colors cursor-pointer"
+        >
+          <BsBellSlash size={17} />
+        </button>
+      </div>
     );
   }
 
@@ -94,18 +135,34 @@ export default function PushBell() {
   async function subscribe() {
     setState('subscribing');
     try {
+      let key = vapidKey;
+      if (!key) {
+        const res = await fetch('/api/admin/push/subscribe').then((r) => r.json()).catch(() => null);
+        if (res?.vapidPublicKey) {
+          key = res.vapidPublicKey;
+          setVapidKey(key);
+        }
+      }
+
+      if (!key) {
+        flash('ไม่พบ VAPID Public Key');
+        setState('no-vapid');
+        return;
+      }
+
       const reg = await navigator.serviceWorker.register('/sw.js');
       await navigator.serviceWorker.ready;
 
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') {
         setState('denied');
+        flash('เบราว์เซอร์ไม่อนุญาตการแจ้งเตือน');
         return;
       }
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_KEY),
+        applicationServerKey: urlBase64ToUint8Array(key),
       });
 
       const res = await fetch('/api/admin/push/subscribe', {
