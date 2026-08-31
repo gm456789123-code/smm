@@ -108,6 +108,7 @@ export async function POST(req: NextRequest) {
     note,
     provider,
     referral: true,
+    bonus: true,
   });
 
   if (result.status === 'duplicate') {

@@ -36,6 +36,7 @@ export default function TopupPage() {
   const [accountNo, setAccountNo] = useState(process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? '');
   const [promptpay, setPromptpay] = useState(process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER ?? '');
   const [trueId, setTrueId] = useState(process.env.NEXT_PUBLIC_TRUEWALLET_ID ?? '');
+  const [bonusPct, setBonusPct] = useState(0);
 
   useEffect(() => {
     fetch('/api/public/settings')
@@ -46,6 +47,7 @@ export default function TopupPage() {
         if (data.bank_account_number) setAccountNo(data.bank_account_number);
         if (data.promptpay_number) setPromptpay(data.promptpay_number);
         if (data.truewallet_id) setTrueId(data.truewallet_id);
+        if (data.topup_bonus_pct) setBonusPct(Number(data.topup_bonus_pct) || 0);
       })
       .catch(() => {});
   }, []);
@@ -184,6 +186,14 @@ export default function TopupPage() {
         <p className="text-[#94A3B8] text-sm mt-0.5">เลือกช่องทางชำระเงินด้านล่าง</p>
       </div>
 
+      {bonusPct > 0 && (
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-amber-500/30 bg-amber-500/8">
+          <BsGift size={16} className="text-amber-400 shrink-0" />
+          <p className="text-sm text-amber-300">
+            รับโบนัสเพิ่ม <span className="font-bold">{bonusPct}%</span> ทุกยอดเติมเงิน (โอนธนาคาร/พร้อมเพย์/TrueMoney)
+          </p>
+        </div>
+      )}
 
       {/* Step 1: ช่องทาง */}
       <div className="glass p-5 space-y-3">
@@ -298,6 +308,11 @@ export default function TopupPage() {
                 <div>
                   <p className="text-xs text-[#94A3B8]">ยอดที่เลือก</p>
                   <p className="text-xl font-bold text-white font-mono">฿{finalAmount!.toLocaleString()}</p>
+                  {bonusPct > 0 && (
+                    <p className="text-[11px] text-amber-400 font-medium mt-0.5">
+                      + โบนัส ฿{(Math.round(finalAmount! * bonusPct) / 100).toLocaleString()}
+                    </p>
+                  )}
                 </div>
                 <button type="button" onClick={resetAmount}
                   className="flex items-center gap-1.5 text-xs text-[#a78bfa] hover:text-white transition-colors px-3 py-1.5 rounded-lg border border-[rgba(139,92,246,0.25)] hover:bg-[rgba(139,92,246,0.12)]">

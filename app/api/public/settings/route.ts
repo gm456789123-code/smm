@@ -9,6 +9,7 @@ const PUBLIC_KEYS = new Set([
   'telegram_url', 'telegram_active',
   'discord_url',  'discord_active',
   'promptpay_number', 'bank_name', 'bank_account_name', 'bank_account_number', 'truewallet_id',
+  'topup_bonus_pct',
 ]);
 
 export const dynamic = 'force-dynamic';

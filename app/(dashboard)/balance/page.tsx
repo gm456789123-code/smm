@@ -6,6 +6,11 @@ import Link from 'next/link';
 interface Summary { balance: number; total_topup: number; total_spent: number; tx_count: number; }
 interface Tx { id: number; tx_type: string; amount: number; tx_status: string; created_at: string; }
 
+const CREDIT_TYPES = new Set(['topup', 'referral', 'bonus']);
+const TX_LABELS: Record<string, string> = {
+  topup: 'เติมเงิน', spend: 'ใช้จ่าย', referral: 'ค่าคอมมิชชั่น', bonus: 'โบนัสเติมเงิน',
+};
+
 export default function BalancePage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [txs, setTxs]         = useState<Tx[]>([]);
@@ -58,17 +63,17 @@ export default function BalancePage() {
           ) : txs.map(t => (
             <div key={t.id} className="glass-tab flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${t.tx_type === 'topup' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                  {t.tx_type === 'topup' ? '↓' : '↑'}
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm ${CREDIT_TYPES.has(t.tx_type) ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                  {CREDIT_TYPES.has(t.tx_type) ? '↓' : '↑'}
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[#F1F5F9]">{t.tx_type === 'topup' ? 'เติมเงิน' : 'ใช้จ่าย'}</p>
+                  <p className="text-sm font-medium text-[#F1F5F9]">{TX_LABELS[t.tx_type] ?? t.tx_type}</p>
                   <p className="text-xs text-[#94A3B8]">{new Date(t.created_at).toLocaleDateString('th-TH')}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className={`font-mono font-semibold ${t.tx_type === 'topup' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                  {t.tx_type === 'topup' ? '+' : '-'}฿{Number(t.amount).toLocaleString()}
+                <p className={`font-mono font-semibold ${CREDIT_TYPES.has(t.tx_type) ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {CREDIT_TYPES.has(t.tx_type) ? '+' : '-'}฿{Number(t.amount).toLocaleString()}
                 </p>
                 <span className={`text-[10px] ${t.tx_status === 'completed' ? 'text-emerald-500' : 'text-amber-500'}`}>{t.tx_status}</span>
               </div>

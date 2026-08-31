@@ -34,6 +34,8 @@ export async function creditTopupAtomic(opts: {
   provider?: string | null;
   /** Pay referral commission using a separate unique ref: referral:{ref} */
   referral?: boolean;
+  /** Credit topup bonus (topup_bonus_pct setting) using a separate unique ref: bonus:{ref} */
+  bonus?: boolean;
   /**
    * If a pending row already holds this ref (e.g. angpao hold),
    * upgrade it to completed and credit instead of failing as duplicate.
@@ -88,6 +90,9 @@ export async function creditTopupAtomic(opts: {
         if (opts.referral) {
           await applyReferralCommission(conn, opts.userId, amount, ref);
         }
+        if (opts.bonus) {
+          await applyTopupBonus(conn, opts.userId, amount, ref);
+        }
 
         await conn.commit();
         return { status: 'credited' };
@@ -124,6 +129,9 @@ export async function creditTopupAtomic(opts: {
 
     if (opts.referral) {
       await applyReferralCommission(conn, opts.userId, amount, ref);
+    }
+    if (opts.bonus) {
+      await applyTopupBonus(conn, opts.userId, amount, ref);
     }
 
     await conn.commit();
@@ -162,6 +170,35 @@ export async function insertPendingTx(opts: {
     if (isDuplicateKeyError(err)) return { status: 'duplicate' };
     console.error('[insertPendingTx]', err);
     return { status: 'error', message: 'DB error' };
+  }
+}
+
+async function applyTopupBonus(
+  conn: PoolConnection,
+  userId: number,
+  amountThb: number,
+  topupRef: string
+) {
+  const [settingRows] = await conn.query<RowDataPacket[]>(
+    "SELECT setting_value FROM site_settings WHERE setting_key = 'topup_bonus_pct'"
+  );
+  const pct = Number(settingRows[0]?.setting_value ?? 0);
+  const bonus = Math.round(amountThb * pct) / 100;
+  if (!(bonus > 0)) return;
+
+  // Separate unique ref so topup + bonus can both exist under UNIQUE(ref)
+  const bonusRef = `bonus:${topupRef}`;
+  try {
+    await conn.query(
+      `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note)
+       VALUES (?, 'bonus', ?, ?, 'completed', ?)`,
+      [userId, bonus, bonusRef, `โบนัสเติมเงิน ${pct}% จาก topup ฿${amountThb}`]
+    );
+    await conn.query('UPDATE users SET balance = balance + ? WHERE id = ?', [bonus, userId]);
+  } catch (err) {
+    // Already paid for this topup — safe to ignore under concurrent retries
+    if (isDuplicateKeyError(err)) return;
+    throw err;
   }
 }
 

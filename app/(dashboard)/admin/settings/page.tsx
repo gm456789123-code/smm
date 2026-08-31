@@ -19,6 +19,7 @@ const SETTING_LABELS: Record<string, string> = {
   announcement_active: 'แสดงป็อปอัพแจ้งเตือนหลังล็อกอิน (1 = เปิด, 0 = ปิด)',
   announcement_text:   'ข้อความแจ้งเตือน (เช่น แจ้งปัญหาระบบ)',
   referral_commission_pct: 'Commission Referral (%)',
+  topup_bonus_pct: 'โบนัสเติมเงิน (% ของยอดเติม — โอนธนาคาร/PromptPay และ TrueMoney Angpao เท่านั้น, 0 = ปิด)',
 };
 
 const PAYMENT_SETTINGS = [
@@ -64,6 +65,7 @@ export default function AdminSettingsPage() {
     announcement_active:     '0',
     announcement_text:       '',
     referral_commission_pct: '5',
+    topup_bonus_pct: '0',
     line_active:     '0', facebook_active: '0',
     telegram_active: '0', discord_active:  '0',
     promptpay_number: '', bank_name: '', bank_account_name: '',

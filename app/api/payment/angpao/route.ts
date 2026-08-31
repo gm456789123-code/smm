@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
       provider: 'angpao',
       // If earlier attempt stored a pending hold, upgrade it instead of double-ref
       completeIfPending: true,
+      bonus: true,
     });
 
     if (credit.status === 'duplicate') {
