@@ -16,8 +16,8 @@ const SETTING_LABELS: Record<string, string> = {
   stat_users:    'จำนวนลูกค้า (แสดงหน้าแรก)',
   stat_platforms:'จำนวนแพลตฟอร์ม',
   stat_uptime:   'Uptime',
-  announcement_active: 'แสดง Announcement Banner (1 = เปิด, 0 = ปิด)',
-  announcement_text:   'ข้อความ Announcement',
+  announcement_active: 'แสดงป็อปอัพแจ้งเตือนหลังล็อกอิน (1 = เปิด, 0 = ปิด)',
+  announcement_text:   'ข้อความแจ้งเตือน (เช่น แจ้งปัญหาระบบ)',
   referral_commission_pct: 'Commission Referral (%)',
 };
 
