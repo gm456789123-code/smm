@@ -50,30 +50,6 @@ export async function POST(req: NextRequest) {
       }
       const { rawSlip, amountInSlip, isDuplicate: dup, matchedAccount } = result.data;
 
-      const twDigits = paymentSettings.truewalletId.replace(/\D/g, '');
-      const twLast4 = twDigits.slice(-4);
-      const receiverPhone = rawSlip.receiver?.phone ?? '';
-      const receiverPhoneDigits = receiverPhone.replace(/\D/g, '');
-
-      let isOurTW = false;
-      if (matchedAccount) {
-        isOurTW = true;
-      } else if (twLast4 && (
-        (receiverPhoneDigits && receiverPhoneDigits.endsWith(twLast4)) ||
-        (receiverPhone && receiverPhone.includes(twLast4))
-      )) {
-        isOurTW = true;
-      } else if (!twLast4) {
-        // No TrueMoney number configured in settings — accept valid slip
-        isOurTW = true;
-      }
-
-      if (!isOurTW) {
-        return NextResponse.json({
-          error: 'สลิป TrueMoney ไม่ได้โอนมายังบัญชีของเรา กรุณาตรวจสอบเบอร์ปลายทาง',
-        }, { status: 422 });
-      }
-
       ref = rawSlip.transactionId;
       amountThb = amountInSlip;
       senderName = rawSlip.sender.name;
@@ -86,60 +62,7 @@ export async function POST(req: NextRequest) {
         const code = result.error?.code ?? 'UNKNOWN';
         return NextResponse.json({ error: ERROR_MSG[code] ?? 'Invalid bank slip.' }, { status: 422 });
       }
-      const { rawSlip, amountInSlip, isDuplicate: dup, matchedAccount } = result.data;
-
-      const ppDigits = paymentSettings.promptpayNumber.replace(/\D/g, '');
-      const bankDigits = paymentSettings.bankAccountNumber.replace(/\D/g, '');
-      const ppLast4 = ppDigits.slice(-4);
-      const bankLast4 = bankDigits.slice(-4);
-
-      const proxyAccount = rawSlip.receiver?.account?.proxy?.account ?? '';
-      const proxyDigits = proxyAccount.replace(/\D/g, '');
-      const receiverBankAcc = rawSlip.receiver?.account?.bank?.account ?? '';
-      const receiverBankDigits = receiverBankAcc.replace(/\D/g, '');
-      const receiverNameTh = rawSlip.receiver?.account?.name?.th ?? '';
-      const receiverNameEn = rawSlip.receiver?.account?.name?.en ?? '';
-
-      let isOurAccount = false;
-
-      // 1. EasySlip built-in matchedAccount verification
-      if (matchedAccount) {
-        isOurAccount = true;
-      }
-      // 2. Match PromptPay last 4 digits
-      else if (ppLast4 && (
-        (proxyDigits && (proxyDigits.endsWith(ppLast4) || proxyDigits === ppDigits)) ||
-        (proxyAccount && proxyAccount.includes(ppLast4)) ||
-        (receiverBankDigits && receiverBankDigits.endsWith(ppLast4)) ||
-        (receiverBankAcc && receiverBankAcc.includes(ppLast4))
-      )) {
-        isOurAccount = true;
-      }
-      // 3. Match Bank Account last 4 digits
-      else if (bankLast4 && (
-        (receiverBankDigits && (receiverBankDigits.endsWith(bankLast4) || receiverBankDigits === bankDigits)) ||
-        (receiverBankAcc && receiverBankAcc.includes(bankLast4)) ||
-        (proxyDigits && proxyDigits.endsWith(bankLast4))
-      )) {
-        isOurAccount = true;
-      }
-      // 4. Match Bank Account Name if configured
-      else if (paymentSettings.bankAccountName && paymentSettings.bankAccountName !== 'ชื่อบัญชี' && (
-        (receiverNameTh && receiverNameTh.includes(paymentSettings.bankAccountName)) ||
-        (receiverNameEn && receiverNameEn.toLowerCase().includes(paymentSettings.bankAccountName.toLowerCase()))
-      )) {
-        isOurAccount = true;
-      }
-      // 5. If no specific bank/promptpay restriction is configured in settings, accept valid EasySlip slip
-      else if (!ppLast4 && !bankLast4 && (!paymentSettings.bankAccountName || paymentSettings.bankAccountName === 'ชื่อบัญชี')) {
-        isOurAccount = true;
-      }
-
-      if (!isOurAccount) {
-        return NextResponse.json({
-          error: 'สลิปไม่ได้โอนมายังบัญชีของเรา กรุณาตรวจสอบบัญชีปลายทาง หรือแจ้งแอดมิน',
-        }, { status: 422 });
-      }
+      const { rawSlip, amountInSlip, isDuplicate: dup } = result.data;
 
       ref = rawSlip.transRef;
       amountThb = amountInSlip;
