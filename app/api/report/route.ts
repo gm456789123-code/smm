@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import db from '@/lib/db';
+import { RowDataPacket } from 'mysql2';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { sendAdminPush } from '@/lib/push';
+
+export async function GET(req: NextRequest) {
+  const user = await getRequestUser(req);
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const [rows] = await db.query<RowDataPacket[]>(
+    `SELECT id, category, order_ref, detail, ticket_status, admin_note, created_at, updated_at
+     FROM support_tickets
+     WHERE user_id = ?
+     ORDER BY created_at DESC
+     LIMIT 50`,
+    [user.userId]
+  );
+  return NextResponse.json(rows);
+}
 
 export async function POST(req: NextRequest) {
   const user = await getRequestUser(req);
