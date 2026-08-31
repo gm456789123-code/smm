@@ -151,6 +151,18 @@ export default function AdminTicketsPage() {
                           <label className="text-[10px] text-[#94A3B8] uppercase tracking-widest block mb-1.5">รายละเอียดเต็ม</label>
                           <p className="text-sm text-[#CBD5E1] whitespace-pre-wrap glass p-3 rounded-xl">{t.detail}</p>
                         </div>
+                        {t.attachment_url && (
+                          <div>
+                            <label className="text-[10px] text-[#94A3B8] uppercase tracking-widest block mb-1.5">ไฟล์แนบ</label>
+                            <a href={t.attachment_url} target="_blank" rel="noopener noreferrer" className="block w-fit">
+                              <img
+                                src={t.attachment_url}
+                                alt="ไฟล์แนบจากผู้ใช้"
+                                className="max-h-48 rounded-xl border border-[rgba(139,92,246,0.2)] hover:opacity-80 transition-opacity"
+                              />
+                            </a>
+                          </div>
+                        )}
                         <div>
                           <label className="text-[10px] text-[#94A3B8] uppercase tracking-widest block mb-1.5">สถานะ</label>
                           <select
