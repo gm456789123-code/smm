@@ -127,6 +127,7 @@ CREATE TABLE IF NOT EXISTS support_tickets (
   category      VARCHAR(100)  NOT NULL,
   order_ref     VARCHAR(50)   DEFAULT NULL,
   detail        TEXT          NOT NULL,
+  attachment_url VARCHAR(255) DEFAULT NULL,
   ticket_status VARCHAR(20)   DEFAULT 'open',
   admin_note    TEXT          DEFAULT NULL,
   created_at    TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,

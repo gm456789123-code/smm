@@ -9,13 +9,28 @@ import { sendAdminPush } from '@/lib/push';
 import { getPaymentSettings } from '@/lib/payment-settings';
 
 const ERROR_MSG: Record<string, string> = {
-  SLIP_NOT_FOUND:        'ไม่พบข้อมูลสลิป กรุณาถ่ายภาพให้ชัดขึ้น',
+  SLIP_NOT_FOUND:        'ไม่พบข้อมูลสลิปหรือ QR Code กรุณาใช้ภาพที่คมชัดขึ้น',
+  slip_not_found:        'ไม่พบข้อมูลสลิปหรือ QR Code กรุณาใช้ภาพที่คมชัดขึ้น',
   SLIP_PENDING:          'สลิปอยู่ระหว่างประมวลผล กรุณารอสักครู่แล้วลองใหม่',
-  QUOTA_EXCEEDED:        'เกินโควต้าการตรวจสอบ กรุณาลองใหม่ภายหลัง',
-  INVALID_API_KEY:       'ระบบตรวจสลิปผิดพลาด กรุณาติดต่อแอดมิน',
+  slip_pending:          'สลิปอยู่ระหว่างประมวลผล กรุณารอสักครู่แล้วลองใหม่',
+  QUOTA_EXCEEDED:        'เกินโควต้าการตรวจสอบ กรุณาลองใหม่ภายหลัง หรือแจ้งแอดมิน',
+  quota_exceeded:        'เกินโควต้าการตรวจสอบ กรุณาลองใหม่ภายหลัง หรือแจ้งแอดมิน',
+  INVALID_API_KEY:       'ระบบตรวจสลิปขัดข้อง กรุณาติดต่อแอดมิน',
+  invalid_api_key:       'ระบบตรวจสลิปขัดข้อง กรุณาติดต่อแอดมิน',
+  ACCOUNT_NOT_MATCH:     'บัญชีผู้รับในสลิปไม่ตรงกับบัญชีของร้าน',
+  account_not_match:     'บัญชีผู้รับในสลิปไม่ตรงกับบัญชีของร้าน',
+  AMOUNT_NOT_MATCH:      'ยอดเงินในสลิปไม่ตรงกับยอดที่เลือก',
+  amount_not_match:      'ยอดเงินในสลิปไม่ตรงกับยอดที่เลือก',
+  DUPLICATE_SLIP:        'สลิปนี้ถูกใช้งานไปแล้ว',
+  duplicate_slip:        'สลิปนี้ถูกใช้งานไปแล้ว',
   IMAGE_SIZE_TOO_LARGE:  'รูปใหญ่เกินไป กรุณาอัปโหลดไฟล์ไม่เกิน 4MB',
+  image_size_too_large:  'รูปใหญ่เกินไป กรุณาอัปโหลดไฟล์ไม่เกิน 4MB',
   INVALID_IMAGE_FORMAT:  'รูปแบบไฟล์ไม่รองรับ ใช้ JPEG, PNG หรือ WebP',
-  INVALID_IMAGE:         'รูปที่อัปโหลดไม่ใช่สลิป TrueMoney ที่ถูกต้อง',
+  invalid_image_format:  'รูปแบบไฟล์ไม่รองรับ ใช้ JPEG, PNG หรือ WebP',
+  INVALID_IMAGE:         'รูปที่อัปโหลดไม่ใช่สลิปที่ถูกต้อง',
+  invalid_image:         'รูปที่อัปโหลดไม่ใช่สลิปที่ถูกต้อง',
+  INVALID_PAYLOAD:       'ข้อมูลสลิปไม่ถูกต้อง',
+  invalid_payload:       'ข้อมูลสลิปไม่ถูกต้อง',
 };
 
 export async function POST(req: NextRequest) {

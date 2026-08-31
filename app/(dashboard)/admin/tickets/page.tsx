@@ -10,6 +10,7 @@ interface Ticket {
   category: string;
   order_ref: string | null;
   detail: string;
+  attachment_url: string | null;
   ticket_status: string;
   admin_note: string | null;
   created_at: string;

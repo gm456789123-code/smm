@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   if (!await requireAdmin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   const [rows] = await db.query<RowDataPacket[]>(
-    `SELECT t.id, t.user_id, u.username, t.category, t.order_ref, t.detail,
+    `SELECT t.id, t.user_id, u.username, t.category, t.order_ref, t.detail, t.attachment_url,
             t.ticket_status, t.admin_note, t.created_at, t.updated_at
      FROM support_tickets t
      JOIN users u ON u.id = t.user_id
