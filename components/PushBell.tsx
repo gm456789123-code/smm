@@ -210,7 +210,9 @@ export default function PushBell() {
     try {
       const res = await fetch('/api/admin/push/test', { method: 'POST' });
       if (!res.ok) throw new Error(await res.text());
-      flash('ส่งแจ้งเตือนทดสอบแล้ว 🔔');
+      const data = await res.json();
+      const count = data.result?.total ?? 1;
+      flash(`ส่งแจ้งเตือนไปยัง ${count} อุปกรณ์แล้ว 🔔`);
     } catch (err) {
       console.error('[PushBell] test:', err);
       flash('ส่งไม่สำเร็จ ❌');

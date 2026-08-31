@@ -38,10 +38,10 @@ function buildClient() {
   return webpush;
 }
 
-export async function sendAdminPush(payload: PushPayload): Promise<void> {
+export async function sendAdminPush(payload: PushPayload): Promise<{ total: number; sent: number; failed: number }> {
   if (!isVapidConfigured()) {
     console.warn('[push] VAPID env vars not set — skipping');
-    return;
+    return { total: 0, sent: 0, failed: 0 };
   }
 
   let rows: RowDataPacket[];
@@ -51,10 +51,10 @@ export async function sendAdminPush(payload: PushPayload): Promise<void> {
     );
   } catch (err) {
     console.error('[push] DB query failed:', err);
-    return;
+    return { total: 0, sent: 0, failed: 0 };
   }
 
-  if (!rows.length) return;
+  if (!rows.length) return { total: 0, sent: 0, failed: 0 };
 
   const wp = buildClient();
   const body = JSON.stringify(payload);
@@ -78,5 +78,7 @@ export async function sendAdminPush(payload: PushPayload): Promise<void> {
   );
 
   const failed = results.filter((r) => r.status === 'rejected').length;
+  const sent = results.filter((r) => r.status === 'fulfilled').length;
   if (failed) console.warn(`[push] ${failed}/${rows.length} deliveries failed`);
+  return { total: rows.length, sent, failed };
 }

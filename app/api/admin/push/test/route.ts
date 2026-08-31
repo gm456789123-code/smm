@@ -8,12 +8,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
-  await sendAdminPush({
-    title: '🔔 ทดสอบระบบแจ้งเตือน',
-    body: 'Push notification ทำงานปกติ ✅',
+  const result = await sendAdminPush({
+    title: '🔔 ทดสอบระบบแจ้งเตือนแอดมิน',
+    body: 'AURA SMM: มีออเดอร์/รายการใหม่เข้าสู่ระบบ ✅',
     url: '/admin/orders',
-    tag: 'push-test',
+    tag: `push-test-${Date.now()}`,
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, result });
 }
