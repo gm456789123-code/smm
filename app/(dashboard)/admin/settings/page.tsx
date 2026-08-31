@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import MediaLibraryModal from '@/components/MediaLibraryModal';
@@ -20,6 +20,14 @@ const SETTING_LABELS: Record<string, string> = {
   announcement_text:   'ข้อความแจ้งเตือน (เช่น แจ้งปัญหาระบบ)',
   referral_commission_pct: 'Commission Referral (%)',
 };
+
+const PAYMENT_SETTINGS = [
+  { key: 'promptpay_number',   label: 'เบอร์พร้อมเพย์ (PromptPay)', placeholder: 'เช่น 0838808867 หรือเลขประจำตัวประชาชน', desc: 'ใช้สร้าง QR PromptPay และตรวจสอบสลิปอัตโนมัติ' },
+  { key: 'bank_name',          label: 'ชื่อธนาคาร', placeholder: 'เช่น กสิกรไทย, ไทยพาณิชย์, กรุงไทย', desc: 'แสดงในหน้าเติมเงินแบบโอนธนาคาร' },
+  { key: 'bank_account_name',  label: 'ชื่อบัญชีธนาคาร', placeholder: 'เช่น นาย กิตติภพ ...', desc: 'ใช้แสดงในหน้าเติมเงิน และตรวจชื่อผู้รับในสลิป' },
+  { key: 'bank_account_number',label: 'เลขบัญชีธนาคาร', placeholder: 'เช่น 123-4-56789-0', desc: 'ใช้ตรวจเลขบัญชี 4 ตัวท้ายในสลิป' },
+  { key: 'truewallet_id',      label: 'เบอร์ TrueMoney Wallet', placeholder: 'เช่น 0838808867', desc: 'แสดงในหน้าเติมเงิน TrueMoney' },
+];
 
 const TEXTAREA_KEYS = new Set(['announcement_text', 'brand_desc']);
 
@@ -58,6 +66,8 @@ export default function AdminSettingsPage() {
     referral_commission_pct: '5',
     line_active:     '0', facebook_active: '0',
     telegram_active: '0', discord_active:  '0',
+    promptpay_number: '', bank_name: '', bank_account_name: '',
+    bank_account_number: '', truewallet_id: '',
   };
 
   useEffect(() => {
@@ -67,10 +77,12 @@ export default function AdminSettingsPage() {
         const merged = { ...DEFAULTS, ...data };
         // main settings
         const main = Object.entries(SETTING_LABELS).map(([key, label]) => ({ key, label, value: merged[key] ?? '' }));
-        // social keys (not in SETTING_LABELS but need to be in state for save)
+        // payment settings
+        const payment = PAYMENT_SETTINGS.map(p => ({ key: p.key, label: p.label, value: merged[p.key] ?? '' }));
+        // social keys
         const socialKeys = SOCIAL_PLATFORMS.flatMap(p => [`${p.key}_url`, `${p.key}_active`]);
         const social = socialKeys.map(key => ({ key, label: key, value: merged[key] ?? '' }));
-        setSettings([...main, ...social]);
+        setSettings([...main, ...payment, ...social]);
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -185,6 +197,38 @@ export default function AdminSettingsPage() {
         <button onClick={() => saveAll()} disabled={saving}
           className="glass-tab glass-tab-active w-full py-3 text-sm font-semibold text-[#c4b5fd] hover:text-white transition-colors disabled:opacity-50 mt-2">
           {saved ? '✅ บันทึกแล้ว' : saving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
+        </button>
+      </div>
+
+      {/* Payment settings */}
+      <div className="glass p-6 space-y-4">
+        <div>
+          <h2 className="text-base font-semibold text-white flex items-center gap-2">
+            <span>💳 ข้อมูลการรับเงิน & ตรวจสลิป (Payment & PromptPay)</span>
+          </h2>
+          <p className="text-xs text-[#94A3B8] mt-0.5">
+            ตั้งค่าเลขบัญชีและพร้อมเพย์สำหรับหน้าเติมเงิน และระบบตรวจสลิปอัตโนมัติ
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {PAYMENT_SETTINGS.map(({ key, label, placeholder, desc }) => (
+            <div key={key} className="space-y-1">
+              <label className="text-xs text-[#94A3B8] font-medium block">{label}</label>
+              <input
+                value={get(key)}
+                onChange={e => set(key, e.target.value)}
+                placeholder={placeholder}
+                className="glass w-full px-3 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] focus:border-[rgba(139,92,246,0.45)] transition-colors"
+              />
+              <p className="text-[11px] text-[#64748B]">{desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <button onClick={() => saveAll()} disabled={saving}
+          className="glass-tab glass-tab-active w-full py-3 text-sm font-semibold text-[#c4b5fd] hover:text-white transition-colors disabled:opacity-50 mt-2">
+          {saved ? '✅ บันทึกแล้ว' : saving ? 'กำลังบันทึก...' : 'บันทึกข้อมูลการรับเงิน'}
         </button>
       </div>
 

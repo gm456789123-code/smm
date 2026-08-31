@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import QRCode from 'react-qr-code';
 import generatePayload from 'promptpay-qr';
@@ -9,12 +9,6 @@ import {
   BsExclamationCircleFill, BsArrowRight, BsShieldCheck, BsWallet2,
   BsChevronLeft, BsGift, BsClipboard, BsClipboardCheck,
 } from 'react-icons/bs';
-
-const BANK_NAME    = process.env.NEXT_PUBLIC_BANK_NAME           ?? 'ธนาคาร';
-const ACCOUNT_NAME = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME   ?? 'ชื่อบัญชี';
-const ACCOUNT_NO   = process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? 'xxx-x-xxxxx-x';
-const PROMPTPAY    = process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER     ?? '';
-const TRUE_ID      = process.env.NEXT_PUBLIC_TRUEWALLET_ID        ?? '';
 
 const AMOUNTS = [10, 20, 50, 100, 150, 300, 500, 1000, 2000, 5000, 10000];
 
@@ -37,8 +31,28 @@ export default function TopupPage() {
   const [slipType,  setSlipType]  = useState<SlipType>('promptpay');
   const [copied,    setCopied]    = useState(false);
 
+  const [bankName, setBankName] = useState(process.env.NEXT_PUBLIC_BANK_NAME ?? 'ธนาคาร');
+  const [accountName, setAccountName] = useState(process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME ?? 'ชื่อบัญชี');
+  const [accountNo, setAccountNo] = useState(process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? '');
+  const [promptpay, setPromptpay] = useState(process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER ?? '');
+  const [trueId, setTrueId] = useState(process.env.NEXT_PUBLIC_TRUEWALLET_ID ?? '');
+
+  useEffect(() => {
+    fetch('/api/public/settings')
+      .then((r) => r.json())
+      .then((data: Record<string, string>) => {
+        if (data.bank_name) setBankName(data.bank_name);
+        if (data.bank_account_name) setAccountName(data.bank_account_name);
+        if (data.bank_account_number) setAccountNo(data.bank_account_number);
+        if (data.promptpay_number) setPromptpay(data.promptpay_number);
+        if (data.truewallet_id) setTrueId(data.truewallet_id);
+      })
+      .catch(() => {});
+  }, []);
+
   function copyAccNo() {
-    navigator.clipboard.writeText(ACCOUNT_NO).then(() => {
+    if (!accountNo) return;
+    navigator.clipboard.writeText(accountNo).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
@@ -58,10 +72,10 @@ export default function TopupPage() {
   const finalAmount = amount ?? (custom ? Number(custom) : null);
 
   const qrPayload = useMemo(() => {
-    if (slipType !== 'promptpay' || !PROMPTPAY || !confirmed || !finalAmount) return null;
-    try { return generatePayload(PROMPTPAY, { amount: finalAmount }); }
+    if (slipType !== 'promptpay' || !promptpay || !confirmed || !finalAmount) return null;
+    try { return generatePayload(promptpay, { amount: finalAmount }); }
     catch { return null; }
-  }, [slipType, confirmed, finalAmount]);
+  }, [slipType, promptpay, confirmed, finalAmount]);
 
   function switchType(t: SlipType) {
     setSlipType(t);
@@ -329,7 +343,7 @@ export default function TopupPage() {
                       ))}
                     </div>
                   </div>
-                  {PROMPTPAY && <p className="text-sm text-[#06B6D4] font-mono font-bold">{PROMPTPAY}</p>}
+                  {promptpay && <p className="text-sm text-[#06B6D4] font-mono font-bold">{promptpay}</p>}
                   <div className="text-center">
                     <p className="text-xs text-[#94A3B8]">ยอดที่ต้องโอน</p>
                     <p className="text-2xl font-bold text-white font-mono">฿{finalAmount!.toLocaleString()}</p>
@@ -346,22 +360,24 @@ export default function TopupPage() {
                     </div>
                     <div>
                       <p className="text-xs text-[#94A3B8]">ธนาคาร</p>
-                      <p className="text-sm font-semibold text-white">{BANK_NAME}</p>
+                      <p className="text-sm font-semibold text-white">{bankName}</p>
                     </div>
                   </div>
                   <div className="border-t border-[rgba(139,92,246,0.08)] pt-3 space-y-3">
                     <div>
                       <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">ชื่อบัญชี</p>
-                      <p className="text-sm text-white font-medium mt-0.5">{ACCOUNT_NAME}</p>
+                      <p className="text-sm text-white font-medium mt-0.5">{accountName}</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">เลขบัญชี</p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <p className="text-base font-bold font-mono text-[#06B6D4] tracking-widest">{ACCOUNT_NO}</p>
-                        <button type="button" onClick={copyAccNo}
-                          className="text-[#94A3B8] hover:text-[#06B6D4] transition-colors">
-                          {copied ? <BsClipboardCheck size={14} className="text-emerald-400" /> : <BsClipboard size={14} />}
-                        </button>
+                        <p className="text-base font-bold font-mono text-[#06B6D4] tracking-widest">{accountNo || 'กรุณาติดต่อแอดมิน'}</p>
+                        {accountNo && (
+                          <button type="button" onClick={copyAccNo}
+                            className="text-[#94A3B8] hover:text-[#06B6D4] transition-colors">
+                            {copied ? <BsClipboardCheck size={14} className="text-emerald-400" /> : <BsClipboard size={14} />}
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div className="pt-1 border-t border-[rgba(139,92,246,0.08)]">
@@ -383,11 +399,11 @@ export default function TopupPage() {
                       <p className="text-sm font-semibold text-white">TrueMoney Wallet</p>
                     </div>
                   </div>
-                  {TRUE_ID ? (
+                  {trueId ? (
                     <div className="border-t border-[rgba(251,146,60,0.08)] pt-3 space-y-2">
                       <div>
                         <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">เบอร์ / True ID</p>
-                        <p className="text-base font-bold font-mono text-orange-400 tracking-widest mt-0.5">{TRUE_ID}</p>
+                        <p className="text-base font-bold font-mono text-orange-400 tracking-widest mt-0.5">{trueId}</p>
                       </div>
                       <div>
                         <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">ยอดที่ต้องโอน</p>
@@ -395,7 +411,7 @@ export default function TopupPage() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-[#94A3B8]">กรุณาตั้งค่า NEXT_PUBLIC_TRUEWALLET_ID</p>
+                    <p className="text-xs text-[#94A3B8]">กรุณาตั้งค่าเบอร์ TrueMoney ในระบบ</p>
                   )}
                 </div>
               )}

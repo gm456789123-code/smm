@@ -6,6 +6,8 @@ import { checkRateLimit } from '@/lib/rate-limit';
 import { sendTopupEmail } from '@/lib/email';
 import { sendAdminPush } from '@/lib/push';
 
+import { getPaymentSettings } from '@/lib/payment-settings';
+
 const ERROR_MSG: Record<string, string> = {
   SLIP_NOT_FOUND:        'ไม่พบข้อมูลสลิป กรุณาถ่ายภาพให้ชัดขึ้น',
   SLIP_PENDING:          'สลิปอยู่ระหว่างประมวลผล กรุณารอสักครู่แล้วลองใหม่',
@@ -37,6 +39,8 @@ export async function POST(req: NextRequest) {
   let isDuplicate: boolean;
   let provider: string;
 
+  const paymentSettings = await getPaymentSettings();
+
   try {
     if (slipType === 'truewallet') {
       const result = await verifyTrueWallet(file, file.name);
@@ -46,8 +50,23 @@ export async function POST(req: NextRequest) {
       }
       const { rawSlip, amountInSlip, isDuplicate: dup, matchedAccount } = result.data;
 
-      const twLast4 = (process.env.NEXT_PUBLIC_TRUEWALLET_ID ?? '').slice(-4);
-      const isOurTW = !!matchedAccount || rawSlip.receiver?.phone?.endsWith(twLast4);
+      const twDigits = paymentSettings.truewalletId.replace(/\D/g, '');
+      const twLast4 = twDigits.slice(-4);
+      const receiverPhone = rawSlip.receiver?.phone ?? '';
+      const receiverPhoneDigits = receiverPhone.replace(/\D/g, '');
+
+      let isOurTW = false;
+      if (matchedAccount) {
+        isOurTW = true;
+      } else if (twLast4 && (
+        (receiverPhoneDigits && receiverPhoneDigits.endsWith(twLast4)) ||
+        (receiverPhone && receiverPhone.includes(twLast4))
+      )) {
+        isOurTW = true;
+      } else if (!twLast4) {
+        // No TrueMoney number configured in settings — accept valid slip
+        isOurTW = true;
+      }
 
       if (!isOurTW) {
         return NextResponse.json({
@@ -69,29 +88,67 @@ export async function POST(req: NextRequest) {
       }
       const { rawSlip, amountInSlip, isDuplicate: dup, matchedAccount } = result.data;
 
-      const proxy        = rawSlip.receiver?.account?.proxy;
-      const ppLast4      = (process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER ?? '').slice(-4);
-      const bankAccLast4 = (process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? '').replace(/[-\s]/g, '').slice(-4);
-      const receiverBankAcc = rawSlip.receiver?.account?.bank?.account ?? '';
+      const ppDigits = paymentSettings.promptpayNumber.replace(/\D/g, '');
+      const bankDigits = paymentSettings.bankAccountNumber.replace(/\D/g, '');
+      const ppLast4 = ppDigits.slice(-4);
+      const bankLast4 = bankDigits.slice(-4);
 
-      const isOurAccount = !!matchedAccount
-        || (proxy != null && proxy.account.endsWith(ppLast4))
-        || (proxy == null && !!receiverBankAcc && receiverBankAcc.endsWith(bankAccLast4));
+      const proxyAccount = rawSlip.receiver?.account?.proxy?.account ?? '';
+      const proxyDigits = proxyAccount.replace(/\D/g, '');
+      const receiverBankAcc = rawSlip.receiver?.account?.bank?.account ?? '';
+      const receiverBankDigits = receiverBankAcc.replace(/\D/g, '');
+      const receiverNameTh = rawSlip.receiver?.account?.name?.th ?? '';
+      const receiverNameEn = rawSlip.receiver?.account?.name?.en ?? '';
+
+      let isOurAccount = false;
+
+      // 1. EasySlip built-in matchedAccount verification
+      if (matchedAccount) {
+        isOurAccount = true;
+      }
+      // 2. Match PromptPay last 4 digits
+      else if (ppLast4 && (
+        (proxyDigits && (proxyDigits.endsWith(ppLast4) || proxyDigits === ppDigits)) ||
+        (proxyAccount && proxyAccount.includes(ppLast4)) ||
+        (receiverBankDigits && receiverBankDigits.endsWith(ppLast4)) ||
+        (receiverBankAcc && receiverBankAcc.includes(ppLast4))
+      )) {
+        isOurAccount = true;
+      }
+      // 3. Match Bank Account last 4 digits
+      else if (bankLast4 && (
+        (receiverBankDigits && (receiverBankDigits.endsWith(bankLast4) || receiverBankDigits === bankDigits)) ||
+        (receiverBankAcc && receiverBankAcc.includes(bankLast4)) ||
+        (proxyDigits && proxyDigits.endsWith(bankLast4))
+      )) {
+        isOurAccount = true;
+      }
+      // 4. Match Bank Account Name if configured
+      else if (paymentSettings.bankAccountName && paymentSettings.bankAccountName !== 'ชื่อบัญชี' && (
+        (receiverNameTh && receiverNameTh.includes(paymentSettings.bankAccountName)) ||
+        (receiverNameEn && receiverNameEn.toLowerCase().includes(paymentSettings.bankAccountName.toLowerCase()))
+      )) {
+        isOurAccount = true;
+      }
+      // 5. If no specific bank/promptpay restriction is configured in settings, accept valid EasySlip slip
+      else if (!ppLast4 && !bankLast4 && (!paymentSettings.bankAccountName || paymentSettings.bankAccountName === 'ชื่อบัญชี')) {
+        isOurAccount = true;
+      }
 
       if (!isOurAccount) {
         return NextResponse.json({
-          error: 'สลิปไม่ได้โอนมายังบัญชีของเรา กรุณาตรวจสอบบัญชีปลายทาง',
+          error: 'สลิปไม่ได้โอนมายังบัญชีของเรา กรุณาตรวจสอบบัญชีปลายทาง หรือแจ้งแอดมิน',
         }, { status: 422 });
       }
 
       ref = rawSlip.transRef;
       amountThb = amountInSlip;
-      senderName = rawSlip.sender.account.name.th || rawSlip.sender.account.name.en || 'Unknown sender';
+      senderName = rawSlip.sender.account?.name?.th || rawSlip.sender.account?.name?.en || 'Unknown sender';
       isDuplicate = dup;
       provider = 'bank';
-      const receiverName = rawSlip.receiver.account.name.th || rawSlip.receiver.account.name.en || 'Unknown receiver';
-      const receiverBank = rawSlip.receiver.bank?.short ?? proxy?.type ?? 'PromptPay';
-      note = `Bank (${rawSlip.sender.bank.short}->${receiverBank}): ${senderName} -> ${receiverName} THB ${amountThb}`;
+      const receiverName = rawSlip.receiver.account?.name?.th || rawSlip.receiver.account?.name?.en || 'Unknown receiver';
+      const receiverBank = rawSlip.receiver.bank?.short ?? rawSlip.receiver?.account?.proxy?.type ?? 'PromptPay';
+      note = `Bank (${rawSlip.sender.bank?.short ?? 'Bank'}->${receiverBank}): ${senderName} -> ${receiverName} THB ${amountThb}`;
     }
   } catch {
     return NextResponse.json({ error: 'Unable to connect to EasySlip.' }, { status: 502 });
