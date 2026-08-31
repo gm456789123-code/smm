@@ -64,6 +64,10 @@ export async function sendAdminPush(payload: PushPayload): Promise<void> {
       wp.sendNotification(
         { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         body,
+        {
+          urgency: 'high',
+          TTL: 86400,
+        },
       ).catch((err: { statusCode?: number }) => {
         if (err.statusCode === 410 || err.statusCode === 404) {
           return db.query('DELETE FROM push_subscriptions WHERE endpoint = ?', [sub.endpoint]);

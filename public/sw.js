@@ -7,7 +7,8 @@ self.addEventListener('push', (event) => {
       badge: '/icon.png',
       tag: data.tag ?? `notification-${Date.now()}`,
       renotify: true,
-      vibrate: [200, 100, 200],
+      requireInteraction: true,
+      vibrate: [300, 100, 300, 100, 300],
       timestamp: Date.now(),
       data: { url: data.url ?? '/admin' },
     })
