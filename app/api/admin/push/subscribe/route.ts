@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import db from '@/lib/db';
+import { getVapidPublicKey } from '@/lib/push';
 
 async function adminOnly(req: NextRequest) {
   const user = await getRequestUser(req);
@@ -10,7 +11,7 @@ async function adminOnly(req: NextRequest) {
 export async function GET(req: NextRequest) {
   if (!await adminOnly(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || '';
+  const vapidPublicKey = getVapidPublicKey();
   const endpoint = req.nextUrl.searchParams.get('endpoint');
   if (!endpoint) return NextResponse.json({ subscribed: false, vapidPublicKey });
 

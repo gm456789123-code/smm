@@ -9,19 +9,31 @@ export interface PushPayload {
   tag?: string;
 }
 
+const DEFAULT_VAPID_PUBLIC_KEY = 'BCMI-gMqCDZ30lhdMoBhkc1I8QLQU54FXjIJfb4F1FMPqQ7GZ5tNA1ReB6_4fXMS92QI351K3CJmSsy0wpKnbqk';
+const DEFAULT_VAPID_PRIVATE_KEY = 'oQS0A7ohL7I8hEn0GiaLF-qY7BtJAsQbxMN7Y04PWck';
+const DEFAULT_VAPID_EMAIL = 'admin@aura-smm.com';
+
+export function getVapidPublicKey(): string {
+  return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY || DEFAULT_VAPID_PUBLIC_KEY;
+}
+
+export function getVapidPrivateKey(): string {
+  return process.env.VAPID_PRIVATE_KEY || DEFAULT_VAPID_PRIVATE_KEY;
+}
+
+export function getVapidEmail(): string {
+  return process.env.VAPID_EMAIL || DEFAULT_VAPID_EMAIL;
+}
+
 export function isVapidConfigured(): boolean {
-  return !!(
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
-    process.env.VAPID_PRIVATE_KEY &&
-    process.env.VAPID_EMAIL
-  );
+  return !!(getVapidPublicKey() && getVapidPrivateKey() && getVapidEmail());
 }
 
 function buildClient() {
   webpush.setVapidDetails(
-    `mailto:${process.env.VAPID_EMAIL}`,
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!,
+    `mailto:${getVapidEmail()}`,
+    getVapidPublicKey(),
+    getVapidPrivateKey(),
   );
   return webpush;
 }
