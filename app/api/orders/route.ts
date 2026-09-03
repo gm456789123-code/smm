@@ -22,6 +22,32 @@ function calcCostThb(quantity: number, rateUsd: number): number {
   return Math.ceil((quantity / 1000) * rateUsd * EXCHANGE_RATE * MARKUP * 100) / 100;
 }
 
+function formatSmmError(raw: string): string {
+  const lower = raw.toLowerCase();
+  if (lower.includes('link_duplicate') || lower.includes('link duplicate')) {
+    return 'ลิงก์นี้มีออเดอร์เดิมที่กำลังดำเนินการอยู่ กรุณารอให้ออเดอร์ก่อนหน้าเสร็จสิ้น หรือลองเลือกบริการตัวอื่น';
+  }
+  if (lower.includes('not_enough_funds') || lower.includes('not enough funds') || lower.includes('balance')) {
+    return 'ระบบผู้ให้บริการกำลังปรับปรุงชั่วคราว กรุณาติดต่อแอดมินหรือลองใหม่ภายหลัง';
+  }
+  if (lower.includes('service_disabled') || lower.includes('disabled') || lower.includes('not found')) {
+    return 'บริการนี้ปิดปรับปรุงชั่วคราว กรุณาเลือกบริการอื่น';
+  }
+  if (lower.includes('bad_link') || lower.includes('incorrect link') || lower.includes('invalid link')) {
+    return 'รูปแบบลิงก์ไม่ถูกต้อง กรุณาตรวจสอบลิงก์ของท่านอีกครั้ง';
+  }
+  if (lower.includes('min') || lower.includes('minimum')) {
+    return 'จำนวนที่ระบุน้อยกว่าขั้นต่ำของผู้ให้บริการ';
+  }
+  if (lower.includes('max') || lower.includes('maximum')) {
+    return 'จำนวนที่ระบุเกินกว่ายอดสูงสุดของผู้ให้บริการ';
+  }
+  if (lower.includes('private')) {
+    return 'บัญชีหรือโพสต์ถูกตั้งค่าเป็นส่วนตัว (Private) กรุณาเปิดเป็นสาธารณะก่อนสั่งซื้อ';
+  }
+  return `ผู้ให้บริการแจ้งเตือน: ${raw}`;
+}
+
 export async function POST(req: NextRequest) {
   const user = await getRequestUser(req);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -114,8 +140,8 @@ export async function POST(req: NextRequest) {
       }).catch(() => {});
 
       return NextResponse.json({
-        error: 'ขณะนี้บริการนี้ไม่พร้อมใช้งานชั่วคราว กรุณาลองใหม่ภายหลัง',
-      }, { status: 503 });
+        error: formatSmmError(apiError),
+      }, { status: 400 });
     }
 
     await conn.query(
