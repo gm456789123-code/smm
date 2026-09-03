@@ -86,8 +86,8 @@ export default function DashboardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // serviceId format: "provider:id" e.g. "24social:123"
-  const [selProvider, selId] = serviceId.includes(':') ? serviceId.split(':') : ['24social', serviceId];
+  // serviceId format: "provider:id" e.g. "km-social:123"
+  const [selProvider, selId] = serviceId.includes(':') ? serviceId.split(':') : ['km-social', serviceId];
 
   const selectedService = useMemo(
     () => services.find(s => s.provider === selProvider && String(s.service) === selId),
