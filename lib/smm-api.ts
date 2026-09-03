@@ -59,8 +59,12 @@ function createSmmApi(apiUrl: string, apiKey: string, provider: string) {
       return data.map(s => ({ ...s, provider }));
     },
 
-    addOrder(params: AddOrderParams): Promise<{ order: number }> {
-      return call({ action: 'add', ...params }) as Promise<{ order: number }>;
+    async addOrder(params: AddOrderParams): Promise<{ order: number }> {
+      const res = await call({ action: 'add', ...params }) as { order?: number; error?: string };
+      if (res.error || !res.order) {
+        throw new Error(res.error || 'No order ID returned from provider');
+      }
+      return { order: Number(res.order) };
     },
 
     orderStatus(orderId: string): Promise<OrderStatus> {

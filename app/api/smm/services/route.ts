@@ -12,7 +12,8 @@ export async function GET(req: NextRequest) {
       ...(s1.status === 'fulfilled' ? s1.value : []),
       ...(s2.status === 'fulfilled' ? s2.value : []),
     ].filter(s => !s.type?.includes('ห้ามสั่งซื้อ'))
-      .filter(s => !(s.provider === 'km-social' && /youtube/i.test(s.category + ' ' + s.name)));
+      .filter(s => !(s.provider === 'km-social' && /youtube/i.test(s.category + ' ' + s.name)))
+      .filter(s => !(s.provider === '24social' && /tiktok|ติ๊กต็อก/i.test(s.category + ' ' + s.name)));
     return NextResponse.json(services);
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });
