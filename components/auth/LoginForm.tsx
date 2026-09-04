@@ -59,7 +59,7 @@ export default function LoginForm({ inModal = false, onSwitchToRegister, onSucce
         setError(data.error);
         return;
       }
-      sessionStorage.removeItem('announcement_closed');
+      sessionStorage.removeItem('announcement_closed_session');
       router.push('/dashboard');
       router.refresh();
       if (inModal) onSuccess?.();

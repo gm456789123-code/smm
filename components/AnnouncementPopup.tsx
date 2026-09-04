@@ -3,18 +3,14 @@
 import { useEffect, useState } from 'react';
 import { BsMegaphoneFill, BsX, BsCheckCircleFill } from 'react-icons/bs';
 
-const DISMISS_KEY = 'announcement_ack_refund_notice';
-
 export default function AnnouncementPopup() {
   const [text, setText] = useState(`เนื่องจากมีบริการที่ใช้งานไม่ได้ก่อนหน้านี้ทีมงานจึงได้ทำการนำบริการดังกล่าวออกและคืนเครดิตรให้กับ user เป็นที่เรียบร้อยแล้วค่ะ\nลูกค้าสามารถกดสั่งซื้อบริการได้ใหม่คะ`);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Check if dismissed
-    const dismissedSession = sessionStorage.getItem('announcement_closed');
-    const dismissedLocal = localStorage.getItem(DISMISS_KEY);
-
-    if (dismissedSession === 'true' || dismissedLocal === 'true') {
+    // Check if dismissed in this session
+    const dismissedSession = sessionStorage.getItem('announcement_closed_session');
+    if (dismissedSession === 'true') {
       return;
     }
 
@@ -32,8 +28,7 @@ export default function AnnouncementPopup() {
   }, []);
 
   function dismiss() {
-    sessionStorage.setItem('announcement_closed', 'true');
-    localStorage.setItem(DISMISS_KEY, 'true');
+    sessionStorage.setItem('announcement_closed_session', 'true');
     setVisible(false);
   }
 

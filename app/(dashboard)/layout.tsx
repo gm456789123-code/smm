@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getUserFromToken } from '@/lib/auth';
 import Sidebar from '@/components/Sidebar';
-import AnnouncementPopup from '@/components/AnnouncementPopup';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -20,7 +19,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="dash-bg flex min-h-screen items-start">
       <Sidebar role={user.role} username={user.username} />
       <div className="dash-content flex-1 flex flex-col min-h-screen overflow-auto pt-16 lg:pt-0">
-        <AnnouncementPopup />
         {children}
       </div>
     </div>
