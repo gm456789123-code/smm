@@ -60,13 +60,24 @@ const FAQS = [
 export async function generateMetadata() {
   const s       = await getSettings();
   const brand   = s.brand_name    ?? 'AURA SMM';
-  const tagline = s.brand_tagline ?? 'High-quality SMM panel with fast delivery and stable service';
-  const desc    = s.brand_desc    ?? 'Boost followers, likes, views, and engagement across major social platforms.';
+  const tagline = s.brand_tagline ?? 'บริการ SMM Panel ปั๊มฟอล ปั๊มไลก์ เพิ่มยอดวิว อันดับ 1';
+  const desc    = s.brand_desc    ?? 'AURA SMM ผู้ให้บริการปั๊มฟอล ปั๊มไลก์ เพิ่มยอดวิว ครบทุกแพลตฟอร์ม ราคาถูกที่สุด เริ่มต้น 10 บาท ระบบออโต้ 24 ชม. ปลอดภัย รวดเร็ว สมัครใช้งานฟรี!';
   return {
     title: `${brand} - ${tagline}`,
     description: desc,
     alternates: { canonical: SITE_URL },
-    openGraph: { url: SITE_URL, title: `${brand} - ${tagline}`, description: desc },
+    openGraph: {
+      url: SITE_URL,
+      title: `${brand} - ${tagline}`,
+      description: desc,
+      images: [{ url: `${SITE_URL}/icon.png`, width: 1200, height: 630, alt: `${brand} - ${tagline}` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${brand} - ${tagline}`,
+      description: desc,
+      images: [`${SITE_URL}/icon.png`],
+    },
   };
 }
 

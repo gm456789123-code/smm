@@ -202,6 +202,34 @@ export default async function BlogPostPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: safeContent }}
       />
 
+      {/* SEO Internal Linking Call-To-Action Box */}
+      <div className="my-8 p-6 sm:p-7 rounded-2xl border border-[rgba(139,92,246,0.25)] bg-gradient-to-br from-[rgba(139,92,246,0.08)] to-[rgba(6,182,212,0.08)] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h3 className="font-bold text-lg text-[#2D1B4E]">
+              พร้อมเพิ่มยอดผู้ติดตาม ยอดไลก์ และยอดวิวแล้วหรือยัง?
+            </h3>
+            <p className="text-sm text-[#5B4A7A]">
+              เลือกใช้บริการ <Link href="/" className="font-semibold text-[#7C3AED] hover:underline">AURA SMM Panel</Link> ระบบปั๊มยอดอัตโนมัติ 24 ชม. ราคาถูกที่สุด เริ่มต้นเพียง 10 บาท
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <Link
+              href="/#services"
+              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-[#7C3AED] bg-white border border-[rgba(139,92,246,0.3)] hover:bg-[rgba(139,92,246,0.05)] transition-all shadow-sm"
+            >
+              ดูบริการทั้งหมด
+            </Link>
+            <Link
+              href="/register"
+              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#8B5CF6] to-[#06B6D4] hover:opacity-95 transition-all shadow-md shadow-purple-500/20"
+            >
+              สมัครสมาชิกฟรี
+            </Link>
+          </div>
+        </div>
+      </div>
+
       <div className="pt-6 border-t border-[rgba(139,92,246,0.10)]">
         <Link href="/blog" className="inline-flex items-center gap-2 text-sm text-[#6B5B8A] hover:text-[#7C3AED] transition-colors">
           <BsArrowLeft size={14} /> Back to blog
