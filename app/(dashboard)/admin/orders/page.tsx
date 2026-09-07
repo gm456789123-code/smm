@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { useLiveRefresh } from '@/lib/use-live-refresh';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   BsArrowRepeat, BsExclamationTriangle, BsCheckCircle, BsSearch,
   BsBoxArrowUpRight, BsCopy, BsCheck2, BsArrowClockwise, BsFillPlayFill,
-  BsCashStack, BsFilter, BsLockFill, BsUnlockFill, BsPlusLg, BsX,
+  BsCashStack, BsFilter,
 } from 'react-icons/bs';
 
 interface SmmLiveStatus {
@@ -32,13 +31,9 @@ interface Order {
   service_id: number | null;
   link_url: string | null;
   qty: number | null;
-  status_locked: number;
   created_at: string;
   smm?: SmmLiveStatus | null;
-  sync_error?: boolean;
 }
-
-interface SimpleUser { id: number; username: string; email: string | null; balance: number; }
 
 const STATUS_STYLE: Record<string, string> = {
   completed:   'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
@@ -85,129 +80,39 @@ export default function AdminOrdersPage() {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [result, setResult]         = useState<{ id?: number; ok: boolean; msg: string } | null>(null);
   const [copiedId, setCopiedId]     = useState<number | null>(null);
-  const [syncMessage, setSyncMessage] = useState('กำลังอัปเดตข้อมูล');
-  const [lockingId, setLockingId]   = useState<number | null>(null);
-  const revision = useRef(0);
-
-  // Create-order modal
-  const [showCreate, setShowCreate] = useState(false);
-  const [users, setUsers]           = useState<SimpleUser[]>([]);
-  const [creating, setCreating]     = useState(false);
-  const [createError, setCreateError] = useState('');
-  const [form, setForm] = useState({
-    userQuery: '', userId: 0,
-    provider: 'km-social', ref: '', serviceName: '', link: '', qty: '', amount: '',
-    txStatus: 'pending', deductBalance: false,
-  });
-
-  useEffect(() => {
-    if (!showCreate || users.length > 0) return;
-    fetch('/api/admin/users').then(r => r.json()).then(d => setUsers(Array.isArray(d) ? d : [])).catch(() => {});
-  }, [showCreate, users.length]);
-
-  const userMatches = useMemo(() => {
-    const q = form.userQuery.toLowerCase().trim();
-    if (!q) return [];
-    return users.filter(u => u.username.toLowerCase().includes(q) || (u.email ?? '').toLowerCase().includes(q)).slice(0, 8);
-  }, [users, form.userQuery]);
-
-  function resetCreateForm() {
-    setForm({ userQuery: '', userId: 0, provider: 'km-social', ref: '', serviceName: '', link: '', qty: '', amount: '', txStatus: 'pending', deductBalance: false });
-    setCreateError('');
-  }
-
-  async function submitCreate(e: React.FormEvent) {
-    e.preventDefault();
-    if (!form.userId || !form.ref.trim() || !form.serviceName.trim()) return;
-    setCreating(true);
-    setCreateError('');
-    try {
-      const res = await fetch('/api/admin/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'create',
-          userId: form.userId,
-          provider: form.provider,
-          ref: form.ref.trim(),
-          serviceName: form.serviceName.trim(),
-          link: form.link.trim(),
-          qty: form.qty === '' ? null : Number(form.qty),
-          amount: form.amount === '' ? 0 : Number(form.amount),
-          txStatus: form.txStatus,
-          deductBalance: form.deductBalance,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setCreateError(data.error ?? 'สร้างออเดอร์ไม่สำเร็จ');
-      } else {
-        setShowCreate(false);
-        resetCreateForm();
-        setResult({ ok: true, msg: `สร้างออเดอร์ให้ ${data.username} สำเร็จ` });
-        revision.current++;
-        load();
-      }
-    } catch {
-      setCreateError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  async function toggleLock(o: Order) {
-    setLockingId(o.id);
-    revision.current++;
-    try {
-      const res = await fetch('/api/admin/orders', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: o.id, status_locked: o.status_locked ? false : true }),
-      });
-      if (res.ok) {
-        setOrders(prev => prev.map(x => x.id === o.id ? { ...x, status_locked: o.status_locked ? 0 : 1 } : x));
-      }
-    } finally {
-      revision.current++;
-      setLockingId(null);
-    }
-  }
 
   // Filters
   const [search, setSearch]         = useState('');
   const [statusFilter, setStatus]   = useState('all');
   const [providerFilter, setProv]   = useState('all');
 
-  const loadOrders = useCallback(async (signal: AbortSignal) => {
-    const version = revision.current;
-    setSyncing(true);
+  const load = useCallback(async (sync = false) => {
+    if (sync) setSyncing(true);
+    else setLoading(true);
+
     try {
-      const res = await fetch('/api/admin/orders?sync=1', { signal, cache: 'no-store' });
-      if (res.status === 401 || res.status === 403) {
-        setOrders([]);
-        throw new Error('เซสชันหมดอายุหรือไม่มีสิทธิ์ กรุณาเข้าสู่ระบบใหม่');
-      }
-      if (!res.ok) throw new Error('อัปเดตไม่ได้ กำลังแสดงข้อมูลล่าสุดที่โหลดสำเร็จ');
+      const res = await fetch(`/api/admin/orders${sync ? '?sync=1' : ''}`);
       const data = await res.json();
-      if (!Array.isArray(data)) throw new Error('ข้อมูลออเดอร์ไม่ถูกต้อง');
-      if (signal.aborted || version !== revision.current) return;
-      setOrders(data);
-      setSyncMessage(data.some((order: Order) => order.sync_error)
-        ? 'บางออเดอร์ซิงค์ไม่ได้ ระบบจะลองใหม่'
-        : `อัปเดตล่าสุด ${new Date().toLocaleTimeString('th-TH')} · อัตโนมัติทุก 30 วินาที`);
-    } catch (error) {
-      if (!signal.aborted) setSyncMessage(error instanceof Error ? error.message : 'อัปเดตข้อมูลไม่ได้');
-      throw error;
+      if (Array.isArray(data)) {
+        setOrders(data);
+        if (sync) {
+          setResult({ ok: true, msg: 'ซิงค์และอัปเดตสถานะสดจาก Provider สำเร็จเรียบร้อยแล้ว' });
+        }
+      }
+    } catch {
+      setResult({ ok: false, msg: 'ไม่สามารถโหลดข้อมูลออเดอร์ได้' });
     } finally {
       setLoading(false);
       setSyncing(false);
     }
   }, []);
 
-  const load = useLiveRefresh(loadOrders, 30_000);
+  useEffect(() => {
+    // Auto load and auto sync on first visit
+    load(true);
+  }, [load]);
 
   async function retry(txId: number) {
-    revision.current++;
     setRetrying(txId);
     setResult(null);
     try {
@@ -219,21 +124,18 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       if (res.ok) {
         setResult({ id: txId, ok: true, msg: `ส่งออเดอร์เข้า Provider สำเร็จ #${data.orderId}` });
-        window.dispatchEvent(new Event('smm-data-changed'));
+        load(true);
       } else {
         setResult({ id: txId, ok: false, msg: data.error ?? 'เกิดข้อผิดพลาดในการส่งใหม่' });
       }
     } catch {
       setResult({ id: txId, ok: false, msg: 'ไม่สามารถเชื่อมต่อระบบได้' });
     } finally {
-      revision.current++;
-      load();
       setRetrying(null);
     }
   }
 
   async function updateStatus(txId: number, newStatus: string) {
-    revision.current++;
     setUpdatingId(txId);
     try {
       const res = await fetch('/api/admin/orders', {
@@ -251,8 +153,6 @@ export default function AdminOrdersPage() {
     } catch {
       setResult({ id: txId, ok: false, msg: 'เกิดข้อผิดพลาดในการเชื่อมต่อ' });
     } finally {
-      revision.current++;
-      load();
       setUpdatingId(null);
     }
   }
@@ -262,7 +162,6 @@ export default function AdminOrdersPage() {
       return;
     }
     setRefunding(tx.id);
-    revision.current++;
     try {
       const res = await fetch('/api/admin/orders', {
         method: 'POST',
@@ -272,15 +171,13 @@ export default function AdminOrdersPage() {
       const data = await res.json();
       if (res.ok) {
         setResult({ id: tx.id, ok: true, msg: `คืนเงินสำเร็จ ฿${data.refundAmount} ให้กับ ${tx.username} แล้ว` });
-        window.dispatchEvent(new Event('smm-data-changed'));
+        load();
       } else {
         setResult({ id: tx.id, ok: false, msg: data.error ?? 'คืนเงินไม่สำเร็จ' });
       }
     } catch {
       setResult({ id: tx.id, ok: false, msg: 'เกิดข้อผิดพลาด' });
     } finally {
-      revision.current++;
-      load();
       setRefunding(null);
     }
   }
@@ -337,15 +234,7 @@ export default function AdminOrdersPage() {
 
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
-            onClick={() => { resetCreateForm(); setShowCreate(true); }}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors"
-          >
-            <BsPlusLg size={14} />
-            สร้างออเดอร์ให้ user
-          </button>
-
-          <button
-            onClick={load}
+            onClick={() => load(true)}
             disabled={syncing || loading}
             className="btn-primary flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl shadow-lg shadow-purple-500/20 disabled:opacity-50"
           >
@@ -354,7 +243,7 @@ export default function AdminOrdersPage() {
           </button>
 
           <button
-            onClick={load}
+            onClick={() => load(false)}
             disabled={loading}
             className="glass-tab flex items-center gap-2 px-3.5 py-2 text-sm text-[#94A3B8] hover:text-white rounded-xl transition-colors"
           >
@@ -363,8 +252,6 @@ export default function AdminOrdersPage() {
           </button>
         </div>
       </div>
-
-      <p role="status" className="text-xs text-[#94A3B8]">{syncMessage}</p>
 
       {/* KPI Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -653,32 +540,18 @@ export default function AdminOrdersPage() {
 
                     {/* System Status */}
                     <td className="py-3.5 px-4 align-top">
-                      <div className="flex items-center gap-1.5">
-                        <select
-                          value={o.tx_status}
-                          onChange={e => updateStatus(o.id, e.target.value)}
-                          disabled={updatingId === o.id}
-                          className={`text-xs px-2.5 py-1 rounded-lg border font-medium cursor-pointer outline-none bg-[rgba(13,18,34,0.9)] transition-colors ${STATUS_STYLE[o.tx_status] ?? 'bg-slate-500/10 text-slate-300 border-slate-500/20'}`}
-                        >
-                          <option value="pending" className="bg-[#0d1222] text-amber-400">pending</option>
-                          <option value="in_progress" className="bg-[#0d1222] text-blue-400">in_progress</option>
-                          <option value="completed" className="bg-[#0d1222] text-emerald-400">completed</option>
-                          <option value="partial" className="bg-[#0d1222] text-purple-400">partial</option>
-                          <option value="cancelled" className="bg-[#0d1222] text-rose-400">cancelled</option>
-                        </select>
-                        <button
-                          onClick={() => toggleLock(o)}
-                          disabled={lockingId === o.id}
-                          title={o.status_locked ? 'ล็อกอยู่ — ไม่ sync อัตโนมัติ (กดเพื่อปลดล็อก)' : 'ปลดล็อกอยู่ — sync อัตโนมัติได้ (กดเพื่อล็อก)'}
-                          className={`p-1.5 rounded-lg border transition-colors shrink-0 ${
-                            o.status_locked
-                              ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
-                              : 'bg-white/5 text-[#64748B] border-white/10 hover:text-white'
-                          }`}
-                        >
-                          {o.status_locked ? <BsLockFill size={11} /> : <BsUnlockFill size={11} />}
-                        </button>
-                      </div>
+                      <select
+                        value={o.tx_status}
+                        onChange={e => updateStatus(o.id, e.target.value)}
+                        disabled={updatingId === o.id}
+                        className={`text-xs px-2.5 py-1 rounded-lg border font-medium cursor-pointer outline-none bg-[rgba(13,18,34,0.9)] transition-colors ${STATUS_STYLE[o.tx_status] ?? 'bg-slate-500/10 text-slate-300 border-slate-500/20'}`}
+                      >
+                        <option value="pending" className="bg-[#0d1222] text-amber-400">pending</option>
+                        <option value="in_progress" className="bg-[#0d1222] text-blue-400">in_progress</option>
+                        <option value="completed" className="bg-[#0d1222] text-emerald-400">completed</option>
+                        <option value="partial" className="bg-[#0d1222] text-purple-400">partial</option>
+                        <option value="cancelled" className="bg-[#0d1222] text-rose-400">cancelled</option>
+                      </select>
                     </td>
 
                     {/* Actions */}
@@ -716,165 +589,6 @@ export default function AdminOrdersPage() {
           </table>
         </div>
       </div>
-
-      {/* Create manual order modal */}
-      {showCreate && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-          role="dialog" aria-modal="true">
-          <div className="glass w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-[family-name:var(--font-jakarta)] text-lg font-bold text-white">
-                สร้างออเดอร์ให้ user
-              </h2>
-              <button onClick={() => setShowCreate(false)} className="text-[#94A3B8] hover:text-white transition-colors">
-                <BsX size={20} />
-              </button>
-            </div>
-            <p className="text-xs text-[#94A3B8] -mt-2">
-              สำหรับกรณีซื้อออเดอร์จากเว็บต้นทางเอง แล้วต้องการนำเลขออเดอร์มาผูกกับ user เพื่อให้ user ติดตามสถานะได้ (ระบบจะ sync สถานะจาก provider ให้อัตโนมัติถ้า provider/ref ถูกต้อง)
-            </p>
-
-            <form onSubmit={submitCreate} className="space-y-3.5">
-              {/* User picker */}
-              <div className="space-y-1.5 relative">
-                <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">ผู้ใช้ *</label>
-                {form.userId ? (
-                  <div className="flex items-center justify-between glass px-3 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5">
-                    <span className="text-sm text-white">{users.find(u => u.id === form.userId)?.username}</span>
-                    <button type="button" onClick={() => setForm(f => ({ ...f, userId: 0, userQuery: '' }))}
-                      className="text-[#94A3B8] hover:text-white text-xs">เปลี่ยน</button>
-                  </div>
-                ) : (
-                  <>
-                    <input
-                      type="text" value={form.userQuery}
-                      onChange={e => setForm(f => ({ ...f, userQuery: e.target.value }))}
-                      placeholder="พิมพ์ username หรือ email เพื่อค้นหา..."
-                      className="w-full glass px-3.5 py-2.5 text-sm text-white bg-transparent outline-none placeholder-[#475569] rounded-xl border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)]"
-                    />
-                    {userMatches.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 glass rounded-xl border border-[rgba(139,92,246,0.25)] overflow-hidden max-h-48 overflow-y-auto">
-                        {userMatches.map(u => (
-                          <button key={u.id} type="button"
-                            onClick={() => setForm(f => ({ ...f, userId: u.id, userQuery: '' }))}
-                            className="w-full text-left px-3.5 py-2 text-sm text-[#CBD5E1] hover:bg-[rgba(139,92,246,0.12)] transition-colors flex items-center justify-between"
-                          >
-                            <span>{u.username}</span>
-                            <span className="text-[10px] text-[#64748B]">฿{Number(u.balance).toFixed(2)}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">Provider</label>
-                  <select
-                    value={form.provider}
-                    onChange={e => setForm(f => ({ ...f, provider: e.target.value }))}
-                    className="w-full glass px-3 py-2.5 text-sm text-white bg-[rgba(13,18,34,0.9)] outline-none rounded-xl border border-[rgba(139,92,246,0.2)]"
-                  >
-                    <option value="km-social" className="bg-[#0d1222]">km-social</option>
-                    <option value="24social" className="bg-[#0d1222]">24social</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">เลขออเดอร์ Provider (ref) *</label>
-                  <input
-                    type="text" value={form.ref}
-                    onChange={e => setForm(f => ({ ...f, ref: e.target.value }))}
-                    placeholder="เช่น 123456"
-                    className="w-full glass px-3 py-2.5 text-sm text-white bg-transparent outline-none placeholder-[#475569] rounded-xl border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)]"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">ชื่อบริการ *</label>
-                <input
-                  type="text" value={form.serviceName}
-                  onChange={e => setForm(f => ({ ...f, serviceName: e.target.value }))}
-                  placeholder="เช่น Instagram Followers"
-                  className="w-full glass px-3 py-2.5 text-sm text-white bg-transparent outline-none placeholder-[#475569] rounded-xl border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)]"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">ลิงก์เป้าหมาย</label>
-                <input
-                  type="text" value={form.link}
-                  onChange={e => setForm(f => ({ ...f, link: e.target.value }))}
-                  placeholder="https://..."
-                  className="w-full glass px-3 py-2.5 text-sm text-white bg-transparent outline-none placeholder-[#475569] rounded-xl border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)]"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">จำนวน</label>
-                  <input
-                    type="number" value={form.qty}
-                    onChange={e => setForm(f => ({ ...f, qty: e.target.value }))}
-                    placeholder="1000"
-                    className="w-full glass px-3 py-2.5 text-sm text-white bg-transparent outline-none placeholder-[#475569] rounded-xl border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)]"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">ยอดเงิน (฿)</label>
-                  <input
-                    type="number" step="0.01" value={form.amount}
-                    onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-                    placeholder="0"
-                    className="w-full glass px-3 py-2.5 text-sm text-white bg-transparent outline-none placeholder-[#475569] rounded-xl border border-[rgba(139,92,246,0.2)] focus:border-[rgba(139,92,246,0.5)]"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs text-[#94A3B8] uppercase tracking-widest font-semibold">สถานะเริ่มต้น</label>
-                  <select
-                    value={form.txStatus}
-                    onChange={e => setForm(f => ({ ...f, txStatus: e.target.value }))}
-                    className="w-full glass px-3 py-2.5 text-sm text-white bg-[rgba(13,18,34,0.9)] outline-none rounded-xl border border-[rgba(139,92,246,0.2)]"
-                  >
-                    <option value="pending" className="bg-[#0d1222]">pending</option>
-                    <option value="in_progress" className="bg-[#0d1222]">in_progress</option>
-                    <option value="completed" className="bg-[#0d1222]">completed</option>
-                  </select>
-                </div>
-              </div>
-
-              <label className="flex items-center gap-2.5 text-sm text-[#CBD5E1] cursor-pointer">
-                <input
-                  type="checkbox" checked={form.deductBalance}
-                  onChange={e => setForm(f => ({ ...f, deductBalance: e.target.checked }))}
-                  className="w-4 h-4 rounded accent-[#8B5CF6]"
-                />
-                หักยอดเงิน ฿{form.amount || 0} จากบัญชีลูกค้า
-              </label>
-
-              {createError && (
-                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-rose-500/8 border border-rose-500/20 text-rose-400 text-sm">
-                  <BsExclamationTriangle size={14} className="shrink-0" />
-                  {createError}
-                </div>
-              )}
-
-              <div className="flex gap-2.5 pt-1">
-                <button type="button" onClick={() => setShowCreate(false)}
-                  className="flex-1 py-2.5 text-sm font-semibold rounded-xl text-[#94A3B8] hover:text-white border border-[rgba(139,92,246,0.2)] transition-colors">
-                  ยกเลิก
-                </button>
-                <button type="submit" disabled={creating || !form.userId || !form.ref.trim() || !form.serviceName.trim()}
-                  className="flex-1 btn-primary py-2.5 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed">
-                  {creating ? 'กำลังสร้าง...' : 'สร้างออเดอร์'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

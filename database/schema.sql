@@ -35,7 +35,6 @@ CREATE TABLE IF NOT EXISTS transactions (
   amount       DECIMAL(12,4)  NOT NULL,
   ref          VARCHAR(255)   DEFAULT NULL,
   tx_status    VARCHAR(10)    DEFAULT 'pending',
-  status_locked TINYINT(1)    DEFAULT 0,
   note         TEXT           DEFAULT NULL,
   provider     VARCHAR(50)    DEFAULT NULL,
   api_failed   TINYINT(1)     DEFAULT 0,
