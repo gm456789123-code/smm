@@ -5,6 +5,7 @@ import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { sendAdminPush } from '@/lib/push';
+import { syncOrderStatuses, type SyncOrder } from '@/lib/order-sync';
 
 const _svcCache: Record<string, { data: Service[]; exp: number }> = {};
 async function getCachedServices(provider: string): Promise<Service[]> {
@@ -198,10 +199,13 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const limitParam = req.nextUrl.searchParams.get('limit');
-  const limit = Math.min(Number(limitParam) || 50, 200);
+  const limit = Math.max(1, Math.min(Math.floor(Number(limitParam)) || 50, 200));
+  if (!checkRateLimit(`order-list:${user.userId}`, 12, 60_000).ok) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
 
-  const [rows] = await db.query<RowDataPacket[]>(
-    `SELECT id, amount, ref, tx_status, note, provider, api_failed, api_error,
+  const [rows] = await db.query<(RowDataPacket & SyncOrder)[]>(
+    `SELECT id, amount, ref, tx_type, tx_status, status_locked, note, provider, api_failed,
             service_id, link_url, qty, created_at
      FROM transactions
      WHERE user_id = ? AND tx_type = 'spend'
@@ -209,5 +213,10 @@ export async function GET(req: NextRequest) {
      LIMIT ?`,
     [user.userId, limit]
   );
-  return NextResponse.json(rows);
+  const result = req.nextUrl.searchParams.get('sync') === '1' ? await syncOrderStatuses(rows) : rows;
+  const publicResult = result.map((row) => {
+    const smm = 'smm' in row ? row.smm as { status: string; start_count: string; remains: string } | null : null;
+    return { ...row, smm: smm ? { status: smm.status, start_count: smm.start_count, remains: smm.remains } : null };
+  });
+  return NextResponse.json(publicResult, { headers: { 'Cache-Control': 'private, no-store' } });
 }

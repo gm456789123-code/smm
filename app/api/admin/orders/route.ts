@@ -1,31 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
-import { getProviderApi } from '@/lib/smm-api';
+import { syncOrderStatuses, type SyncOrder } from '@/lib/order-sync';
+import { checkRateLimit } from '@/lib/rate-limit';
 import db from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 async function checkAdmin(req: NextRequest) {
   const user = await getRequestUser(req);
   return user?.role === 'admin' ? user : null;
 }
 
-function mapStatus(smmStatus: string): string {
-  const s = (smmStatus || '').toLowerCase();
-  if (s === 'completed') return 'completed';
-  if (s === 'cancelled' || s === 'canceled') return 'cancelled';
-  if (s === 'partial') return 'partial';
-  if (s === 'in progress' || s === 'processing') return 'in_progress';
-  if (s === 'pending') return 'pending';
-  return smmStatus;
-}
-
 export async function GET(req: NextRequest) {
-  if (!await checkAdmin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-
+  const admin = await checkAdmin(req);
+  if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   const shouldSync = req.nextUrl.searchParams.get('sync') === '1';
-
-  const [rows] = await db.query<RowDataPacket[]>(
-    `SELECT t.id, t.user_id, t.tx_type, t.amount, t.ref, t.tx_status, t.note,
+  if (!checkRateLimit(`admin-order-sync:${admin.userId}`, 12, 60_000).ok) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+  const [rows] = await db.query<(RowDataPacket & SyncOrder)[]>(
+    `SELECT t.id, t.user_id, t.tx_type, t.amount, t.ref, t.tx_status, t.status_locked, t.note,
             t.provider, t.api_failed, t.api_error, t.service_id, t.link_url, t.qty, t.created_at,
             u.username, u.email
      FROM transactions t
@@ -33,88 +26,43 @@ export async function GET(req: NextRequest) {
      ORDER BY t.created_at DESC
      LIMIT 300`
   );
-
-  const liveStatusMap: Record<string, { status: string; start_count?: string; remains?: string; charge?: string; error?: string }> = {};
-
-  if (shouldSync) {
-    // Group active orders with ref by provider
-    const ordersByProvider: Record<string, string[]> = {};
-    for (const r of rows) {
-      if (r.ref && r.ref !== 'null' && r.ref !== 'undefined' && !r.api_failed) {
-        const prov = r.provider || 'km-social';
-        if (!ordersByProvider[prov]) ordersByProvider[prov] = [];
-        ordersByProvider[prov].push(String(r.ref));
-      }
-    }
-
-    // Query multiOrderStatus for each provider
-    for (const [provider, orderIds] of Object.entries(ordersByProvider)) {
-      if (orderIds.length === 0) continue;
-      try {
-        const api = getProviderApi(provider);
-        for (let i = 0; i < orderIds.length; i += 50) {
-          const chunk = orderIds.slice(i, i + 50);
-          const results = await api.multiOrderStatus(chunk);
-          if (results && typeof results === 'object') {
-            for (const [orderId, data] of Object.entries(results)) {
-              if (data && typeof data === 'object') {
-                if ('status' in data && data.status) {
-                  liveStatusMap[orderId] = {
-                    status: data.status,
-                    start_count: data.start_count,
-                    remains: data.remains,
-                    charge: data.charge,
-                  };
-
-                  const mapped = mapStatus(data.status);
-                  const matchingRow = rows.find(r => String(r.ref) === String(orderId));
-                  if (matchingRow && matchingRow.tx_status !== mapped && mapped) {
-                    await db.query('UPDATE transactions SET tx_status = ? WHERE id = ?', [mapped, matchingRow.id]);
-                    matchingRow.tx_status = mapped;
-                  }
-                } else if ('error' in data && data.error) {
-                  liveStatusMap[orderId] = { status: 'error', error: data.error };
-                }
-              }
-            }
-          }
-        }
-      } catch (err) {
-        console.error(`[admin/orders] Failed to sync status for ${provider}:`, err);
-      }
-    }
-  }
-
-  const enriched = rows.map(r => {
-    const smmData = r.ref ? liveStatusMap[String(r.ref)] : null;
-    return {
-      ...r,
-      smm: smmData || null,
-    };
-  });
-
-  return NextResponse.json(enriched);
+  const result = shouldSync ? await syncOrderStatuses(rows) : rows;
+  return NextResponse.json(result, { headers: { 'Cache-Control': 'private, no-store' } });
 }
-
 export async function PATCH(req: NextRequest) {
   if (!await checkAdmin(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   try {
-    const { id, tx_status, note, ref } = await req.json();
-    if (!id) return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+    const { id, tx_status, note, ref, status_locked } = await req.json();
+    if (!Number.isSafeInteger(id) || id <= 0) return NextResponse.json({ error: 'Invalid order ID' }, { status: 400 });
 
     const updates: string[] = [];
-    const values: any[] = [];
+    const values: (string | number | null)[] = [];
 
     if (tx_status !== undefined) {
+      if (!['pending', 'in_progress', 'processing', 'completed', 'cancelled', 'failed', 'partial'].includes(tx_status)) {
+        return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+      }
       updates.push('tx_status = ?');
       values.push(tx_status);
+      // A manual status change must not be silently overwritten by the next provider sync,
+      // unless the admin explicitly opts back into auto-sync via status_locked: false.
+      if (status_locked === undefined) {
+        updates.push('status_locked = ?');
+        values.push(1);
+      }
+    }
+    if (status_locked !== undefined) {
+      updates.push('status_locked = ?');
+      values.push(status_locked ? 1 : 0);
     }
     if (note !== undefined) {
+      if (typeof note !== 'string' || note.length > 5000) return NextResponse.json({ error: 'Invalid note' }, { status: 400 });
       updates.push('note = ?');
       values.push(note);
     }
     if (ref !== undefined) {
+      if (ref !== null && (typeof ref !== 'string' || ref.length > 255)) return NextResponse.json({ error: 'Invalid reference' }, { status: 400 });
       updates.push('ref = ?');
       values.push(ref);
     }
@@ -137,27 +85,118 @@ export async function POST(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   try {
-    const { action, id } = await req.json();
-    if (action === 'refund' && id) {
-      const [rows] = await db.query<RowDataPacket[]>(
-        'SELECT id, user_id, amount, tx_status, tx_type FROM transactions WHERE id = ? LIMIT 1',
-        [id]
-      );
-      const tx = rows[0];
-      if (!tx) return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
-      if (tx.tx_status === 'refunded' || (tx.note && tx.note.includes('[คืนเงินแล้ว'))) {
-        return NextResponse.json({ error: 'ออเดอร์นี้ได้ทำการคืนเงินไปแล้ว' }, { status: 400 });
+    const body = await req.json();
+    const { action, id } = body;
+
+    if (action === 'create') {
+      const userId   = Number(body.userId);
+      const provider = String(body.provider ?? 'km-social').trim() || 'km-social';
+      const ref      = String(body.ref ?? '').trim();
+      const serviceName = String(body.serviceName ?? '').trim();
+      const link     = String(body.link ?? '').trim();
+      const qty      = body.qty !== undefined && body.qty !== null && body.qty !== '' ? Math.floor(Number(body.qty)) : null;
+      const amount   = Number(body.amount ?? 0);
+      const txStatus = String(body.txStatus ?? 'pending');
+      const deductBalance = Boolean(body.deductBalance);
+
+      if (!Number.isSafeInteger(userId) || userId <= 0) {
+        return NextResponse.json({ error: 'กรุณาเลือกผู้ใช้' }, { status: 400 });
+      }
+      if (!ref) {
+        return NextResponse.json({ error: 'กรุณาระบุเลขออเดอร์จาก Provider (ref)' }, { status: 400 });
+      }
+      if (!serviceName) {
+        return NextResponse.json({ error: 'กรุณาระบุชื่อบริการ' }, { status: 400 });
+      }
+      if (!Number.isFinite(amount) || amount < 0) {
+        return NextResponse.json({ error: 'จำนวนเงินไม่ถูกต้อง' }, { status: 400 });
+      }
+      if (qty !== null && (!Number.isFinite(qty) || qty < 0)) {
+        return NextResponse.json({ error: 'จำนวนไม่ถูกต้อง' }, { status: 400 });
+      }
+      if (!['pending', 'in_progress', 'processing', 'completed', 'cancelled', 'failed', 'partial'].includes(txStatus)) {
+        return NextResponse.json({ error: 'สถานะไม่ถูกต้อง' }, { status: 400 });
       }
 
       const conn = await db.getConnection();
       try {
         await conn.beginTransaction();
-        const refundAmount = Number(tx.amount || 0);
 
-        if (refundAmount > 0) {
-          await conn.query('UPDATE users SET balance = balance + ? WHERE id = ?', [refundAmount, tx.user_id]);
+        const [userRows] = await conn.query<RowDataPacket[]>(
+          'SELECT id, username, balance FROM users WHERE id = ? LIMIT 1 FOR UPDATE',
+          [userId],
+        );
+        const targetUser = userRows[0];
+        if (!targetUser) {
+          await conn.rollback();
+          return NextResponse.json({ error: 'ไม่พบผู้ใช้' }, { status: 404 });
         }
 
+        if (deductBalance && amount > 0) {
+          if (Number(targetUser.balance) < amount) {
+            await conn.rollback();
+            return NextResponse.json({ error: `ยอดเงินลูกค้าไม่พอ (คงเหลือ ฿${Number(targetUser.balance).toFixed(2)})` }, { status: 402 });
+          }
+          await conn.query('UPDATE users SET balance = balance - ? WHERE id = ?', [amount, userId]);
+        }
+
+        try {
+          await conn.query(
+            `INSERT INTO transactions
+               (user_id, tx_type, amount, ref, tx_status, note, provider, service_id, link_url, qty)
+             VALUES (?, 'spend', ?, ?, ?, ?, ?, NULL, ?, ?)`,
+            [userId, amount, ref, txStatus, `${serviceName} | ${link}`, provider, link || null, qty],
+          );
+        } catch (err) {
+          await conn.rollback();
+          if (err && typeof err === 'object' && 'code' in err && (err as { code: string }).code === 'ER_DUP_ENTRY') {
+            return NextResponse.json({ error: 'เลขออเดอร์นี้ถูกใช้ไปแล้วในระบบ' }, { status: 409 });
+          }
+          throw err;
+        }
+
+        await conn.commit();
+        return NextResponse.json({ success: true, username: targetUser.username }, { status: 201 });
+      } catch (err) {
+        await conn.rollback();
+        throw err;
+      } finally {
+        conn.release();
+      }
+    }
+
+    if (action === 'refund' && Number.isSafeInteger(id) && id > 0) {
+      const conn = await db.getConnection();
+      try {
+        await conn.beginTransaction();
+        const [rows] = await conn.query<RowDataPacket[]>(
+          'SELECT id, user_id, amount, tx_status, tx_type, note FROM transactions WHERE id = ? LIMIT 1 FOR UPDATE',
+          [id],
+        );
+        const tx = rows[0];
+        if (!tx || tx.tx_type !== 'spend') {
+          await conn.rollback();
+          return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+        }
+        const refundRef = `refund:${id}`;
+        const [existing] = await conn.query<RowDataPacket[]>(
+          'SELECT id FROM transactions WHERE ref = ? LIMIT 1', [refundRef],
+        );
+        if (existing.length || tx.tx_status === 'refunded' || String(tx.note ?? '').includes('[คืนเงินแล้ว')) {
+          await conn.rollback();
+          return NextResponse.json({ error: 'ออเดอร์นี้ได้ทำการคืนเงินไปแล้ว' }, { status: 409 });
+        }
+        const refundAmount = Number(tx.amount);
+        if (!Number.isFinite(refundAmount) || refundAmount <= 0) {
+          await conn.rollback();
+          return NextResponse.json({ error: 'Invalid refund amount' }, { status: 400 });
+        }
+        await conn.query(
+          "INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note) VALUES (?, 'refund', ?, ?, 'completed', ?)",
+          [tx.user_id, refundAmount, refundRef, `Refund order ${id} by admin ${admin.userId}`],
+        );
+        const [credited] = await conn.query<ResultSetHeader>('UPDATE users SET balance = balance + ? WHERE id = ?', [refundAmount, tx.user_id]);
+        if (credited.affectedRows !== 1) throw new Error('Refund account not found');
         await conn.query(
           "UPDATE transactions SET tx_status = 'cancelled', note = CONCAT(COALESCE(note, ''), ' [คืนเงินแล้ว ฿', ?, ' โดยแอดมิน]') WHERE id = ?",
           [refundAmount, id]
@@ -175,6 +214,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (error) {
-    return NextResponse.json({ error: String(error) }, { status: 500 });
+    console.error('[admin/orders/POST]', error);
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }
