@@ -353,12 +353,6 @@ export default function DashboardPage() {
             <span>ราคา API: <span className="text-[#06B6D4] font-mono">฿{Number(selectedService.rate).toFixed(3)}/1K</span></span>
             <span>|</span>
             <span>Refill: <span className={selectedService.refill ? 'text-emerald-400' : 'text-[#475569]'}>{selectedService.refill ? 'รองรับ' : 'ไม่รองรับ'}</span></span>
-            {selectedService.average_time && (
-              <>
-                <span>|</span>
-                <span>เวลาเฉลี่ย: <span className="text-amber-400">{selectedService.average_time}</span></span>
-              </>
-            )}
           </div>
         )}
 

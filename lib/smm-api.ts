@@ -9,7 +9,6 @@ export interface Service {
   refill: boolean;
   cancel: boolean;
   provider: string;
-  average_time?: string;
 }
 
 export interface OrderStatus {
@@ -44,7 +43,6 @@ function createSmmApi(apiUrl: string, apiKey: string, provider: string) {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
-      ...(params.action === 'status' ? { signal: AbortSignal.timeout(10_000) } : {}),
       next: params.action === 'services' || params.action === 'balance'
         ? { revalidate: 300 }
         : undefined,
