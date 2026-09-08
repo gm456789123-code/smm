@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import {
   BsArrowRepeat, BsExclamationTriangle, BsCheckCircle, BsSearch,
   BsBoxArrowUpRight, BsCopy, BsCheck2, BsArrowClockwise, BsFillPlayFill,
-  BsCashStack, BsFilter,
+  BsCashStack, BsFilter, BsPlusLg,
 } from 'react-icons/bs';
 
 interface SmmLiveStatus {
@@ -233,6 +234,14 @@ export default function AdminOrdersPage() {
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
+          <Link
+            href="/admin/orders/create"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition-colors"
+          >
+            <BsPlusLg size={14} />
+            สร้างออเดอร์ให้ user
+          </Link>
+
           <button
             onClick={() => load(true)}
             disabled={syncing || loading}

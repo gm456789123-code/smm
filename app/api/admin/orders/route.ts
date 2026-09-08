@@ -137,7 +137,76 @@ export async function POST(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
   try {
-    const { action, id } = await req.json();
+    const body = await req.json();
+    const { action, id } = body;
+
+    if (action === 'create') {
+      const userId      = Number(body.userId);
+      const serviceName = String(body.serviceName ?? '').trim();
+      const link        = String(body.link ?? '').trim();
+      const qty         = body.qty !== undefined && body.qty !== null && body.qty !== '' ? Math.floor(Number(body.qty)) : null;
+      const amount      = Number(body.amount ?? 0);
+      const txStatus    = String(body.txStatus ?? 'pending');
+      const deductBalance = Boolean(body.deductBalance);
+
+      if (!Number.isSafeInteger(userId) || userId <= 0) {
+        return NextResponse.json({ error: 'กรุณาเลือกผู้ใช้' }, { status: 400 });
+      }
+      if (!serviceName) {
+        return NextResponse.json({ error: 'กรุณาระบุชื่อบริการ' }, { status: 400 });
+      }
+      if (!Number.isFinite(amount) || amount < 0) {
+        return NextResponse.json({ error: 'จำนวนเงินไม่ถูกต้อง' }, { status: 400 });
+      }
+      if (qty !== null && (!Number.isFinite(qty) || qty < 0)) {
+        return NextResponse.json({ error: 'จำนวนไม่ถูกต้อง' }, { status: 400 });
+      }
+      if (!['pending', 'in_progress', 'processing', 'completed', 'cancelled', 'failed', 'partial'].includes(txStatus)) {
+        return NextResponse.json({ error: 'สถานะไม่ถูกต้อง' }, { status: 400 });
+      }
+
+      const conn = await db.getConnection();
+      try {
+        await conn.beginTransaction();
+
+        const [userRows] = await conn.query<RowDataPacket[]>(
+          'SELECT id, username, balance FROM users WHERE id = ? LIMIT 1 FOR UPDATE',
+          [userId],
+        );
+        const targetUser = userRows[0];
+        if (!targetUser) {
+          await conn.rollback();
+          return NextResponse.json({ error: 'ไม่พบผู้ใช้' }, { status: 404 });
+        }
+
+        if (deductBalance && amount > 0) {
+          if (Number(targetUser.balance) < amount) {
+            await conn.rollback();
+            return NextResponse.json({ error: `ยอดเงินลูกค้าไม่พอ (คงเหลือ ฿${Number(targetUser.balance).toFixed(2)})` }, { status: 402 });
+          }
+          await conn.query('UPDATE users SET balance = balance - ? WHERE id = ?', [amount, userId]);
+        }
+
+        // Manual order: no provider ref, so the live-sync job (which only
+        // touches rows with a ref) will never touch this row's status —
+        // admin updates it by hand via PATCH.
+        await conn.query(
+          `INSERT INTO transactions
+             (user_id, tx_type, amount, ref, tx_status, note, provider, service_id, link_url, qty)
+           VALUES (?, 'spend', ?, NULL, ?, ?, NULL, NULL, ?, ?)`,
+          [userId, amount, txStatus, `${serviceName} | ${link}`, link || null, qty],
+        );
+
+        await conn.commit();
+        return NextResponse.json({ success: true, username: targetUser.username }, { status: 201 });
+      } catch (err) {
+        await conn.rollback();
+        throw err;
+      } finally {
+        conn.release();
+      }
+    }
+
     if (action === 'refund' && id) {
       const [rows] = await db.query<RowDataPacket[]>(
         'SELECT id, user_id, amount, tx_status, tx_type FROM transactions WHERE id = ? LIMIT 1',
