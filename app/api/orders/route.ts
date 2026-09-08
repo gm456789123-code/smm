@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import { Service, getProviderApi } from '@/lib/smm-api';
 import db from '@/lib/db';
-import { RowDataPacket } from 'mysql2';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { sendAdminPush } from '@/lib/push';
 
@@ -20,6 +20,11 @@ const MARKUP = Number(process.env.SMM_MARKUP ?? 1.3);
 
 function calcCostThb(quantity: number, rateUsd: number): number {
   return Math.ceil((quantity / 1000) * rateUsd * EXCHANGE_RATE * MARKUP * 100) / 100;
+}
+
+function isProviderBalanceError(raw: string): boolean {
+  const lower = raw.toLowerCase();
+  return lower.includes('not_enough_funds') || lower.includes('not enough funds') || lower.includes('balance');
 }
 
 function formatSmmError(raw: string): string {
@@ -134,34 +139,42 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       apiError = err instanceof Error ? err.message : String(err);
       console.error('[orders/POST] SMM API error:', apiError);
-      // คืนเงินลูกค้าทันที
-      await conn.query('UPDATE users SET balance = balance + ? WHERE id = ?', [costThb, user.userId]);
-      await conn.commit();
 
-      sendAdminPush({
-        title: '🚨 SMM API ขัดข้อง (Order Failed)',
-        body: `[${provider.toUpperCase()}] ${service.name} ส่งไม่สำเร็จ: ${apiError.slice(0, 80)} (คืนเงินแล้ว)`,
-        url: '/admin/orders',
-        tag: 'order-api-error',
-      }).catch(() => {});
+      // Only errors caused by OUR provider balance running low are worth
+      // holding for an admin retry — a bad link, min/max, or a disabled
+      // service will fail again no matter how many times it's retried,
+      // so those still refund the customer immediately.
+      if (!isProviderBalanceError(apiError)) {
+        await conn.query('UPDATE users SET balance = balance + ? WHERE id = ?', [costThb, user.userId]);
+        await conn.commit();
 
-      return NextResponse.json({
-        error: formatSmmError(apiError),
-      }, { status: 400 });
+        sendAdminPush({
+          title: '🚨 SMM API ขัดข้อง (Order Failed)',
+          body: `[${provider.toUpperCase()}] ${service.name} ส่งไม่สำเร็จ: ${apiError.slice(0, 80)} (คืนเงินแล้ว)`,
+          url: '/admin/orders',
+          tag: 'order-api-error',
+        }).catch(() => {});
+
+        return NextResponse.json({
+          error: formatSmmError(apiError),
+        }, { status: 400 });
+      }
+      // else: fall through and keep the credit held — insert a pending
+      // + api_failed=1 row below so admin can retry once our balance is topped up.
     }
 
-    await conn.query(
+    const [inserted] = await conn.query<ResultSetHeader>(
       `INSERT INTO transactions
          (user_id, tx_type, amount, ref, tx_status, note, provider, api_failed, api_error, service_id, link_url, qty)
        VALUES (?, 'spend', ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?)`,
       [
         user.userId,
         costThb,
-        String(smmOrderId),
+        smmOrderId !== null ? String(smmOrderId) : null,
         `${service.name} | ${link}`,
         service.provider,
-        0,
-        null,
+        apiError ? 1 : 0,
+        apiError,
         serviceId,
         link,
         quantity,
@@ -170,7 +183,12 @@ export async function POST(req: NextRequest) {
 
     await conn.commit();
 
-    sendAdminPush({
+    sendAdminPush(apiError ? {
+      title: '🚨 SMM API ขัดข้อง (ค้างรอ Retry)',
+      body: `[${provider.toUpperCase()}] ${service.name} ส่งไม่สำเร็จ: ${apiError.slice(0, 80)} (เครดิตลูกค้าถูกหักไว้ รอแอดมิน retry)`,
+      url: '/admin/orders',
+      tag: 'order-api-error',
+    } : {
       title: '📦 ออเดอร์ใหม่',
       body: `ผู้ใช้ ${user.username} สั่ง [${provider.toUpperCase()}] ${service.name} · ฿${costThb} (${quantity.toLocaleString()} ชิ้น)`,
       url: '/admin/orders',
@@ -179,7 +197,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      orderId: smmOrderId,
+      pending: !!apiError,
+      orderId: smmOrderId ?? inserted.insertId,
       cost: costThb,
       balance: Math.round((balance - costThb) * 100) / 100,
     }, { status: 201 });
