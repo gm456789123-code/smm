@@ -57,15 +57,15 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const serviceId = Number(body.serviceId);
-  const provider  = String(body.provider ?? 'km-social');
+  const provider  = String(body.provider ?? '24social');
   const link = String(body.link ?? '').trim();
   const quantity = Math.floor(Number(body.quantity));
   const runs = body.runs ? Math.floor(Number(body.runs)) : undefined;
   const interval = body.interval ? Math.floor(Number(body.interval)) : undefined;
 
-  if (provider === '24social') {
+  if (provider === 'km-social') {
     return NextResponse.json({
-      error: 'ระบบ 24social ปิดปรับปรุงชั่วคราว กรุณาเลือกใช้บริการจาก km-social',
+      error: 'ระบบ km-social ปิดปรับปรุงชั่วคราว กรุณาเลือกใช้บริการจาก 24social',
     }, { status: 400 });
   }
 
