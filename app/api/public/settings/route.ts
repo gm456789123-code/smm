@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 
@@ -26,7 +26,7 @@ export async function GET() {
       bank_account_number: process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER ?? '',
       promptpay_number: process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER ?? '',
       truewallet_id: process.env.NEXT_PUBLIC_TRUEWALLET_ID ?? '',
-      stripe_active: '0',
+      stripe_active: '1',
     };
     for (const r of rows) {
       if (PUBLIC_KEYS.has(r.setting_key)) {
