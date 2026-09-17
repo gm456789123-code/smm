@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import stripe from '@/lib/stripe';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -19,15 +19,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
-    const { amountThb } = await req.json();
+    const { amountThb, paymentMethod } = await req.json();
     if (!amountThb || typeof amountThb !== 'number' || amountThb < 20 || amountThb > 50000) {
       return NextResponse.json({ error: 'ยอดเงินต้องอยู่ระหว่าง ฿20 ถึง ฿50,000' }, { status: 400 });
     }
 
     const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
+    let methodTypes: ('card' | 'promptpay')[] = ['promptpay', 'card'];
+    if (paymentMethod === 'promptpay') {
+      methodTypes = ['promptpay'];
+    } else if (paymentMethod === 'card') {
+      methodTypes = ['card'];
+    }
+
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'promptpay'],
+      payment_method_types: methodTypes,
       line_items: [
         {
           price_data: {
