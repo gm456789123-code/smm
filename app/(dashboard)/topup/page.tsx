@@ -26,21 +26,21 @@ const CHANNELS: PaymentChannel[] = [
   {
     key: 'promptpay',
     label: 'พร้อมเพย์ (PromptPay)',
-    sub: 'ขั้นต่ำ ฿10 • QR โชว์บนหน้าเว็บทันที',
+    sub: 'รองรับ ธนาคาร / TrueMoney / ShopeePay',
     icon: <BsQrCodeScan />,
     color: 'purple',
   },
   {
     key: 'card',
     label: 'บัตรเครดิต / เดบิต',
-    sub: 'ขั้นต่ำ ฿150 • Visa/Mastercard (Stripe)',
+    sub: 'ขั้นต่ำ ฿150 • Visa, Mastercard, Google/Apple Pay',
     icon: <BsCreditCard2Front />,
     color: 'blue',
   },
   {
     key: 'truewallet',
     label: 'TrueMoney',
-    sub: 'ซองของขวัญ / วอเลท',
+    sub: 'ซองของขวัญ / วอเลท (ฟรีค่าธรรมเนียม 0%)',
     icon: <BsWallet2 />,
     color: 'orange',
   },
@@ -363,6 +363,21 @@ export default function TopupPage() {
               }
             />
 
+            {/* แถบแจ้งเตือนช่องทางพร้อมเพย์: ยืนยันรองรับ TrueMoney & ShopeePay */}
+            {channel === 'promptpay' && (
+              <div className="p-3.5 rounded-xl border border-purple-500/30 bg-purple-500/10 flex items-start gap-2.5 text-xs text-purple-200">
+                <BsLightningChargeFill size={16} className="shrink-0 text-amber-400 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-white">รองรับการสแกนผ่านหลากหลายแอปพลิเคชัน</p>
+                  <p className="text-[#CBD5E1] leading-relaxed">
+                    • <strong>แอปธนาคารไทยทุกแห่ง</strong> (K PLUS, SCB Easy, Krungthai NEXT, Bangkok Bank ฯลฯ)<br />
+                    • <strong>TrueMoney Wallet</strong> (เปิดแอปทรูมันนี่ กดปุ่มสแกนจ่ายได้เลย)<br />
+                    • <strong>ShopeePay</strong> (เปิดแอป ShopeePay กดปุ่มสแกนจ่ายได้เลย)
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* ประกาศแจ้งเตือนกรณีบัตรเครดิต */}
             {channel === 'card' && (
               <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 flex items-start gap-2.5 text-xs text-rose-300">
@@ -371,7 +386,8 @@ export default function TopupPage() {
                   <p className="font-bold text-rose-200">ข้อกำหนดการชำระผ่านบัตรเครดิต / เดบิต</p>
                   <p className="text-rose-300/90 leading-relaxed">
                     • <strong>ยอดชำระขั้นต่ำ ฿150 บาท</strong> (ห้ามต่ำกว่า ฿150)<br />
-                    • <strong>หักค่าธรรมเนียม -5 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿150 จะได้รับสุทธิ 145 เครดิตเข้ากระเป๋า)
+                    • <strong>หักค่าธรรมเนียม -5 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿150 จะได้รับสุทธิ 145 เครดิตเข้ากระเป๋า)<br />
+                    • รองรับ <strong>Visa, Mastercard, JCB, Google Pay และ Apple Pay</strong>
                   </p>
                 </div>
               </div>
@@ -472,9 +488,19 @@ export default function TopupPage() {
                   <p className="text-3xl font-black text-white font-mono mt-1">
                     ฿{activeQr.amount.toLocaleString()}
                   </p>
-                  <p className="text-xs text-[#94A3B8]">
-                    เปิดแอปธนาคารใดก็ได้ (K PLUS, SCB Easy, Krungthai, Bangkok Bank ฯลฯ) แล้วสแกนจ่าย
-                  </p>
+                </div>
+
+                {/* ป้ายเตือนแอปรองรับ */}
+                <div className="flex flex-wrap items-center justify-center gap-1.5 py-0.5">
+                  <span className="px-2.5 py-1 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-200 text-xs font-medium">
+                    🏦 ทุกแอปธนาคารไทย
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-orange-500/15 border border-orange-500/30 text-orange-200 text-xs font-medium">
+                    🧡 TrueMoney Wallet
+                  </span>
+                  <span className="px-2.5 py-1 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs font-medium">
+                    🛍️ ShopeePay
+                  </span>
                 </div>
 
                 {/* ภาพ QR Code ของ Stripe */}
@@ -498,9 +524,9 @@ export default function TopupPage() {
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 py-2 rounded-xl">
+                  <div className="flex items-center justify-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 py-2.5 rounded-xl">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>ระบบกำลังตรวจจับยอดเงินอัตโนมัติ (ไม่ต้องส่งสลิป)</span>
+                    <span className="font-medium">สแกนจ่ายได้เลย เงินเข้าทันทีอัตโนมัติ (ไม่ต้องส่งสลิป)</span>
                   </div>
 
                   <div className="flex gap-2">
@@ -530,7 +556,7 @@ export default function TopupPage() {
         {/* ขั้นตอนที่ 2: TRUEMONEY ANGPAO FLOW */}
         {channel === 'truewallet' && (
           <form onSubmit={submitAngpao} className="glass p-5 space-y-4">
-            <StepLabel n={2} text="กรอกลิ้งค์หรือรหัสซองของขวัญ TrueMoney" />
+            <StepLabel n={2} text="กรอกลิ้งค์หรือรหัสซองของขวัญ TrueMoney (ฟรีค่าธรรมเนียม 0%)" />
 
             <div className="glass rounded-xl p-4 space-y-2 border border-[rgba(239,68,68,0.15)] bg-rose-500/5">
               <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">รูปแบบลิ้งค์ที่รองรับ</p>
