@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import stripe from '@/lib/stripe';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
@@ -20,34 +20,67 @@ export async function POST(req: NextRequest) {
     }
 
     const { amountThb, paymentMethod } = await req.json();
-    if (!amountThb || typeof amountThb !== 'number' || amountThb < 20 || amountThb > 50000) {
-      return NextResponse.json({ error: 'Amount must be between THB 20 and THB 50,000.' }, { status: 400 });
+    const isCard = paymentMethod === 'card';
+    const minAmount = isCard ? 150 : 10;
+
+    if (!amountThb || typeof amountThb !== 'number' || amountThb < minAmount || amountThb > 50000) {
+      return NextResponse.json({
+        error: isCard
+          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿150 (หักค่าธรรมเนียม -5 เครดิตทุกกรณี)'
+          : 'ยอดชำระผ่านพร้อมเพย์ต้องไม่ต่ำกว่า ฿10',
+      }, { status: 400 });
     }
 
-    const METHOD_MAP: Record<string, string[]> = {
-      promptpay: ['promptpay'],
-      card: ['card'],
-      truemoney: ['truemoney'],
-      link: ['link', 'card'],
-    };
-    const methodTypes = METHOD_MAP[paymentMethod as string];
+    const netCredit = isCard ? Math.max(0, amountThb - 5) : amountThb;
 
+    if (paymentMethod === 'promptpay') {
+      // สร้าง Stripe PromptPay intent และ confirm ทันทีเพื่อให้ได้ QR image
+      const intent = await stripe.paymentIntents.create({
+        amount: Math.round(amountThb * 100),
+        currency: 'thb',
+        payment_method_types: ['promptpay'],
+        payment_method_data: {
+          type: 'promptpay',
+        },
+        confirm: true,
+        metadata: {
+          userId: String(user.userId),
+          username: user.username,
+          amountThb: String(amountThb),
+          netCredit: String(netCredit),
+          paymentMethod: 'promptpay',
+        },
+      });
+
+      const qrAction = intent.next_action?.promptpay_display_qr_code;
+      const qrDataUrl = qrAction?.image_url_png || qrAction?.image_url_svg || (qrAction as any)?.data_url;
+
+      return NextResponse.json({
+        intentId: intent.id,
+        clientSecret: intent.client_secret,
+        qrDataUrl,
+        hostedUrl: qrAction?.hosted_instructions_url,
+        amount: amountThb,
+      });
+    }
+
+    // กรณีอื่นๆ เช่น Card
     const intent = await stripe.paymentIntents.create({
       amount: Math.round(amountThb * 100),
       currency: 'thb',
-      ...(methodTypes
-        ? { payment_method_types: methodTypes }
-        : { automatic_payment_methods: { enabled: true } }),
+      payment_method_types: ['card'],
       metadata: {
         userId: String(user.userId),
         username: user.username,
         amountThb: String(amountThb),
+        netCredit: String(netCredit),
+        paymentMethod: 'card',
       },
     });
 
     return NextResponse.json({
-      clientSecret: intent.client_secret,
       intentId: intent.id,
+      clientSecret: intent.client_secret,
     });
   } catch (error: any) {
     console.error('[create-payment-intent-error]', error);

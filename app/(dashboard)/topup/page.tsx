@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   BsQrCodeScan, BsCheckCircleFill, BsExclamationCircleFill,
   BsArrowRight, BsShieldCheck, BsWallet2, BsGift,
   BsCreditCard2Front, BsLockFill, BsLightningChargeFill,
+  BsArrowClockwise, BsDownload, BsClock,
 } from 'react-icons/bs';
 
 const PROMPTPAY_AMOUNTS = [10, 20, 50, 100, 150, 300, 500, 1000, 2000, 5000, 10000];
@@ -25,7 +26,7 @@ const CHANNELS: PaymentChannel[] = [
   {
     key: 'promptpay',
     label: 'พร้อมเพย์ (PromptPay)',
-    sub: 'ขั้นต่ำ ฿10 • เงินเข้าทันที (อัตโนมัติ)',
+    sub: 'ขั้นต่ำ ฿10 • QR โชว์บนหน้าเว็บทันที',
     icon: <BsQrCodeScan />,
     color: 'purple',
   },
@@ -60,6 +61,21 @@ export default function TopupPage() {
   const [voucherInput, setVoucherInput] = useState('');
   const [bonusPct, setBonusPct] = useState(0);
 
+  // สถานะ QR พร้อมเพย์ของ Stripe ที่แสดงบนหน้าเว็บโดยตรง
+  const [activeQr, setActiveQr] = useState<{
+    intentId: string;
+    qrUrl: string;
+    amount: number;
+    hostedUrl?: string;
+  } | null>(null);
+
+  // ป๊อปอัปสำเร็จ
+  const [successModal, setSuccessModal] = useState<{ amount: number; ref: string } | null>(null);
+
+  // ตัวนับถอยหลัง QR
+  const [timeLeft, setTimeLeft] = useState<number>(600); // 10 นาที
+  const pollRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     fetch('/api/public/settings')
       .then((r) => r.json())
@@ -69,33 +85,109 @@ export default function TopupPage() {
       .catch(() => {});
   }, []);
 
+  // ตัวจับเวลาถอยหลังสำหรับ QR
+  useEffect(() => {
+    if (!activeQr) return;
+    setTimeLeft(600);
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setActiveQr(null);
+          setResult({ type: 'error', text: 'QR Code หมดอายุแล้ว กรุณาสร้าง QR ใหม่' });
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [activeQr]);
+
+  // ระบบดักฟังตรวจจับเงินเข้า Real-time (Polling ตรวจ status ทุก 2 วินาที)
+  useEffect(() => {
+    if (!activeQr) {
+      if (pollRef.current) clearInterval(pollRef.current);
+      return;
+    }
+
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/payment/check-intent?id=${activeQr.intentId}`);
+        const data = await res.json();
+        if (data.status === 'succeeded') {
+          if (pollRef.current) clearInterval(pollRef.current);
+          const credited = data.amount || activeQr.amount;
+          setActiveQr(null);
+          setSuccessModal({ amount: credited, ref: data.ref || activeQr.intentId });
+          window.dispatchEvent(new Event('smm-data-changed'));
+        }
+      } catch {}
+    }, 2000);
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [activeQr]);
+
   const minRequired = channel === 'card' ? 150 : 10;
   const currentAmounts = channel === 'card' ? CARD_AMOUNTS : PROMPTPAY_AMOUNTS;
   const finalAmount = amount ?? (custom ? Number(custom) : null);
   const netCredit = channel === 'card' && finalAmount ? Math.max(0, finalAmount - 5) : finalAmount;
 
-  // เรียก Stripe Checkout (รองรับทั้ง PromptPay และ Card อัตโนมัติ 100% ไม่มีอัปโหลดสลิป)
-  async function submitStripe(method: 'promptpay' | 'card') {
-    const min = method === 'card' ? 150 : 10;
+  // กดชำระเงิน
+  async function handlePayment() {
+    const min = channel === 'card' ? 150 : 10;
     if (!finalAmount || finalAmount < min) {
       setResult({
         type: 'error',
-        text: method === 'card'
+        text: channel === 'card'
           ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿150 (หักค่าธรรมเนียม -5 เครดิตทุกกรณี)'
           : 'ยอดชำระผ่านพร้อมเพย์ขั้นต่ำ ฿10 บาท',
       });
       return;
     }
+
     setLoading(true);
     setResult(null);
 
+    // 1. กรณี พร้อมเพย์ ➔ แสดง QR ของ Stripe บนหน้าเว็บทันที (ไม่เด้งออก)
+    if (channel === 'promptpay') {
+      try {
+        const res = await fetch('/api/payment/create-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amountThb: finalAmount,
+            paymentMethod: 'promptpay',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.qrDataUrl) {
+          setResult({ type: 'error', text: data.error || 'ไม่สามารถสร้าง QR Code ได้ กรุณาลองใหม่อีกครั้ง' });
+        } else {
+          setActiveQr({
+            intentId: data.intentId,
+            qrUrl: data.qrDataUrl,
+            amount: finalAmount,
+            hostedUrl: data.hostedUrl,
+          });
+        }
+      } catch {
+        setResult({ type: 'error', text: 'เชื่อมต่อ Stripe ไม่สำเร็จ กรุณาลองใหม่' });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // 2. กรณี บัตรเครดิต ➔ วิ่งไป Stripe Checkout เพื่อรับรหัส OTP SMS จากธนาคาร
     try {
       const res = await fetch('/api/payment/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amountThb: finalAmount,
-          paymentMethod: method,
+          paymentMethod: 'card',
         }),
       });
       const data = await res.json();
@@ -144,6 +236,7 @@ export default function TopupPage() {
 
   function selectChannel(key: PaymentChannelKey) {
     setChannel(key);
+    setActiveQr(null);
     setResult(null);
     if (key === 'card' && (!amount || amount < 150)) {
       setAmount(150);
@@ -154,219 +247,329 @@ export default function TopupPage() {
     }
   }
 
-  return (
-    <main className="flex-1 p-4 lg:p-6 max-w-2xl mx-auto w-full space-y-5">
-      <div>
-        <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">เติมเงิน</h1>
-        <p className="text-[#94A3B8] text-sm mt-0.5">ระบบอัตโนมัติเต็มรูปแบบ — สแกนจ่ายแล้วเงินเข้าทันที 1 วินาที ไม่ต้องอัปโหลดสลิป</p>
-      </div>
+  const formatTimer = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
 
-      {bonusPct > 0 && (
-        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-amber-500/30 bg-amber-500/8">
-          <BsGift size={16} className="text-amber-400 shrink-0" />
-          <p className="text-sm text-amber-300">
-            รับโบนัสพิเศษเพิ่ม <span className="font-bold">{bonusPct}%</span> ทุกยอดเติมเงิน
-          </p>
+  return (
+    <>
+      {/* ป๊อปอัปเติมเงินสำเร็จ */}
+      {successModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)' }}>
+          <div className="glass w-full max-w-sm rounded-2xl p-8 text-center space-y-5 border border-emerald-500/40"
+            style={{ boxShadow: '0 0 60px rgba(16,185,129,0.3)' }}>
+            <div className="flex justify-center">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center bg-emerald-500/15 border-2 border-emerald-400">
+                <BsCheckCircleFill size={42} className="text-emerald-400 animate-bounce" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <p className="text-emerald-400 font-bold text-xl">เติมเงินสำเร็จแล้ว!</p>
+              <p className="text-4xl font-black text-white font-mono">฿{successModal.amount.toLocaleString()}</p>
+              <p className="text-xs text-[#94A3B8] font-mono pt-1">Ref: {successModal.ref}</p>
+            </div>
+            <p className="text-sm text-[#94A3B8]">ยอดเงินถูกเพิ่มเข้าบัญชีของคุณเรียบร้อยแล้ว</p>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setSuccessModal(null)}
+                className="flex-1 py-2.5 text-sm font-semibold rounded-xl border border-[rgba(139,92,246,0.3)] text-[#94A3B8] hover:text-white transition-all cursor-pointer"
+              >
+                เติมอีกครั้ง
+              </button>
+              <Link
+                href="/dashboard"
+                className="flex-1 py-2.5 text-sm font-semibold rounded-xl text-white flex items-center justify-center gap-1.5 transition-all shadow-lg cursor-pointer"
+                style={{ background: 'linear-gradient(135deg,#7c3aed,#6d28d9)' }}
+              >
+                ดูยอดเงิน <BsArrowRight size={13} />
+              </Link>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* ขั้นตอนที่ 1: เลือกช่องทาง */}
-      <div className="glass p-5 space-y-3">
-        <StepLabel n={1} text="เลือกช่องทางชำระเงิน" />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {CHANNELS.map(t => {
-            const active = channel === t.key;
-            const c = COLOR_MAP[t.color];
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => selectChannel(t.key)}
-                className="relative flex items-center gap-3 p-4 rounded-xl border transition-all text-left cursor-pointer"
-                style={{
-                  borderColor: active ? c.border : 'rgba(139,92,246,0.12)',
-                  background: active ? c.bg : 'transparent',
-                }}
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors"
+      <main className="flex-1 p-4 lg:p-6 max-w-2xl mx-auto w-full space-y-5">
+        <div>
+          <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">เติมเงิน</h1>
+          <p className="text-[#94A3B8] text-sm mt-0.5">ระบบอัตโนมัติเต็มรูปแบบ — สแกนจ่ายแล้วเงินเข้าทันที 1 วินาที ไม่ต้องอัปโหลดสลิป</p>
+        </div>
+
+        {bonusPct > 0 && (
+          <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-amber-500/30 bg-amber-500/8">
+            <BsGift size={16} className="text-amber-400 shrink-0" />
+            <p className="text-sm text-amber-300">
+              รับโบนัสพิเศษเพิ่ม <span className="font-bold">{bonusPct}%</span> ทุกยอดเติมเงิน
+            </p>
+          </div>
+        )}
+
+        {/* ขั้นตอนที่ 1: เลือกช่องทาง */}
+        <div className="glass p-5 space-y-3">
+          <StepLabel n={1} text="เลือกช่องทางชำระเงิน" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {CHANNELS.map(t => {
+              const active = channel === t.key;
+              const c = COLOR_MAP[t.color];
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => selectChannel(t.key)}
+                  className="relative flex items-center gap-3 p-4 rounded-xl border transition-all text-left cursor-pointer"
                   style={{
-                    background: active ? c.icon : 'rgba(255,255,255,0.04)',
-                    color: active ? c.iconText : '#475569',
+                    borderColor: active ? c.border : 'rgba(139,92,246,0.12)',
+                    background: active ? c.bg : 'transparent',
                   }}
                 >
-                  {t.icon}
-                </div>
-                <div className="min-w-0">
-                  <p className={`text-sm font-semibold leading-tight truncate ${active ? 'text-white' : 'text-[#94A3B8]'}`}>
-                    {t.label}
-                  </p>
-                  <p className="text-[10px] text-[#64748B] mt-0.5 leading-snug truncate">
-                    {t.sub}
-                  </p>
-                </div>
-                {active && (
-                  <BsCheckCircleFill size={14} className="absolute top-3 right-3 shrink-0" style={{ color: c.iconText }} />
-                )}
-              </button>
-            );
-          })}
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors"
+                    style={{
+                      background: active ? c.icon : 'rgba(255,255,255,0.04)',
+                      color: active ? c.iconText : '#475569',
+                    }}
+                  >
+                    {t.icon}
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`text-sm font-semibold leading-tight truncate ${active ? 'text-white' : 'text-[#94A3B8]'}`}>
+                      {t.label}
+                    </p>
+                    <p className="text-[10px] text-[#64748B] mt-0.5 leading-snug truncate">
+                      {t.sub}
+                    </p>
+                  </div>
+                  {active && (
+                    <BsCheckCircleFill size={14} className="absolute top-3 right-3 shrink-0" style={{ color: c.iconText }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      {/* ขั้นตอนที่ 2: STRIPE FLOW (พร้อมเพย์ & บัตรเครดิต) */}
-      {(channel === 'promptpay' || channel === 'card') && (
-        <div className="glass p-5 space-y-4">
-          <StepLabel
-            n={2}
-            text={
-              channel === 'promptpay'
-                ? 'เลือกยอดเงินและชำระด้วย พร้อมเพย์ (สแกนจ่ายเงินเข้าทันที)'
-                : 'เลือกยอดเงินและชำระด้วย บัตรเครดิต / เดบิต'
-            }
-          />
+        {/* ขั้นตอนที่ 2: STRIPE FLOW (พร้อมเพย์ & บัตรเครดิต) */}
+        {(channel === 'promptpay' || channel === 'card') && (
+          <div className="glass p-5 space-y-4">
+            <StepLabel
+              n={2}
+              text={
+                channel === 'promptpay'
+                  ? 'เลือกยอดเงินและชำระด้วย พร้อมเพย์ (สแกนจ่ายเงินเข้าทันที)'
+                  : 'เลือกยอดเงินและชำระด้วย บัตรเครดิต / เดบิต'
+              }
+            />
 
-          {/* ประกาศแจ้งเตือนกรณีบัตรเครดิต */}
-          {channel === 'card' && (
-            <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 flex items-start gap-2.5 text-xs text-rose-300">
-              <BsExclamationCircleFill size={16} className="shrink-0 text-rose-400 mt-0.5" />
-              <div className="space-y-1">
-                <p className="font-bold text-rose-200">ข้อกำหนดการชำระผ่านบัตรเครดิต / เดบิต</p>
-                <p className="text-rose-300/90 leading-relaxed">
-                  • <strong>ยอดชำระขั้นต่ำ ฿150 บาท</strong> (ห้ามต่ำกว่า ฿150)<br />
-                  • <strong>หักค่าธรรมเนียม -5 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿150 จะได้รับสุทธิ 145 เครดิตเข้ากระเป๋า)
-                </p>
+            {/* ประกาศแจ้งเตือนกรณีบัตรเครดิต */}
+            {channel === 'card' && (
+              <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 flex items-start gap-2.5 text-xs text-rose-300">
+                <BsExclamationCircleFill size={16} className="shrink-0 text-rose-400 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-rose-200">ข้อกำหนดการชำระผ่านบัตรเครดิต / เดบิต</p>
+                  <p className="text-rose-300/90 leading-relaxed">
+                    • <strong>ยอดชำระขั้นต่ำ ฿150 บาท</strong> (ห้ามต่ำกว่า ฿150)<br />
+                    • <strong>หักค่าธรรมเนียม -5 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿150 จะได้รับสุทธิ 145 เครดิตเข้ากระเป๋า)
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-            {currentAmounts.map((a) => (
-              <button
-                key={a}
-                type="button"
-                onClick={() => { setAmount(a); setCustom(''); }}
-                className={[
-                  'glass-tab py-2.5 text-sm font-semibold transition-all cursor-pointer',
-                  amount === a && !custom ? 'glass-tab-active text-[#a78bfa]' : 'text-[#94A3B8]',
-                ].join(' ')}
-              >
-                ฿{a.toLocaleString()}
-              </button>
-            ))}
+            {/* หากยังไม่ได้กดสร้าง QR ให้เลือกยอดเงิน */}
+            {!activeQr ? (
+              <>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                  {currentAmounts.map((a) => (
+                    <button
+                      key={a}
+                      type="button"
+                      onClick={() => { setAmount(a); setCustom(''); }}
+                      className={[
+                        'glass-tab py-2.5 text-sm font-semibold transition-all cursor-pointer',
+                        amount === a && !custom ? 'glass-tab-active text-[#a78bfa]' : 'text-[#94A3B8]',
+                      ].join(' ')}
+                    >
+                      ฿{a.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
+
+                <input
+                  type="number"
+                  value={custom}
+                  onChange={e => { setCustom(e.target.value); setAmount(null); }}
+                  placeholder={`หรือกรอกจำนวนเอง (ขั้นต่ำ ฿${minRequired})...`}
+                  className="w-full glass px-4 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] rounded-xl border border-[rgba(139,92,246,0.2)] focus:border-[#a78bfa] transition-colors"
+                />
+
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]">
+                  <div className="space-y-0.5">
+                    <p className="text-xs text-[#94A3B8]">ยอดที่ต้องชำระ</p>
+                    <p className="text-2xl font-bold text-white font-mono">฿{(finalAmount || 0).toLocaleString()}</p>
+                    {channel === 'card' && finalAmount ? (
+                      <p className="text-[11px] text-rose-300 font-medium">
+                        หักค่าธรรมเนียม -5 เครดิต ➔ <span className="font-bold text-emerald-300">ได้รับสุทธิ ฿{(netCredit || 0).toLocaleString()} เครดิต</span>
+                      </p>
+                    ) : null}
+                    {bonusPct > 0 && finalAmount ? (
+                      <p className="text-[11px] text-amber-400 font-medium">
+                        + โบนัส ฿{(Math.round(finalAmount * bonusPct) / 100).toLocaleString()}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-[#a78bfa]">
+                    <BsLockFill size={12} /> ปลอดภัยมาตรฐาน Stripe
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={handlePayment}
+                    disabled={!finalAmount || finalAmount < minRequired || loading}
+                    className="w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-lg cursor-pointer"
+                    style={{
+                      background: channel === 'promptpay'
+                        ? 'linear-gradient(135deg,#7c3aed,#6d28d9)'
+                        : 'linear-gradient(135deg,#2563eb,#1d4ed8)',
+                    }}
+                  >
+                    {loading ? (
+                      <>
+                        <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
+                        กำลังเปิดระบบชำระเงิน...
+                      </>
+                    ) : channel === 'promptpay' ? (
+                      <>
+                        <BsLightningChargeFill size={16} />
+                        สแกนจ่าย พร้อมเพย์ ฿{(finalAmount || 0).toLocaleString()} (เงินเข้าทันที)
+                        <BsArrowRight size={14} />
+                      </>
+                    ) : (
+                      <>
+                        <BsCreditCard2Front size={16} />
+                        ชำระผ่านบัตร ฿{(finalAmount || 0).toLocaleString()} (สุทธิ {netCredit ? `${netCredit.toLocaleString()} เครดิต` : ''})
+                        <BsArrowRight size={14} />
+                      </>
+                    )}
+                  </button>
+                  <p className="text-center text-[11px] text-[#64748B] flex items-center justify-center gap-1">
+                    <BsShieldCheck size={12} className="text-emerald-400" />
+                    เมื่อชำระสำเร็จ ระบบจะเติมเครดิตเข้าบัญชีของคุณทันทีอัตโนมัติ 100% (ไม่ต้องอัปโหลดสลิป)
+                  </p>
+                </div>
+              </>
+            ) : (
+              /* ===== ส่วนแสดง QR CODE พร้อมเพย์ บนหน้าเว็บโดยตรง ===== */
+              <div className="flex flex-col items-center space-y-4 py-3">
+                <div className="text-center space-y-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold">
+                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
+                    พร้อมเพย์ QR Code (Stripe)
+                  </div>
+                  <p className="text-3xl font-black text-white font-mono mt-1">
+                    ฿{activeQr.amount.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-[#94A3B8]">
+                    เปิดแอปธนาคารใดก็ได้ (K PLUS, SCB Easy, Krungthai, Bangkok Bank ฯลฯ) แล้วสแกนจ่าย
+                  </p>
+                </div>
+
+                {/* ภาพ QR Code ของ Stripe */}
+                <div className="relative p-4 bg-white rounded-2xl shadow-2xl border-4 border-purple-500/30 max-w-[240px] select-none">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={activeQr.qrUrl}
+                    alt="PromptPay QR Code"
+                    className="w-full h-auto aspect-square object-contain"
+                  />
+                </div>
+
+                {/* ตัวนับเวลาถอยหลัง & สถานะรอเงินเข้า */}
+                <div className="w-full max-w-sm space-y-3">
+                  <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-xs">
+                    <span className="flex items-center gap-1.5 text-purple-300 font-medium">
+                      <BsClock size={13} /> เวลาที่เหลือ:
+                    </span>
+                    <span className="font-mono font-bold text-amber-300 text-sm">
+                      {formatTimer(timeLeft)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 py-2 rounded-xl">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>ระบบกำลังตรวจจับยอดเงินอัตโนมัติ (ไม่ต้องส่งสลิป)</span>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <a
+                      href={activeQr.qrUrl}
+                      download="promptpay-qr.png"
+                      className="flex-1 py-2.5 rounded-xl text-xs font-semibold border border-[rgba(139,92,246,0.3)] text-[#94A3B8] hover:text-white flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <BsDownload size={13} /> บันทึกภาพ QR
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setActiveQr(null)}
+                      className="px-4 py-2.5 rounded-xl text-xs font-semibold text-rose-300 hover:text-rose-200 border border-rose-500/30 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    >
+                      ยกเลิก / เปลี่ยนยอด
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <ResultBanner result={result} />
           </div>
+        )}
 
-          <input
-            type="number"
-            value={custom}
-            onChange={e => { setCustom(e.target.value); setAmount(null); }}
-            placeholder={`หรือกรอกจำนวนเอง (ขั้นต่ำ ฿${minRequired})...`}
-            className="w-full glass px-4 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] rounded-xl border border-[rgba(139,92,246,0.2)] focus:border-[#a78bfa] transition-colors"
-          />
+        {/* ขั้นตอนที่ 2: TRUEMONEY ANGPAO FLOW */}
+        {channel === 'truewallet' && (
+          <form onSubmit={submitAngpao} className="glass p-5 space-y-4">
+            <StepLabel n={2} text="กรอกลิ้งค์หรือรหัสซองของขวัญ TrueMoney" />
 
-          <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]">
-            <div className="space-y-0.5">
-              <p className="text-xs text-[#94A3B8]">ยอดที่ต้องชำระ</p>
-              <p className="text-2xl font-bold text-white font-mono">฿{(finalAmount || 0).toLocaleString()}</p>
-              {channel === 'card' && finalAmount ? (
-                <p className="text-[11px] text-rose-300 font-medium">
-                  หักค่าธรรมเนียม -5 เครดิต ➔ <span className="font-bold text-emerald-300">ได้รับสุทธิ ฿{(netCredit || 0).toLocaleString()} เครดิต</span>
-                </p>
-              ) : null}
-              {bonusPct > 0 && finalAmount ? (
-                <p className="text-[11px] text-amber-400 font-medium">
-                  + โบนัส ฿{(Math.round(finalAmount * bonusPct) / 100).toLocaleString()}
-                </p>
-              ) : null}
+            <div className="glass rounded-xl p-4 space-y-2 border border-[rgba(239,68,68,0.15)] bg-rose-500/5">
+              <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">รูปแบบลิ้งค์ที่รองรับ</p>
+              <p className="text-xs text-[#94A3B8] font-mono">https://gift.truemoney.com/campaign/?v=ABCD1234</p>
+              <p className="text-xs text-[#94A3B8] font-mono">หรือใส่เฉพาะรหัสท้าย เช่น ABCD1234</p>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-[#a78bfa]">
-              <BsLockFill size={12} /> ปลอดภัยมาตรฐาน Stripe
-            </div>
-          </div>
 
-          <div className="space-y-2">
+            <input
+              type="text"
+              value={voucherInput}
+              onChange={e => { setVoucherInput(e.target.value); setResult(null); }}
+              placeholder="วางลิ้งค์ซองของขวัญที่นี่..."
+              autoFocus
+              className="w-full px-4 py-3.5 text-sm text-white bg-[rgba(255,255,255,0.06)] outline-none placeholder-[#64748B] rounded-xl border border-[rgba(251,146,60,0.4)] focus:border-orange-400 focus:bg-[rgba(255,255,255,0.09)] transition-all"
+            />
+
             <button
-              type="button"
-              onClick={() => submitStripe(channel === 'promptpay' ? 'promptpay' : 'card')}
-              disabled={!finalAmount || finalAmount < minRequired || loading}
+              type="submit"
+              disabled={!voucherInput.trim() || loading}
               className="w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-lg cursor-pointer"
-              style={{
-                background: channel === 'promptpay'
-                  ? 'linear-gradient(135deg,#7c3aed,#6d28d9)'
-                  : 'linear-gradient(135deg,#2563eb,#1d4ed8)',
-              }}
+              style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)' }}
             >
               {loading ? (
                 <>
                   <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
-                  กำลังเปิดระบบชำระเงิน...
-                </>
-              ) : channel === 'promptpay' ? (
-                <>
-                  <BsLightningChargeFill size={16} />
-                  สแกนจ่าย พร้อมเพย์ {finalAmount ? `฿${finalAmount.toLocaleString()}` : ''} (เงินเข้าทันที)
-                  <BsArrowRight size={14} />
+                  กำลังตรวจสอบซอง...
                 </>
               ) : (
                 <>
-                  <BsCreditCard2Front size={16} />
-                  ชำระผ่านบัตร {finalAmount ? `฿${finalAmount.toLocaleString()}` : ''} (สุทธิ {netCredit ? `${netCredit.toLocaleString()} เครดิต` : ''})
-                  <BsArrowRight size={14} />
+                  <BsGift size={15} /> รับยอดเงินจากซองทันที
                 </>
               )}
             </button>
-            <p className="text-center text-[11px] text-[#64748B] flex items-center justify-center gap-1">
-              <BsShieldCheck size={12} className="text-emerald-400" />
-              เมื่อชำระสำเร็จ ระบบจะเติมเครดิตเข้าบัญชีของคุณทันทีอัตโนมัติ 100% (ไม่ต้องอัปโหลดสลิป)
-            </p>
-          </div>
 
-          <ResultBanner result={result} />
-        </div>
-      )}
-
-      {/* ขั้นตอนที่ 2: TRUEMONEY ANGPAO FLOW */}
-      {channel === 'truewallet' && (
-        <form onSubmit={submitAngpao} className="glass p-5 space-y-4">
-          <StepLabel n={2} text="กรอกลิ้งค์หรือรหัสซองของขวัญ TrueMoney" />
-
-          <div className="glass rounded-xl p-4 space-y-2 border border-[rgba(239,68,68,0.15)] bg-rose-500/5">
-            <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">รูปแบบลิ้งค์ที่รองรับ</p>
-            <p className="text-xs text-[#94A3B8] font-mono">https://gift.truemoney.com/campaign/?v=ABCD1234</p>
-            <p className="text-xs text-[#94A3B8] font-mono">หรือใส่เฉพาะรหัสท้าย เช่น ABCD1234</p>
-          </div>
-
-          <input
-            type="text"
-            value={voucherInput}
-            onChange={e => { setVoucherInput(e.target.value); setResult(null); }}
-            placeholder="วางลิ้งค์ซองของขวัญที่นี่..."
-            autoFocus
-            className="w-full px-4 py-3.5 text-sm text-white bg-[rgba(255,255,255,0.06)] outline-none placeholder-[#64748B] rounded-xl border border-[rgba(251,146,60,0.4)] focus:border-orange-400 focus:bg-[rgba(255,255,255,0.09)] transition-all"
-          />
-
-          <button
-            type="submit"
-            disabled={!voucherInput.trim() || loading}
-            className="w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-lg cursor-pointer"
-            style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)' }}
-          >
-            {loading ? (
-              <>
-                <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
-                กำลังตรวจสอบซอง...
-              </>
-            ) : (
-              <>
-                <BsGift size={15} /> รับยอดเงินจากซองทันที
-              </>
-            )}
-          </button>
-
-          <ResultBanner result={result} />
-        </form>
-      )}
-    </main>
+            <ResultBanner result={result} />
+          </form>
+        )}
+      </main>
+    </>
   );
 }
 
