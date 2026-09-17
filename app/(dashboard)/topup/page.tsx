@@ -35,7 +35,7 @@ const CHANNELS: PaymentChannel[] = [
     key: 'card',
     label: 'บัตรเครดิต / เดบิต',
     sub: 'ขั้นต่ำ ฿150 • Visa, Mastercard, Google/Apple Pay',
-    badge: { text: '-7 เครดิต', color: '#fda4af', bg: 'rgba(225,29,72,0.25)' },
+    badge: { text: '-7 เครดิต', color: '#f87171', bg: '#1e1124' },
     icon: <BsCreditCard2Front />,
     color: 'blue',
   },
@@ -43,7 +43,7 @@ const CHANNELS: PaymentChannel[] = [
     key: 'truewallet',
     label: 'TrueMoney',
     sub: 'ซองของขวัญ / วอเลท (ฟรีค่าธรรมเนียม 0%)',
-    badge: { text: 'ฟรี 0%', color: '#86efac', bg: 'rgba(34,197,94,0.2)' },
+    badge: { text: 'ฟรี 0%', color: '#4ade80', bg: '#0d2218' },
     icon: <BsWallet2 />,
     color: 'orange',
   },
@@ -337,7 +337,7 @@ export default function TopupPage() {
                   >
                     {t.icon}
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 pr-1">
                     <p className={`text-sm font-semibold leading-tight truncate ${active ? 'text-white' : 'text-[#94A3B8]'}`}>
                       {t.label}
                     </p>
@@ -347,17 +347,14 @@ export default function TopupPage() {
                   </div>
                   {t.badge && (
                     <span
-                      className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight shadow-sm border border-white/10"
-                      style={{ color: t.badge.color, background: t.badge.bg }}
+                      className="absolute -top-2.5 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-tight shadow-md border border-white/10 z-10"
+                      style={{ color: t.badge.color, background: t.badge.bg, backdropFilter: 'blur(8px)' }}
                     >
                       {t.badge.text}
                     </span>
                   )}
-                  {active && !t.badge && (
+                  {active && (
                     <BsCheckCircleFill size={14} className="absolute top-3 right-3 shrink-0" style={{ color: c.iconText }} />
-                  )}
-                  {active && t.badge && (
-                    <BsCheckCircleFill size={13} className="absolute bottom-2.5 right-2.5 shrink-0" style={{ color: c.iconText }} />
                   )}
                 </button>
               );
