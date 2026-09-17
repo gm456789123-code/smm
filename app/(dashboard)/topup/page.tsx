@@ -17,7 +17,6 @@ type SlipType = 'promptpay' | 'bank' | 'truewallet' | 'angpao' | 'stripe';
 
 const BASE_CHANNELS: { key: SlipType; label: string; sub: string; icon: React.ReactNode; color: string }[] = [
   { key: 'promptpay',  label: 'พร้อมเพย์',       sub: 'สแกน QR โอนได้เลย',     icon: <BsQrCodeScan />, color: 'purple' },
-  { key: 'bank',       label: 'โอนธนาคาร',       sub: '18+ ธนาคารไทย',          icon: <BsBank2 />,      color: 'purple' },
   { key: 'truewallet', label: 'TrueMoney',        sub: 'TrueMoney Wallet',        icon: <BsWallet2 />,    color: 'orange' },
 ];
 
