@@ -5,6 +5,7 @@ import { TmnVoucherClient } from '@prakrit_m/tmn-voucher';
 import { sendAngpaoPendingAdminEmail } from '@/lib/email';
 import { creditTopupAtomic, insertPendingTx } from '@/lib/credit-topup';
 import { sendAdminPush } from '@/lib/push';
+import { getPaymentSettings } from '@/lib/payment-settings';
 
 const voucherClient = new TmnVoucherClient();
 const PHONE = process.env.TRUEMONEY_REDEEM_PHONE ?? '';
@@ -40,8 +41,11 @@ export async function POST(req: NextRequest) {
   const user = await getRequestUser(req);
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  if (!PHONE) {
-    return NextResponse.json({ error: 'Voucher receiver phone is not configured.' }, { status: 503 });
+  const paymentSettings = await getPaymentSettings();
+  const receiverPhone = (process.env.TRUEMONEY_REDEEM_PHONE || paymentSettings.truewalletId || '').trim();
+
+  if (!receiverPhone) {
+    return NextResponse.json({ error: 'ยังไม่ได้ตั้งค่าเบอร์รับเงิน TrueMoney ในระบบ' }, { status: 503 });
   }
 
   const rl = checkRateLimit(`angpao:${user.userId}`, 5, 60 * 1000);
@@ -63,9 +67,9 @@ export async function POST(req: NextRequest) {
 
   let phone: string;
   try {
-    phone = normalizePhone(PHONE);
+    phone = normalizePhone(receiverPhone);
   } catch {
-    return NextResponse.json({ error: 'Receiver phone configuration is invalid.' }, { status: 500 });
+    return NextResponse.json({ error: 'เบอร์ TrueMoney ปลายทางไม่ถูกต้อง' }, { status: 500 });
   }
 
   // Try automatic redemption via TrueMoney API
