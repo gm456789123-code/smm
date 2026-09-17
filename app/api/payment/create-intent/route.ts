@@ -41,6 +41,10 @@ export async function POST(req: NextRequest) {
         payment_method_types: ['promptpay'],
         payment_method_data: {
           type: 'promptpay',
+          billing_details: {
+            name: user.username || `User ${user.userId}`,
+            email: user.email && user.email.includes('@') ? user.email : `user${user.userId}@aura-smm.com`,
+          },
         },
         confirm: true,
         metadata: {
