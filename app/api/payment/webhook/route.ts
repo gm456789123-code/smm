@@ -1,4 +1,4 @@
-﻿import { headers } from 'next/headers';
+import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import stripe from '@/lib/stripe';
 import { creditTopupAtomic } from '@/lib/credit-topup';
@@ -74,12 +74,19 @@ export async function POST(request: Request) {
         session.metadata?.amountThb ?? (session.amount_total ? session.amount_total / 100 : 0)
       );
 
-      if (userId && amountThb > 0) {
+      const creditAmount = session.metadata?.netCredit
+        ? Number(session.metadata.netCredit)
+        : amountThb;
+
+      if (userId && creditAmount > 0) {
+        const isCard = session.metadata?.paymentMethod === 'card';
         const result = await creditTopupAtomic({
           userId: Number(userId),
-          amount: amountThb,
+          amount: creditAmount,
           ref: session.id,
-          note: `Stripe Checkout THB ${amountThb}`,
+          note: isCard
+            ? `Stripe Card THB ${amountThb} (หักค่าธรรมเนียม -5 เครดิต = +${creditAmount})`
+            : `Stripe PromptPay THB ${amountThb}`,
           provider: 'stripe',
           referral: true,
           bonus: true,

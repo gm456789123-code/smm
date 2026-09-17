@@ -8,7 +8,8 @@ import {
   BsCreditCard2Front, BsLockFill, BsLightningChargeFill,
 } from 'react-icons/bs';
 
-const AMOUNTS = [20, 50, 100, 150, 300, 500, 1000, 2000, 5000, 10000];
+const PROMPTPAY_AMOUNTS = [10, 20, 50, 100, 150, 300, 500, 1000, 2000, 5000, 10000];
+const CARD_AMOUNTS      = [150, 300, 500, 1000, 2000, 5000, 10000];
 
 type PaymentChannelKey = 'promptpay' | 'card' | 'truewallet';
 
@@ -24,14 +25,14 @@ const CHANNELS: PaymentChannel[] = [
   {
     key: 'promptpay',
     label: 'พร้อมเพย์ (PromptPay)',
-    sub: 'สแกน QR เงินเข้าทันที (อัตโนมัติ)',
+    sub: 'ขั้นต่ำ ฿10 • เงินเข้าทันที (อัตโนมัติ)',
     icon: <BsQrCodeScan />,
     color: 'purple',
   },
   {
     key: 'card',
     label: 'บัตรเครดิต / เดบิต',
-    sub: 'Visa, Mastercard, JCB (Stripe)',
+    sub: 'ขั้นต่ำ ฿150 • Visa/Mastercard (Stripe)',
     icon: <BsCreditCard2Front />,
     color: 'blue',
   },
@@ -52,7 +53,7 @@ const COLOR_MAP = {
 
 export default function TopupPage() {
   const [channel, setChannel] = useState<PaymentChannelKey>('promptpay');
-  const [amount, setAmount] = useState<number | null>(100);
+  const [amount, setAmount] = useState<number | null>(50);
   const [custom, setCustom] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ type: 'success' | 'error' | 'pending'; text: string } | null>(null);
@@ -68,12 +69,21 @@ export default function TopupPage() {
       .catch(() => {});
   }, []);
 
+  const minRequired = channel === 'card' ? 150 : 10;
+  const currentAmounts = channel === 'card' ? CARD_AMOUNTS : PROMPTPAY_AMOUNTS;
   const finalAmount = amount ?? (custom ? Number(custom) : null);
+  const netCredit = channel === 'card' && finalAmount ? Math.max(0, finalAmount - 5) : finalAmount;
 
   // เรียก Stripe Checkout (รองรับทั้ง PromptPay และ Card อัตโนมัติ 100% ไม่มีอัปโหลดสลิป)
   async function submitStripe(method: 'promptpay' | 'card') {
-    if (!finalAmount || finalAmount < 20) {
-      setResult({ type: 'error', text: 'ยอดชำระขั้นต่ำ ฿20 บาท' });
+    const min = method === 'card' ? 150 : 10;
+    if (!finalAmount || finalAmount < min) {
+      setResult({
+        type: 'error',
+        text: method === 'card'
+          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿150 (หักค่าธรรมเนียม -5 เครดิตทุกกรณี)'
+          : 'ยอดชำระผ่านพร้อมเพย์ขั้นต่ำ ฿10 บาท',
+      });
       return;
     }
     setLoading(true);
@@ -92,7 +102,6 @@ export default function TopupPage() {
       if (!res.ok || !data.url) {
         setResult({ type: 'error', text: data.error || 'เกิดข้อผิดพลาดในการเชื่อมต่อ Stripe' });
       } else {
-        // นำลูกค้าไปที่หน้าชำระเงินของ Stripe (สแกน QR หรือตัดบัตรตามมาตรฐาน Stripe)
         window.location.href = data.url;
       }
     } catch {
@@ -133,6 +142,18 @@ export default function TopupPage() {
     }
   }
 
+  function selectChannel(key: PaymentChannelKey) {
+    setChannel(key);
+    setResult(null);
+    if (key === 'card' && (!amount || amount < 150)) {
+      setAmount(150);
+      setCustom('');
+    } else if (key === 'promptpay' && (!amount || amount < 10)) {
+      setAmount(50);
+      setCustom('');
+    }
+  }
+
   return (
     <main className="flex-1 p-4 lg:p-6 max-w-2xl mx-auto w-full space-y-5">
       <div>
@@ -160,10 +181,7 @@ export default function TopupPage() {
               <button
                 key={t.key}
                 type="button"
-                onClick={() => {
-                  setChannel(t.key);
-                  setResult(null);
-                }}
+                onClick={() => selectChannel(t.key)}
                 className="relative flex items-center gap-3 p-4 rounded-xl border transition-all text-left cursor-pointer"
                 style={{
                   borderColor: active ? c.border : 'rgba(139,92,246,0.12)',
@@ -208,8 +226,22 @@ export default function TopupPage() {
             }
           />
 
+          {/* ประกาศแจ้งเตือนกรณีบัตรเครดิต */}
+          {channel === 'card' && (
+            <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 flex items-start gap-2.5 text-xs text-rose-300">
+              <BsExclamationCircleFill size={16} className="shrink-0 text-rose-400 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-bold text-rose-200">ข้อกำหนดการชำระผ่านบัตรเครดิต / เดบิต</p>
+                <p className="text-rose-300/90 leading-relaxed">
+                  • <strong>ยอดชำระขั้นต่ำ ฿150 บาท</strong> (ห้ามต่ำกว่า ฿150)<br />
+                  • <strong>หักค่าธรรมเนียม -5 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿150 จะได้รับสุทธิ 145 เครดิตเข้ากระเป๋า)
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-            {AMOUNTS.map((a) => (
+            {currentAmounts.map((a) => (
               <button
                 key={a}
                 type="button"
@@ -228,16 +260,21 @@ export default function TopupPage() {
             type="number"
             value={custom}
             onChange={e => { setCustom(e.target.value); setAmount(null); }}
-            placeholder="หรือกรอกจำนวนเอง (ขั้นต่ำ ฿20)..."
+            placeholder={`หรือกรอกจำนวนเอง (ขั้นต่ำ ฿${minRequired})...`}
             className="w-full glass px-4 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#475569] rounded-xl border border-[rgba(139,92,246,0.2)] focus:border-[#a78bfa] transition-colors"
           />
 
           <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]">
-            <div>
-              <p className="text-xs text-[#94A3B8]">ยอดชำระ</p>
+            <div className="space-y-0.5">
+              <p className="text-xs text-[#94A3B8]">ยอดที่ต้องชำระ</p>
               <p className="text-2xl font-bold text-white font-mono">฿{(finalAmount || 0).toLocaleString()}</p>
+              {channel === 'card' && finalAmount ? (
+                <p className="text-[11px] text-rose-300 font-medium">
+                  หักค่าธรรมเนียม -5 เครดิต ➔ <span className="font-bold text-emerald-300">ได้รับสุทธิ ฿{(netCredit || 0).toLocaleString()} เครดิต</span>
+                </p>
+              ) : null}
               {bonusPct > 0 && finalAmount ? (
-                <p className="text-[11px] text-amber-400 font-medium mt-0.5">
+                <p className="text-[11px] text-amber-400 font-medium">
                   + โบนัส ฿{(Math.round(finalAmount * bonusPct) / 100).toLocaleString()}
                 </p>
               ) : null}
@@ -251,7 +288,7 @@ export default function TopupPage() {
             <button
               type="button"
               onClick={() => submitStripe(channel === 'promptpay' ? 'promptpay' : 'card')}
-              disabled={!finalAmount || finalAmount < 20 || loading}
+              disabled={!finalAmount || finalAmount < minRequired || loading}
               className="w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-lg cursor-pointer"
               style={{
                 background: channel === 'promptpay'
@@ -273,7 +310,7 @@ export default function TopupPage() {
               ) : (
                 <>
                   <BsCreditCard2Front size={16} />
-                  ชำระผ่านบัตร {finalAmount ? `฿${finalAmount.toLocaleString()}` : ''}
+                  ชำระผ่านบัตร {finalAmount ? `฿${finalAmount.toLocaleString()}` : ''} (สุทธิ {netCredit ? `${netCredit.toLocaleString()} เครดิต` : ''})
                   <BsArrowRight size={14} />
                 </>
               )}
