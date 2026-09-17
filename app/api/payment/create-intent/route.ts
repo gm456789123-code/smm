@@ -26,12 +26,12 @@ export async function POST(req: NextRequest) {
     if (!amountThb || typeof amountThb !== 'number' || amountThb < minAmount || amountThb > 50000) {
       return NextResponse.json({
         error: isCard
-          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿150 (หักค่าธรรมเนียม -5 เครดิตทุกกรณี)'
+          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿150 (หักค่าธรรมเนียม -7 เครดิตทุกกรณี)'
           : 'ยอดชำระผ่านพร้อมเพย์ต้องไม่ต่ำกว่า ฿10',
       }, { status: 400 });
     }
 
-    const netCredit = isCard ? Math.max(0, amountThb - 5) : amountThb;
+    const netCredit = isCard ? Math.max(0, amountThb - 7) : amountThb;
 
     if (paymentMethod === 'promptpay') {
       // สร้าง Stripe PromptPay intent และ confirm ทันทีเพื่อให้ได้ QR image

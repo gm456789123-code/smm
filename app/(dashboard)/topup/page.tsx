@@ -18,6 +18,7 @@ interface PaymentChannel {
   key: PaymentChannelKey;
   label: string;
   sub: string;
+  badge?: { text: string; color: string; bg: string };
   icon: React.ReactNode;
   color: 'purple' | 'blue' | 'orange';
 }
@@ -34,6 +35,7 @@ const CHANNELS: PaymentChannel[] = [
     key: 'card',
     label: 'บัตรเครดิต / เดบิต',
     sub: 'ขั้นต่ำ ฿150 • Visa, Mastercard, Google/Apple Pay',
+    badge: { text: '-7 เครดิต', color: '#fda4af', bg: 'rgba(225,29,72,0.25)' },
     icon: <BsCreditCard2Front />,
     color: 'blue',
   },
@@ -41,6 +43,7 @@ const CHANNELS: PaymentChannel[] = [
     key: 'truewallet',
     label: 'TrueMoney',
     sub: 'ซองของขวัญ / วอเลท (ฟรีค่าธรรมเนียม 0%)',
+    badge: { text: 'ฟรี 0%', color: '#86efac', bg: 'rgba(34,197,94,0.2)' },
     icon: <BsWallet2 />,
     color: 'orange',
   },
@@ -132,7 +135,7 @@ export default function TopupPage() {
   const minRequired = channel === 'card' ? 150 : 10;
   const currentAmounts = channel === 'card' ? CARD_AMOUNTS : PROMPTPAY_AMOUNTS;
   const finalAmount = amount ?? (custom ? Number(custom) : null);
-  const netCredit = channel === 'card' && finalAmount ? Math.max(0, finalAmount - 5) : finalAmount;
+  const netCredit = channel === 'card' && finalAmount ? Math.max(0, finalAmount - 7) : finalAmount;
 
   // กดชำระเงิน
   async function handlePayment() {
@@ -141,7 +144,7 @@ export default function TopupPage() {
       setResult({
         type: 'error',
         text: channel === 'card'
-          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿150 (หักค่าธรรมเนียม -5 เครดิตทุกกรณี)'
+          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿150 (หักค่าธรรมเนียม -7 เครดิตทุกกรณี)'
           : 'ยอดชำระผ่านพร้อมเพย์ขั้นต่ำ ฿10 บาท',
       });
       return;
@@ -342,8 +345,19 @@ export default function TopupPage() {
                       {t.sub}
                     </p>
                   </div>
-                  {active && (
+                  {t.badge && (
+                    <span
+                      className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight shadow-sm border border-white/10"
+                      style={{ color: t.badge.color, background: t.badge.bg }}
+                    >
+                      {t.badge.text}
+                    </span>
+                  )}
+                  {active && !t.badge && (
                     <BsCheckCircleFill size={14} className="absolute top-3 right-3 shrink-0" style={{ color: c.iconText }} />
+                  )}
+                  {active && t.badge && (
+                    <BsCheckCircleFill size={13} className="absolute bottom-2.5 right-2.5 shrink-0" style={{ color: c.iconText }} />
                   )}
                 </button>
               );
@@ -386,7 +400,7 @@ export default function TopupPage() {
                   <p className="font-bold text-rose-200">ข้อกำหนดการชำระผ่านบัตรเครดิต / เดบิต</p>
                   <p className="text-rose-300/90 leading-relaxed">
                     • <strong>ยอดชำระขั้นต่ำ ฿150 บาท</strong> (ห้ามต่ำกว่า ฿150)<br />
-                    • <strong>หักค่าธรรมเนียม -5 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿150 จะได้รับสุทธิ 145 เครดิตเข้ากระเป๋า)<br />
+                    • <strong>หักค่าธรรมเนียม -7 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿150 จะได้รับสุทธิ 143 เครดิตเข้ากระเป๋า)<br />
                     • รองรับ <strong>Visa, Mastercard, JCB, Google Pay และ Apple Pay</strong>
                   </p>
                 </div>
@@ -426,7 +440,7 @@ export default function TopupPage() {
                     <p className="text-2xl font-bold text-white font-mono">฿{(finalAmount || 0).toLocaleString()}</p>
                     {channel === 'card' && finalAmount ? (
                       <p className="text-[11px] text-rose-300 font-medium">
-                        หักค่าธรรมเนียม -5 เครดิต ➔ <span className="font-bold text-emerald-300">ได้รับสุทธิ ฿{(netCredit || 0).toLocaleString()} เครดิต</span>
+                        หักค่าธรรมเนียม -7 เครดิต ➔ <span className="font-bold text-emerald-300">ได้รับสุทธิ ฿{(netCredit || 0).toLocaleString()} เครดิต</span>
                       </p>
                     ) : null}
                     {bonusPct > 0 && finalAmount ? (
