@@ -19,9 +19,6 @@ export async function GET() {
       active: active === '0' ? '0' : '1',
     });
   } catch {
-    return NextResponse.json({
-      text: DEFAULT_ANNOUNCEMENT,
-      active: '1',
-    });
+    return NextResponse.json({ text: '', active: '0' }, { status: 503 });
   }
 }

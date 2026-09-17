@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BsShieldFill } from 'react-icons/bs';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useLiveRefresh } from '@/lib/use-live-refresh';
 import { useLocale } from './LocaleProvider';
-import LangSwitcher from './LangSwitcher';
 import PushBell from './PushBell';
 
 const NAV: { href: string; key: string; icon: React.ReactNode }[] = [
@@ -94,17 +94,33 @@ interface SidebarProps {
 export default function Sidebar({ role, username }: SidebarProps) {
   const path = usePathname();
   const { t } = useLocale();
-  const [open, setOpen]       = useState(false);
+  const [menu, setMenu] = useState({ path, open: false });
+  const open = menu.path === path && menu.open;
+  const setOpen = (value: boolean) => setMenu({ path, open: value });
+  if (menu.path !== path) setMenu({ path, open: false });
   const [balance, setBalance] = useState<number | null>(null);
+  const [balanceStale, setBalanceStale] = useState(false);
   const logoUrl = '/logo.png';
   const [brandName, setBrandName] = useState('AURA SMM');
   const isCMS = path.startsWith('/admin');
 
-  useEffect(() => {
-    fetch('/api/user/me').then(r => r.json()).then(d => {
-      if (d && !d.error) setBalance(Number(d.balance));
-    }).catch(() => null);
-  }, [path]);
+  const loadBalance = useCallback(async (signal: AbortSignal) => {
+    try {
+      const res = await fetch('/api/user/me', { signal, cache: 'no-store' });
+      if (res.status === 401 || res.status === 403) setBalance(null);
+      if (!res.ok) throw new Error('Unable to load balance');
+      const data = await res.json();
+      if (signal.aborted) return;
+      if (!Number.isFinite(Number(data.balance))) throw new Error('Invalid balance');
+      setBalance(Number(data.balance));
+      setBalanceStale(false);
+    } catch (error) {
+      if (!signal.aborted) setBalanceStale(true);
+      throw error;
+    }
+  }, []);
+  const refreshBalance = useLiveRefresh(loadBalance, 15_000);
+  useEffect(() => { refreshBalance(); }, [path, refreshBalance]);
 
   useEffect(() => {
     fetch('/api/public/settings')
@@ -115,7 +131,6 @@ export default function Sidebar({ role, username }: SidebarProps) {
       .catch(() => null);
   }, []);
 
-  useEffect(() => { setOpen(false); }, [path]);
 
   const brandParts = brandName.trim().split(/\s+/).filter(Boolean);
   const brandFirst = brandParts[0] || 'AURA';
@@ -286,6 +301,7 @@ export default function Sidebar({ role, username }: SidebarProps) {
               : <>{balance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} <span className="text-[#94A3B8] text-xs font-normal">{t('dash.sideThb')}</span></>
             }
           </p>
+          {balanceStale && <p role="status" className="text-amber-400 text-xs mt-1">ยอดเงินยังอัปเดตไม่ได้ กำลังลองใหม่</p>}
         </div>
 
         {/* Logout */}

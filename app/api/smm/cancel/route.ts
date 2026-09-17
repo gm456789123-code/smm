@@ -3,8 +3,8 @@ import { getRequestUser } from '@/lib/auth';
 import { getProviderApi } from '@/lib/smm-api';
 export async function POST(req: NextRequest) {
   const user = await getRequestUser(req);
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user || user.role !== 'admin') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   try {
     const body = await req.json();

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useLiveRefresh } from '@/lib/use-live-refresh';
 import {
   BsArrowClockwise, BsCheckCircle, BsXCircle, BsClockHistory,
   BsLightningCharge, BsExclamationCircle, BsLink45Deg,
@@ -25,7 +26,7 @@ interface Order {
     remains: string;
     charge: string;
   } | null;
-  _refreshing?: boolean;
+  sync_error?: boolean;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
@@ -73,31 +74,35 @@ function Progress({ order }: { order: Order }) {
 export default function OrdersPage() {
   const [orders, setOrders]   = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/orders?limit=50')
-      .then(r => r.json())
-      .then(d => { setOrders(Array.isArray(d) ? d : []); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
-
-  const refreshOrder = useCallback(async (id: number) => {
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, _refreshing: true } : o));
+  const [refreshing, setRefreshing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState('กำลังอัปเดตข้อมูล');
+  const loadOrders = useCallback(async (signal: AbortSignal) => {
+    setRefreshing(true);
     try {
-      const res  = await fetch(`/api/orders/${id}`);
-      const data = await res.json();
-      setOrders(prev => prev.map(o => o.id === id ? { ...data, _refreshing: false } : o));
-    } catch {
-      setOrders(prev => prev.map(o => o.id === id ? { ...o, _refreshing: false } : o));
+      const res = await fetch('/api/orders?limit=50&sync=1', { signal, cache: 'no-store' });
+      if (res.status === 401 || res.status === 403) {
+        setOrders([]);
+        throw new Error('กรุณาเข้าสู่ระบบใหม่');
+      }
+      if (!res.ok) throw new Error('อัปเดตไม่ได้ กำลังแสดงข้อมูลล่าสุดที่โหลดสำเร็จ');
+      const data: Order[] = await res.json();
+      if (!Array.isArray(data)) throw new Error('ข้อมูลออเดอร์ไม่ถูกต้อง');
+      if (signal.aborted) return;
+      setOrders(data);
+      setSyncMessage(data.some(order => order.sync_error)
+        ? 'บางออเดอร์ยังซิงค์ไม่ได้ ระบบจะลองอีกครั้ง'
+        : `อัปเดตล่าสุด ${new Date().toLocaleTimeString('th-TH')} · อัตโนมัติทุก 20 วินาที`);
+    } catch (error) {
+      if (!signal.aborted) setSyncMessage(error instanceof Error ? error.message : 'อัปเดตข้อมูลไม่ได้');
+      throw error;
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
   }, []);
+  const refreshAll = useLiveRefresh(loadOrders, 20_000);
 
-  const refreshAll = useCallback(async () => {
-    const active = orders.filter(o => o.ref && !['completed','cancelled','failed'].includes(o.tx_status));
-    await Promise.all(active.map(o => refreshOrder(o.id)));
-  }, [orders, refreshOrder]);
-
-  const activeCount = orders.filter(o => o.ref && !['completed','cancelled','failed'].includes(o.tx_status)).length;
+  const activeCount = orders.filter(o => o.ref && ['pending','in_progress','processing'].includes(o.tx_status)).length;
 
   return (
     <main className="flex-1 p-6 space-y-6">
@@ -105,10 +110,12 @@ export default function OrdersPage() {
         <div>
           <h1 className="font-[family-name:var(--font-jakarta)] text-2xl font-bold text-white">ออเดอร์ของฉัน</h1>
           <p className="text-[#94A3B8] text-sm mt-0.5">{orders.length} ออเดอร์</p>
+          <p role="status" className="text-[#94A3B8] text-xs mt-1">{syncMessage}</p>
         </div>
         {activeCount > 0 && (
           <button
             onClick={refreshAll}
+            disabled={refreshing}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm text-[#94A3B8] hover:text-white border border-[rgba(139,92,246,0.2)] hover:border-[rgba(139,92,246,0.45)] hover:bg-[rgba(139,92,246,0.08)] transition-all"
           >
             <BsArrowClockwise size={14} />
@@ -127,7 +134,7 @@ export default function OrdersPage() {
             {orders.map(order => {
               // Parse service name from note "ServiceName | URL"
               const serviceName = order.note?.split(' | ')[0] ?? `Service #${order.service_id}`;
-              const isActive    = order.ref && !['completed','cancelled','failed'].includes(order.tx_status);
+              const isActive    = order.ref && ['pending','in_progress','processing'].includes(order.tx_status);
 
               return (
                 <div key={order.id} className="p-4 hover:bg-[rgba(139,92,246,0.03)] transition-colors">
@@ -181,12 +188,12 @@ export default function OrdersPage() {
 
                       {isActive && (
                         <button
-                          onClick={() => refreshOrder(order.id)}
-                          disabled={order._refreshing}
+                          onClick={refreshAll}
+                          disabled={refreshing}
                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#94A3B8] hover:text-white border border-[rgba(139,92,246,0.2)] hover:border-[rgba(139,92,246,0.4)] hover:bg-[rgba(139,92,246,0.08)] transition-all disabled:opacity-40"
                         >
-                          <BsArrowClockwise size={12} className={order._refreshing ? 'animate-spin' : ''} />
-                          {order._refreshing ? 'กำลังตรวจ...' : 'ตรวจสถานะ'}
+                          <BsArrowClockwise size={12} className={refreshing ? 'animate-spin' : ''} />
+                          {refreshing ? 'กำลังตรวจ...' : 'ตรวจสถานะ'}
                         </button>
                       )}
                     </div>

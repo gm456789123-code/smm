@@ -1,30 +1,40 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { BsShieldLockFill, BsX } from 'react-icons/bs';
 
 const CONSENT_KEY = 'pdpa_consent';
 
-export default function PdpaConsent() {
-  const [visible, setVisible] = useState(false);
+function subscribe(onChange: () => void) {
+  window.addEventListener('storage', onChange);
+  window.addEventListener('pdpa-consent-change', onChange);
+  return () => {
+    window.removeEventListener('storage', onChange);
+    window.removeEventListener('pdpa-consent-change', onChange);
+  };
+}
 
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(CONSENT_KEY) !== '1') setVisible(true);
-    } catch {
-      setVisible(true);
-    }
-  }, []);
+function hasConsent() {
+  try { return localStorage.getItem(CONSENT_KEY) === '1'; }
+  catch { return false; }
+}
+
+function serverConsent() { return true; }
+
+export default function PdpaConsent({ paused = false }: { paused?: boolean }) {
+  const [dismissed, setDismissed] = useState(false);
+  const accepted = useSyncExternalStore(subscribe, hasConsent, serverConsent);
 
   function accept() {
     try {
       localStorage.setItem(CONSENT_KEY, '1');
+      window.dispatchEvent(new Event('pdpa-consent-change'));
     } catch {}
-    setVisible(false);
+    setDismissed(true);
   }
 
-  if (!visible) return null;
+  if (accepted || dismissed || paused) return null;
 
   return (
     <div
@@ -34,7 +44,7 @@ export default function PdpaConsent() {
       <div className="pg-stat relative flex flex-col sm:flex-row sm:items-center gap-3 p-4 sm:p-5"
         style={{ background: 'rgba(255,255,255,0.92)' }}>
         <button
-          onClick={() => setVisible(false)}
+          onClick={() => setDismissed(true)}
           className="absolute top-3 right-3 sm:hidden text-[#8B7A9E] hover:text-[#2D1B4E] transition-colors"
           aria-label="ปิด"
         >
@@ -60,7 +70,7 @@ export default function PdpaConsent() {
             ยอมรับ
           </button>
           <button
-            onClick={() => setVisible(false)}
+            onClick={() => setDismissed(true)}
             className="hidden sm:inline-flex text-[#8B7A9E] hover:text-[#2D1B4E] transition-colors"
             aria-label="ปิด"
           >

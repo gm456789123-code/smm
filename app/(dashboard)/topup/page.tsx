@@ -8,28 +8,38 @@ import {
   BsBank2, BsQrCodeScan, BsUpload, BsCheckCircleFill,
   BsExclamationCircleFill, BsArrowRight, BsShieldCheck, BsWallet2,
   BsChevronLeft, BsGift, BsClipboard, BsClipboardCheck,
+  BsCreditCard2Front, BsLockFill,
 } from 'react-icons/bs';
 
 const AMOUNTS = [10, 20, 50, 100, 150, 300, 500, 1000, 2000, 5000, 10000];
 
-type SlipType = 'promptpay' | 'bank' | 'truewallet' | 'angpao';
+type SlipType = 'promptpay' | 'bank' | 'truewallet' | 'angpao' | 'stripe';
 
-const CHANNELS: { key: SlipType; label: string; sub: string; icon: React.ReactNode; color: string }[] = [
+const BASE_CHANNELS: { key: SlipType; label: string; sub: string; icon: React.ReactNode; color: string }[] = [
   { key: 'promptpay',  label: 'พร้อมเพย์',       sub: 'สแกน QR โอนได้เลย',     icon: <BsQrCodeScan />, color: 'purple' },
   { key: 'bank',       label: 'โอนธนาคาร',       sub: '18+ ธนาคารไทย',          icon: <BsBank2 />,      color: 'purple' },
   { key: 'truewallet', label: 'TrueMoney',        sub: 'TrueMoney Wallet',        icon: <BsWallet2 />,    color: 'orange' },
-  // { key: 'angpao', label: 'ซองอั้งเปา', sub: 'gift.truemoney.com', icon: <BsGift />, color: 'red' },
 ];
+
+const STRIPE_CHANNEL: { key: SlipType; label: string; sub: string; icon: React.ReactNode; color: string } = {
+  key: 'stripe',
+  label: 'บัตรเครดิต / Stripe',
+  sub: 'บัตรเครดิต/เดบิต/PromptPay',
+  icon: <BsCreditCard2Front />,
+  color: 'blue',
+};
 
 const COLOR_MAP = {
   purple: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.5)', icon: 'rgba(139,92,246,0.25)', iconText: '#a78bfa' },
   orange: { bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.5)', icon: 'rgba(251,146,60,0.2)',  iconText: '#fb923c' },
   red:    { bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.5)',  icon: 'rgba(239,68,68,0.2)',   iconText: '#f87171' },
+  blue:   { bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.5)',  icon: 'rgba(59,130,246,0.2)',   iconText: '#60a5fa' },
 };
 
 export default function TopupPage() {
-  const [slipType,  setSlipType]  = useState<SlipType>('promptpay');
-  const [copied,    setCopied]    = useState(false);
+  const [slipType,     setSlipType]     = useState<SlipType>('promptpay');
+  const [copied,       setCopied]       = useState(false);
+  const [stripeActive, setStripeActive] = useState(false);
 
   const [bankName, setBankName] = useState(process.env.NEXT_PUBLIC_BANK_NAME ?? 'ธนาคาร');
   const [accountName, setAccountName] = useState(process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME ?? 'ชื่อบัญชี');
@@ -48,9 +58,14 @@ export default function TopupPage() {
         if (data.promptpay_number) setPromptpay(data.promptpay_number);
         if (data.truewallet_id) setTrueId(data.truewallet_id);
         if (data.topup_bonus_pct) setBonusPct(Number(data.topup_bonus_pct) || 0);
+        if (data.stripe_active === '1') setStripeActive(true);
       })
       .catch(() => {});
   }, []);
+
+  const channels = useMemo(() => {
+    return stripeActive ? [...BASE_CHANNELS, STRIPE_CHANNEL] : BASE_CHANNELS;
+  }, [stripeActive]);
 
   function copyAccNo() {
     if (!accountNo) return;
@@ -111,10 +126,34 @@ export default function TopupPage() {
       } else {
         setFile(null); setPreview(null); setAmount(null); setCustom(''); setConfirmed(false);
         setSuccessModal({ amount: Number(data.amount), ref: data.ref });
+        window.dispatchEvent(new Event('smm-data-changed'));
       }
     } catch {
       setResult({ type: 'error', text: 'เชื่อมต่อไม่ได้ กรุณาลองใหม่' });
     } finally { setLoading(false); }
+  }
+
+  // submit Stripe Checkout
+  async function submitStripe() {
+    if (!finalAmount || finalAmount < 20) return;
+    setLoading(true); setResult(null);
+    try {
+      const res = await fetch('/api/payment/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amountThb: finalAmount }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setResult({ type: 'error', text: data.error || 'เกิดข้อผิดพลาดในการเชื่อมต่อ Stripe' });
+      } else {
+        window.location.href = data.url;
+      }
+    } catch {
+      setResult({ type: 'error', text: 'เชื่อมต่อ Stripe ไม่สำเร็จ กรุณาลองใหม่' });
+    } finally {
+      setLoading(false);
+    }
   }
 
   // submit อั้งเปา
@@ -136,6 +175,7 @@ export default function TopupPage() {
         setVoucherInput('');
       } else {
         setResult({ type: 'success', text: `รับซองสำเร็จ ฿${Number(data.amount).toLocaleString()}` });
+        window.dispatchEvent(new Event('smm-data-changed'));
         setVoucherInput('');
       }
     } catch {
@@ -143,7 +183,7 @@ export default function TopupPage() {
     } finally { setLoading(false); }
   }
 
-  const ch = CHANNELS.find(c => c.key === slipType)!;
+  const ch = channels.find(c => c.key === slipType) || channels[0];
   const col = COLOR_MAP[ch.color as keyof typeof COLOR_MAP] ?? COLOR_MAP.purple;
 
   return (
@@ -190,7 +230,7 @@ export default function TopupPage() {
         <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-amber-500/30 bg-amber-500/8">
           <BsGift size={16} className="text-amber-400 shrink-0" />
           <p className="text-sm text-amber-300">
-            รับโบนัสเพิ่ม <span className="font-bold">{bonusPct}%</span> ทุกยอดเติมเงิน (โอนธนาคาร/พร้อมเพย์/TrueMoney)
+            รับโบนัสเพิ่ม <span className="font-bold">{bonusPct}%</span> ทุกยอดเติมเงิน
           </p>
         </div>
       )}
@@ -198,8 +238,8 @@ export default function TopupPage() {
       {/* Step 1: ช่องทาง */}
       <div className="glass p-5 space-y-3">
         <StepLabel n={1} text="เลือกช่องทางชำระเงิน" />
-        <div className="grid grid-cols-2 gap-3">
-          {CHANNELS.map(t => {
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {channels.map(t => {
             const active = slipType === t.key;
             const c = COLOR_MAP[t.color as keyof typeof COLOR_MAP] ?? COLOR_MAP.purple;
             return (
@@ -226,6 +266,58 @@ export default function TopupPage() {
           })}
         </div>
       </div>
+
+      {/* ===== STRIPE FLOW ===== */}
+      {slipType === 'stripe' && (
+        <div className="glass p-5 space-y-4">
+          <StepLabel n={2} text="เลือกยอดและชำระเงินผ่าน Stripe" />
+
+          <div className="grid grid-cols-4 gap-2">
+            {AMOUNTS.map((a, i) => (
+              <button key={a} type="button" onClick={() => { setAmount(a); setCustom(''); }}
+                className={[
+                  'glass-tab py-2.5 text-sm font-semibold transition-all',
+                  i === AMOUNTS.length - 1 && AMOUNTS.length % 4 !== 0 ? 'col-span-4' : '',
+                  amount === a && !custom ? 'glass-tab-active text-[#93c5fd]' : 'text-[#94A3B8]',
+                ].join(' ')}>
+                ฿{a.toLocaleString()}
+              </button>
+            ))}
+          </div>
+
+          <input type="number" value={custom}
+            onChange={e => { setCustom(e.target.value); setAmount(null); }}
+            placeholder="หรือกรอกจำนวนเอง (ขั้นต่ำ ฿20)..."
+            className="w-full glass px-4 py-2.5 text-sm text-[#F1F5F9] bg-transparent outline-none placeholder-[#334155] rounded-xl border border-[rgba(59,130,246,0.2)] focus:border-[rgba(59,130,246,0.5)] transition-colors"
+          />
+
+          <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-[rgba(59,130,246,0.08)] border border-[rgba(59,130,246,0.2)]">
+            <div>
+              <p className="text-xs text-[#94A3B8]">ยอดที่เลือกชำระ</p>
+              <p className="text-xl font-bold text-white font-mono">฿{(finalAmount || 0).toLocaleString()}</p>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-[#60a5fa]">
+              <BsLockFill size={12} /> ปลอดภัยผ่าน Stripe
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={submitStripe}
+            disabled={!finalAmount || finalAmount < 20 || loading}
+            className="w-full py-3.5 text-sm font-bold flex items-center justify-center gap-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-lg"
+            style={{ background: 'linear-gradient(135deg,#2563eb,#1d4ed8)' }}
+          >
+            {loading ? (
+              <><span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full" /> กำลังเปิดระบบชำระเงิน...</>
+            ) : (
+              <><BsCreditCard2Front size={16} /> ไปที่หน้าชำระเงิน Stripe {finalAmount ? `฿${finalAmount.toLocaleString()}` : ''}</>
+            )}
+          </button>
+
+          <ResultBanner result={result} />
+        </div>
+      )}
 
       {/* ===== ANGPAO FLOW ===== */}
       {slipType === 'angpao' && (
@@ -270,7 +362,7 @@ export default function TopupPage() {
       )}
 
       {/* ===== NORMAL SLIP FLOW ===== */}
-      {slipType !== 'angpao' && (
+      {slipType !== 'angpao' && slipType !== 'stripe' && (
         <>
           {/* Step 2: เลือกยอด */}
           <div className="glass p-5 space-y-3">

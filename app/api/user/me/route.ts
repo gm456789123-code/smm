@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   );
 
   if (!rows[0]) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-  return NextResponse.json(rows[0]);
+  return NextResponse.json(rows[0], { headers: { 'Cache-Control': 'private, no-store' } });
 }
 
 export async function PUT(req: NextRequest) {

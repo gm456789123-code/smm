@@ -10,6 +10,9 @@ import {
   recordLoginFailure,
 } from '@/lib/rate-limit';
 
+// Same bcrypt cost as real accounts; avoids a fast path for unknown users.
+const DUMMY_PASSWORD_HASH = '$2b$12$m9BmXRmRforRvLLDuPgwauIfxBzfxTI3ER/jvJw0T7mRB9aIzz/F6';
+
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req);
@@ -24,26 +27,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
     }
 
-    const { login, password } = await req.json();
-    if (!login || !password) {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
+    }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
+    }
+    const { login, password } = body as Record<string, unknown>;
+    if (
+      typeof login !== 'string' || !login.trim() || login.length > 254 ||
+      typeof password !== 'string' || !password
+    ) {
       return NextResponse.json({ error: 'Please provide username/email and password.' }, { status: 400 });
     }
 
     const [rows] = await db.query<RowDataPacket[]>(
       'SELECT id, username, email, password_hash, role, email_verified FROM users WHERE username = ? OR email = ?',
-      [login, login]
+      [login.trim(), login.trim()]
     );
 
-    if (rows.length === 0) {
-      recordLoginFailure(`login-lock:${ip}`);
-      return NextResponse.json({ error: 'User not found.' }, { status: 401 });
-    }
-
     const user = rows[0];
-    const valid = await comparePassword(password, user.password_hash);
-    if (!valid) {
+    const valid = await comparePassword(password, user?.password_hash || DUMMY_PASSWORD_HASH);
+    if (!user || !valid) {
       recordLoginFailure(`login-lock:${ip}`);
-      return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid username/email or password.' }, { status: 401 });
     }
 
     const token = await signToken({

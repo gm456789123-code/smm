@@ -225,6 +225,7 @@ export default function OrderPage() {
         setMsg({ type: 'success', text: `${locale === 'zh' ? '下单成功' : locale === 'en' ? 'Order placed' : 'สั่งซื้อสำเร็จ'}! #${data.orderId}` });
         setLink(''); setQty('');
         setBalance(Number(data.balance));
+        window.dispatchEvent(new Event('smm-data-changed'));
       }
     } catch {
       setMsg({ type: 'error', text: locale === 'zh' ? '发生错误 请重试' : locale === 'en' ? 'Error — please try again' : 'เกิดข้อผิดพลาด กรุณาลองใหม่' });

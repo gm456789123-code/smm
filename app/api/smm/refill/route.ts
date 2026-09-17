@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import { getProviderApi } from '@/lib/smm-api';
 async function auth(req: NextRequest) {
-  return getRequestUser(req);
+  const user = await getRequestUser(req);
+  return user?.role === 'admin' ? user : null;
 }
 export async function POST(req: NextRequest) {
-  if (!await auth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!await auth(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   try {
     const body = await req.json();
     const { order, orders, provider } = body;
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
   }
 }
 export async function GET(req: NextRequest) {
-  if (!await auth(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!await auth(req)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   try {
     const { searchParams } = req.nextUrl;
     const refill = searchParams.get('refill');

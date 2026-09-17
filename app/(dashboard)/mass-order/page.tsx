@@ -94,6 +94,7 @@ export default function MassOrderPage() {
         } else {
           updateRow(row.id, { status: 'success', msg: `Order #${data.orderId} — ฿${data.cost?.toFixed(2)}` });
           if (data.balance !== undefined) setBalance(Number(data.balance));
+          window.dispatchEvent(new Event('smm-data-changed'));
         }
       } catch {
         updateRow(row.id, { status: 'error', msg: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });

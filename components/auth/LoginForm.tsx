@@ -59,7 +59,9 @@ export default function LoginForm({ inModal = false, onSwitchToRegister, onSucce
         setError(data.error);
         return;
       }
-      sessionStorage.removeItem('announcement_closed_session');
+      try {
+        sessionStorage.removeItem('announcement_dismissed_text');
+      } catch { /* Login should also work when browser storage is blocked. */ }
       router.push('/dashboard');
       router.refresh();
       if (inModal) onSuccess?.();

@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import type { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, type JWTPayload } from '@/lib/jwt';
+import db from '@/lib/db';
+import type { RowDataPacket } from 'mysql2';
 
 export { signToken, verifyToken } from '@/lib/jwt';
 export type { JWTPayload } from '@/lib/jwt';
@@ -36,7 +38,26 @@ export function clearAuthCookie(response: NextResponse) {
 }
 
 export async function getUserFromToken(token?: string | null): Promise<JWTPayload | null> {
-  return token ? await verifyToken(token) : null;
+  const claims = token ? await verifyToken(token) : null;
+  if (!claims) return null;
+  try {
+    const [rows] = await db.query<RowDataPacket[]>(
+      'SELECT id, username, email, role, email_verified FROM users WHERE id = ? LIMIT 1',
+      [claims.userId],
+    );
+    const account = rows[0];
+    if (!account || (account.role !== 'user' && account.role !== 'admin')) return null;
+    return {
+      userId: Number(account.id),
+      username: account.username,
+      email: account.email,
+      role: account.role,
+      emailVerified: Boolean(account.email_verified),
+    };
+  } catch {
+    // Never fall back to stale privileges when the account lookup fails.
+    return null;
+  }
 }
 
 export async function getRequestUser(request: NextRequest): Promise<JWTPayload | null> {

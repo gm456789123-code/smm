@@ -26,7 +26,17 @@ export async function signToken(payload: JWTPayload): Promise<string> {
 
 export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, getSecret());
+    const { payload } = await jwtVerify(token, getSecret(), {
+      algorithms: ['HS256'],
+      requiredClaims: ['exp', 'iat'],
+    });
+    if (
+      typeof payload.userId !== 'number' || !Number.isSafeInteger(payload.userId) || payload.userId <= 0 ||
+      typeof payload.username !== 'string' || !payload.username.trim() ||
+      typeof payload.email !== 'string' || !payload.email.trim() ||
+      (payload.role !== 'user' && payload.role !== 'admin') ||
+      typeof payload.emailVerified !== 'boolean'
+    ) return null;
     return payload as unknown as JWTPayload;
   } catch {
     return null;

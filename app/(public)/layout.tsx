@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-import PdpaConsent from '@/components/PdpaConsent';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
 import { SITE_URL } from '@/lib/site';
@@ -69,7 +68,6 @@ export default async function PublicLayout({ children }: { children: React.React
           </div>
         </div>
       </footer>
-      <PdpaConsent />
     </div>
   );
 }

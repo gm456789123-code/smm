@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/auth';
 import stripe from '@/lib/stripe';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
-import type Stripe from 'stripe';
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,8 +26,8 @@ export async function POST(req: NextRequest) {
 
     const METHOD_MAP: Record<string, string[]> = {
       promptpay: ['promptpay'],
-      truemoney: ['truemoney'],
       card: ['card'],
+      truemoney: ['truemoney'],
       link: ['link', 'card'],
     };
     const methodTypes = METHOD_MAP[paymentMethod as string];
@@ -50,8 +49,8 @@ export async function POST(req: NextRequest) {
       clientSecret: intent.client_secret,
       intentId: intent.id,
     });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Something went wrong.' }, { status: 500 });
+  } catch (error: any) {
+    console.error('[create-payment-intent-error]', error);
+    return NextResponse.json({ error: error?.message || 'Something went wrong.' }, { status: 500 });
   }
 }
