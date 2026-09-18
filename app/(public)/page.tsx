@@ -169,7 +169,7 @@ export default async function LandingPage() {
                 {cta} <BsArrowRight size={14} aria-hidden="true" />
               </Link>
               <Link href="/refund" className="pg-btn-outline px-6 py-3.5 text-sm">
-                Refund Policy (นโยบายคืนเงิน) <BsArrowRight size={12} aria-hidden="true" />
+                Refund Policy <BsArrowRight size={12} aria-hidden="true" />
               </Link>
             </div>
 
