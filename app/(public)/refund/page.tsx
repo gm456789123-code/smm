@@ -19,47 +19,42 @@ export default function RefundPage() {
       <div className="mb-10">
         <p className="text-xs text-[#8B5CF6] uppercase tracking-widest font-semibold mb-2">Legal & Compliance</p>
         <h1 className="font-[family-name:var(--font-jakarta)] text-3xl font-bold text-white mb-2">
-          นโยบายการคืนเงินและเครดิต (Refund Policy)
+          นโยบายการคืนเงินและเครดิต (Refund & Credit Policy)
         </h1>
         <p className="text-[#94A3B8] text-sm">มีผลบังคับใช้ตั้งแต่วันที่ 1 มกราคม 2568 เป็นต้นไป</p>
+      </div>
+
+      {/* กล่องไฮไลท์สำคัญที่สุด */}
+      <div className="mb-8 p-5 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-200 text-xs sm:text-sm space-y-2 leading-relaxed">
+        <p className="font-bold text-white text-base flex items-center gap-2">
+          ⚠️ ข้อชี้แจงสำคัญเกี่ยวกับนโยบายการคืนเงิน
+        </p>
+        <p>
+          ทางระบบ <strong>ไม่มีนโยบายการคืนเงินเป็นเงินสด โอนกลับบัญชีธนาคาร หรือคืนกลับเข้าบัตรเครดิตทุกกรณี</strong> เมื่อทำการเติมเงินเข้ามาในระบบเรียบร้อยแล้ว
+        </p>
+        <p className="text-amber-300 font-semibold">
+          อย่างไรก็ตาม หากคำสั่งซื้อเกิดปัญหา ระบบขัดข้อง ไม่สามารถส่งมอบงานได้ หรือส่งมอบได้ไม่ครบถ้วน ระบบจะดำเนินการคืนยอดเงินเต็มจำนวนเป็น &ldquo;เครดิตในระบบ (Credits)&rdquo; เข้าสู่กระเป๋าเงินของคุณโดยอัตโนมัติทันที 100% เพื่อให้คุณนำไปใช้สั่งซื้อบริการใหม่ได้ตลอด 24 ชั่วโมง
+        </p>
       </div>
 
       <div className="space-y-8 text-[#94A3B8] leading-relaxed text-sm">
         <div className="glass p-6 space-y-3">
           <h2 className="text-white font-semibold text-base flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
-            1. การคืนเครดิตเข้ากระเป๋าเงินอัตโนมัติ (Auto-Refund to Balance)
+            1. การคืนเครดิตเข้ากระเป๋าเงินเมื่อเกิดปัญหา (Refund as Credits Only)
           </h2>
           <p>
-            ทาง AURA SMM ให้ความสำคัญกับความถูกต้องและความพึงพอใจของผู้ใช้งาน หากคำสั่งซื้อเกิดข้อผิดพลาดจากระบบ หรือไม่สามารถส่งมอบงานได้ครบถ้วน ระบบจะดำเนินการคืนเครดิตเข้ากระเป๋าเงินของผู้ใช้โดยอัตโนมัติ:
+            เพื่อความพึงพอใจและความปลอดภัยสูงสุดของผู้ใช้งาน หากเกิดปัญหาเกี่ยวกับคำสั่งซื้อ ระบบจะคืนเป็น <strong>เครดิต (Credits)</strong> เข้ากระเป๋าบัญชีของคุณโดยอัตโนมัติในกรณีดังต่อไปนี้:
           </p>
           <ul className="list-disc list-inside space-y-2 pl-2">
             <li>
-              <strong>คำสั่งซื้อถูกยกเลิก (Cancelled):</strong> ระบบจะคืนเครดิตเข้ากระเป๋าเงินเต็มจำนวนที่ตัดไปทันที
+              <strong>คำสั่งซื้อถูกยกเลิก (Cancelled):</strong> หากระบบหรือผู้ให้บริการไม่สามารถประมวลผลคำสั่งซื้อได้ ยอดเครดิตทั้งหมดจะถูกโอนคืนเข้ากระเป๋าเงินของคุณทันที 100%
             </li>
             <li>
-              <strong>คำสั่งซื้อเสร็จสิ้นบางส่วน (Partial):</strong> หากระบบส่งมอบยอดได้ไม่ครบตามที่สั่ง ระบบจะคำนวณคืนเครดิตตามสัดส่วนยอดที่ค้างส่งมอบเข้ากระเป๋าเงินทันที
+              <strong>คำสั่งซื้อส่งมอบไม่ครบ (Partial):</strong> หากระบบส่งยอดได้เพียงบางส่วน ระบบจะคำนวณยอดคงค้างและคืนเครดิตตามสัดส่วนที่เหลือเข้าบัญชีของคุณทันทีอัตโนมัติ
             </li>
             <li>
-              <strong>ระบบผู้ให้บริการขัดข้อง:</strong> หากระบบปลายทางไม่สามารถรับคำสั่งซื้อได้ เครดิตจะถูก Rollback คืนเข้าบัญชีโดยอัตโนมัติ
-            </li>
-          </ul>
-        </div>
-
-        <div className="glass p-6 space-y-3">
-          <h2 className="text-white font-semibold text-base flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />
-            2. เงื่อนไขการเติมเงินเครดิตเข้ากระเป๋า (Wallet Top-up)
-          </h2>
-          <ul className="list-disc list-inside space-y-2 pl-2">
-            <li>
-              ยอดเงินที่เติมเข้ามาในระบบผ่านพร้อมเพย์ บัตรเครดิต/เดบิต Google Pay, Apple Pay, Link หรือทรูมันนี่ จะถูกแปลงเป็น <strong>เครดิตในระบบ (Credits)</strong> สำหรับใช้สั่งซื้อบริการบนแพลตฟอร์ม
-            </li>
-            <li>
-              เครดิตที่เติมเข้ามาแล้วไม่สามารถถอน แลกเปลี่ยนเป็นเงินสด หรือโอนย้ายข้ามบัญชีผู้ใช้งานได้ ยกเว้นกรณีความผิดพลาดจากการตัดเงินซ้ำซ้อนของระบบชำระเงิน
-            </li>
-            <li>
-              สำหรับการชำระผ่านบัตรเครดิต เดบิต Google Pay, Apple Pay และ Link ระบบมีค่าธรรมเนียมการทำรายการคงที่ <strong>-8 เครดิต</strong> ต่อครั้ง และมียอดชำระขั้นต่ำ <strong>฿200 บาท</strong>
+              <strong>ระบบเซิร์ฟเวอร์ขัดข้อง:</strong> หากเกิดข้อผิดพลาดทางเทคนิคที่ทำให้คำสั่งซื้อไม่เริ่มทำงาน ระบบจะ Rollback คืนเครดิตเข้ากระเป๋าเงินทันที
             </li>
           </ul>
         </div>
@@ -67,21 +62,38 @@ export default function RefundPage() {
         <div className="glass p-6 space-y-3">
           <h2 className="text-white font-semibold text-base flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-rose-400 inline-block" />
-            3. กรณีที่ไม่สามารถขอคืนเงินหรือเครดิตได้
+            2. เงื่อนไขการเติมเงินและการไม่คืนเงินสด (Non-refundable to Cash/Bank)
           </h2>
-          <p>ทางระบบขอสงวนสิทธิ์ไม่สามารถคืนเครดิตได้ในกรณีต่อไปนี้:</p>
           <ul className="list-disc list-inside space-y-2 pl-2">
             <li>
-              ผู้ใช้งานระบุ <strong>Link / URL ผิดพลาด</strong> หรือลิงก์ใช้งานไม่ได้
+              ยอดเงินทุกบาทที่เติมเข้ามาผ่าน พร้อมเพย์, บัตรเครดิต/เดบิต, Google Pay หรือ TrueMoney จะถูกแปลงเป็น <strong>เครดิตสำหรับใช้งานบนแพลตฟอร์มทันที</strong>
             </li>
             <li>
-              บัญชีปลายทางถูกตั้งค่าเป็น <strong>ส่วนตัว (Private Account)</strong> ในระหว่างที่คำสั่งซื้อกำลังดำเนินการ
+              <strong>ไม่สามารถขอถอน แลกเปลี่ยนเป็นเงินสด หรือโอนกลับเข้าบัญชีธนาคาร/บัตรได้ทุกกรณี</strong> ขอให้ผู้ใช้งานวางแผนการเติมเงินให้พอดีกับการใช้งานจริง
             </li>
             <li>
-              ผู้ใช้งานทำการสั่งซื้อซ้ำซ้อนในลิงก์เดียวกันกับบริการเดียวกันก่อนที่คำสั่งซื้อเดิมจะเสร็จสิ้น
+              เครดิตในบัญชีไม่มีวันหมดอายุ สามารถเก็บไว้ใช้งานเมื่อใดก็ได้ตามต้องการ
             </li>
             <li>
-              โพสต์หรือบัญชีปลายทางถูกลบหรือระงับโดยแพลตฟอร์มโซเชียลมีเดียเอง (เช่น โดนลบโดย Facebook, IG, TikTok, YouTube)
+              สำหรับการเติมผ่านบัตรเครดิต เดบิต และ Google Pay มีการหักค่าธรรมเนียมคงที่ <strong>-8 เครดิต</strong> ต่อรายการ และมียอดชำระขั้นต่ำ <strong>฿200 บาท</strong>
+            </li>
+          </ul>
+        </div>
+
+        <div className="glass p-6 space-y-3">
+          <h2 className="text-white font-semibold text-base flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />
+            3. การรับประกันบริการและการเติมซ้ำ (Refill Guarantee)
+          </h2>
+          <p>
+            สำหรับบริการที่มีระบุการรับประกันหรือป้าย <strong>Refill</strong>:
+          </p>
+          <ul className="list-disc list-inside space-y-2 pl-2">
+            <li>
+              หากยอดมีการลดลงภายในระยะเวลาที่รับประกัน (เช่น 30 วัน หรือตามที่แพ็กเกจระบุ) ผู้ใช้สามารถกดปุ่ม <strong>&ldquo;Refill (เติมซ้ำ)&rdquo;</strong> ได้ที่หน้ารายการสั่งซื้อ (My Orders) เพื่อให้ระบบส่งยอดเติมชดเชยให้ฟรี
+            </li>
+            <li>
+              บริการที่ไม่มีระบุ Refill จะไม่มีการรับประกันการลดลงของยอดหลังจากส่งมอบงานเรียบร้อยแล้ว
             </li>
           </ul>
         </div>
@@ -89,14 +101,36 @@ export default function RefundPage() {
         <div className="glass p-6 space-y-3">
           <h2 className="text-white font-semibold text-base flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
-            4. การติดต่อขอความช่วยเหลือ
+            4. ข้อยกเว้นที่ไม่สามารถขอคืนเครดิตได้
+          </h2>
+          <p>ระบบขอสงวนสิทธิ์ในการไม่คืนเครดิตในกรณีที่เกิดจากความผิดพลาดของผู้ใช้งานเอง ดังนี้:</p>
+          <ul className="list-disc list-inside space-y-2 pl-2">
+            <li>
+              ผู้ใช้งานระบุ <strong>Link / URL ผิด</strong> หรือใส่ลิงก์ที่ไม่ถูกต้อง
+            </li>
+            <li>
+              บัญชีปลายทางถูกตั้งค่าเป็น <strong>ส่วนตัว (Private Account)</strong> ระหว่างที่คำสั่งซื้อกำลังดำเนินการ
+            </li>
+            <li>
+              ผู้ใช้งานทำการ <strong>เปลี่ยนชื่อผู้ใช้ (Username) หรือลบโพสต์</strong> ในระหว่างที่คำสั่งซื้อยังไม่เสร็จสิ้น
+            </li>
+            <li>
+              ผู้ใช้งานสั่งซื้อบริการซ้ำซ้อนในลิงก์เดียวกันก่อนที่ออเดอร์เดิมจะทำงานเสร็จสิ้น
+            </li>
+          </ul>
+        </div>
+
+        <div className="glass p-6 space-y-3">
+          <h2 className="text-white font-semibold text-base flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-purple-400 inline-block" />
+            5. การติดต่อสอบถามและแจ้งปัญหา
           </h2>
           <p>
-            หากท่านพบปัญหาเกี่ยวกับคำสั่งซื้อ หรือมียอดเงินที่ถูกตัดซ้ำซ้อน ท่านสามารถติดต่อทีมงานเพื่อตรวจสอบได้ตลอด 24 ชั่วโมง ผ่านทาง:
+            หากท่านพบว่าออเดอร์มีปัญหา หรือระบบยังไม่ได้คืนเครดิตตามเงื่อนไข ท่านสามารถติดต่อทีมงานเพื่อตรวจสอบได้ตลอด 24 ชั่วโมง:
           </p>
           <ul className="list-disc list-inside space-y-2 pl-2">
-            <li>ระบบตั๋วแจ้งปัญหา (Ticket Support) ในแดชบอร์ด</li>
-            <li>ฝ่ายบริการลูกค้าผ่านช่องทาง LINE Official ของทางเว็บไซต์</li>
+            <li>เปิดตั๋วแจ้งปัญหาผ่านระบบ <strong>Ticket Support</strong> ในแดชบอร์ด</li>
+            <li>ติดต่อฝ่ายบริการลูกค้าผ่านทาง <strong>LINE Official</strong> ของทางเว็บไซต์</li>
           </ul>
         </div>
       </div>
