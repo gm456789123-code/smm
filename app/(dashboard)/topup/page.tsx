@@ -341,7 +341,7 @@ export default function TopupPage() {
         {/* ขั้นตอนที่ 1: เลือกช่องทาง */}
         <div className="glass p-5 space-y-3">
           <StepLabel n={1} text="เลือกช่องทางชำระเงิน" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {CHANNELS.map(t => {
               const active = channel === t.key;
               const c = COLOR_MAP[t.color];
@@ -350,14 +350,14 @@ export default function TopupPage() {
                   key={t.key}
                   type="button"
                   onClick={() => selectChannel(t.key)}
-                  className="relative flex items-center gap-3 p-4 rounded-xl border transition-all text-left cursor-pointer"
+                  className="relative flex items-center gap-3.5 p-4 rounded-xl border transition-all text-left cursor-pointer"
                   style={{
                     borderColor: active ? c.border : 'rgba(139,92,246,0.12)',
                     background: active ? c.bg : 'transparent',
                   }}
                 >
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 transition-colors"
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 transition-colors"
                     style={{
                       background: active ? c.icon : 'rgba(255,255,255,0.04)',
                       color: active ? c.iconText : '#475569',
@@ -365,11 +365,11 @@ export default function TopupPage() {
                   >
                     {t.icon}
                   </div>
-                  <div className="min-w-0 pr-1">
-                    <p className={`text-sm font-semibold leading-tight truncate ${active ? 'text-white' : 'text-[#94A3B8]'}`}>
+                  <div className="min-w-0 pr-4">
+                    <p className={`text-sm font-semibold leading-tight ${active ? 'text-white' : 'text-[#94A3B8]'}`}>
                       {t.label}
                     </p>
-                    <p className="text-[10px] text-[#64748B] mt-0.5 leading-snug truncate">
+                    <p className="text-[11px] text-[#64748B] mt-1 leading-snug">
                       {t.sub}
                     </p>
                   </div>
@@ -382,7 +382,7 @@ export default function TopupPage() {
                     </span>
                   )}
                   {active && (
-                    <BsCheckCircleFill size={14} className="absolute top-3 right-3 shrink-0" style={{ color: c.iconText }} />
+                    <BsCheckCircleFill size={16} className="absolute top-3.5 right-3.5 shrink-0" style={{ color: c.iconText }} />
                   )}
                 </button>
               );
