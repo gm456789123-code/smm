@@ -11,6 +11,7 @@ import {
   BsTwitch, BsCart3, BsGrid, BsStars, BsTelegram, BsSpotify,
   BsDiscord, BsLinkedin, BsWhatsapp,
 } from 'react-icons/bs';
+import { SiKick } from 'react-icons/si';
 
 const PLATFORMS = [
   { id: 'ทั้งหมด',   icon: BsGrid },
@@ -19,6 +20,7 @@ const PLATFORMS = [
   { id: 'TikTok',    icon: BsTiktok },
   { id: 'YouTube',   icon: BsYoutube },
   { id: 'Twitter/X', icon: BsTwitterX },
+  { id: 'Kick',      icon: SiKick },
   { id: 'Telegram',  icon: BsTelegram },
   { id: 'Spotify',   icon: BsSpotify },
   { id: 'Discord',   icon: BsDiscord },
@@ -40,6 +42,7 @@ function matchPlatform(name: string, category: string, platform: string): boolea
   if (platform === 'TikTok') return has(c, 'ติ๊กต็อก', 'tiktok');
   if (platform === 'YouTube') return has(c, 'youtube');
   if (platform === 'Twitter/X') return has(c, 'ทวิตเตอร์', 'twitter');
+  if (platform === 'Kick') return has(c, 'kick');
   if (platform === 'Telegram') return has(c, 'telegram');
   if (platform === 'Spotify') return has(c, 'spotify');
   if (platform === 'Discord') return has(c, 'discord');
@@ -47,7 +50,7 @@ function matchPlatform(name: string, category: string, platform: string): boolea
   if (platform === 'WhatsApp') return has(c, 'whatsapp');
   if (platform === 'Twitch') return has(c, 'twitch');
   if (platform === 'Shopee') return has(c, 'shopee', 'ช้อปปี้');
-  if (platform === 'อื่นๆ') return !has(c, 'แอปฟ้า','facebook','แอปชมพู','instagram','ติ๊กต็อก','tiktok','youtube','ทวิตเตอร์','twitter','telegram','spotify','discord','linkedin','whatsapp','twitch','shopee','ช้อปปี้');
+  if (platform === 'อื่นๆ') return !has(c, 'แอปฟ้า','facebook','แอปชมพู','instagram','ติ๊กต็อก','tiktok','youtube','ทวิตเตอร์','twitter','kick','telegram','spotify','discord','linkedin','whatsapp','twitch','shopee','ช้อปปี้');
   return false;
 }
 

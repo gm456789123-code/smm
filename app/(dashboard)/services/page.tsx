@@ -8,6 +8,7 @@ import {
   BsTwitch, BsCart3, BsGrid, BsStars, BsTelegram, BsSpotify,
   BsDiscord, BsLinkedin, BsWhatsapp,
 } from 'react-icons/bs';
+import { SiKick } from 'react-icons/si';
 
 interface Platform {
   label: string;
@@ -24,6 +25,7 @@ const PLATFORMS: Platform[] = [
   { label: 'TikTok',    icon: <BsTiktok />,     match: c => has(c, 'ติ๊กต็อก', 'tiktok') },
   { label: 'YouTube',   icon: <BsYoutube />,    match: c => has(c, 'youtube') },
   { label: 'Twitter/X', icon: <BsTwitterX />,   match: c => has(c, 'ทวิตเตอร์', 'twitter') },
+  { label: 'Kick',      icon: <SiKick className="text-[#53FC18]" />, match: c => has(c, 'kick') },
   { label: 'Telegram',  icon: <BsTelegram />,   match: c => has(c, 'telegram') },
   { label: 'Spotify',   icon: <BsSpotify />,    match: c => has(c, 'spotify') },
   { label: 'Discord',   icon: <BsDiscord />,    match: c => has(c, 'discord') },
@@ -33,7 +35,7 @@ const PLATFORMS: Platform[] = [
   { label: 'Shopee',    icon: <BsCart3 />,      match: c => has(c, 'shopee', 'ช้อปปี้') },
   { label: 'อื่นๆ',     icon: <BsStars />,      match: c =>
       !has(c, 'แอปฟ้า','facebook','แอปชมพู','instagram','ติ๊กต็อก','tiktok',
-              'youtube','ทวิตเตอร์','twitter','telegram','spotify','discord',
+              'youtube','ทวิตเตอร์','twitter','kick','telegram','spotify','discord',
               'linkedin','whatsapp','twitch','shopee','ช้อปปี้')
   },
 ];

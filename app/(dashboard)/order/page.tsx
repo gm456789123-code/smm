@@ -10,6 +10,7 @@ import {
   BsDiscord, BsLinkedin, BsWhatsapp,
   BsCheckLg, BsCheckCircle, BsExclamationCircle, BsArrowRight, BsX,
 } from 'react-icons/bs';
+import { SiKick } from 'react-icons/si';
 
 const has = (c: string, ...words: string[]) =>
   words.some(w => c.toLowerCase().includes(w.toLowerCase()));
@@ -21,6 +22,7 @@ const PLATFORMS = [
   { label: 'TikTok',    icon: <BsTiktok />,     match: (c: string) => has(c, 'ติ๊กต็อก', 'tiktok') },
   { label: 'YouTube',   icon: <BsYoutube />,    match: (c: string) => has(c, 'youtube') },
   { label: 'Twitter/X', icon: <BsTwitterX />,   match: (c: string) => has(c, 'ทวิตเตอร์', 'twitter') },
+  { label: 'Kick',      icon: <SiKick className="text-[#53FC18]" />, match: (c: string) => has(c, 'kick') },
   { label: 'Telegram',  icon: <BsTelegram />,   match: (c: string) => has(c, 'telegram') },
   { label: 'Spotify',   icon: <BsSpotify />,    match: (c: string) => has(c, 'spotify') },
   { label: 'Discord',   icon: <BsDiscord />,    match: (c: string) => has(c, 'discord') },
@@ -30,7 +32,7 @@ const PLATFORMS = [
   { label: 'Shopee',    icon: <BsCart3 />,      match: (c: string) => has(c, 'shopee', 'ช้อปปี้') },
   { label: 'อื่นๆ',     icon: <BsStars />,      match: (c: string) =>
       !has(c, 'แอปฟ้า','facebook','แอปชมพู','instagram','ติ๊กต็อก','tiktok',
-              'youtube','ทวิตเตอร์','twitter','telegram','spotify','discord',
+              'youtube','ทวิตเตอร์','twitter','kick','telegram','spotify','discord',
               'linkedin','whatsapp','twitch','shopee','ช้อปปี้')
   },
 ];
