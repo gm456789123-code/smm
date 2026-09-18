@@ -21,17 +21,17 @@ export async function POST(req: NextRequest) {
 
     const { amountThb, paymentMethod } = await req.json();
     const isCard = paymentMethod === 'card';
-    const minAmount = isCard ? 150 : 10;
+    const minAmount = isCard ? 200 : 10;
 
     if (!amountThb || typeof amountThb !== 'number' || amountThb < minAmount || amountThb > 50000) {
       return NextResponse.json({
         error: isCard
-          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿150 (หักค่าธรรมเนียม -7 เครดิตทุกกรณี)'
+          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿200 (หักค่าธรรมเนียม -8 เครดิตทุกกรณี)'
           : 'ยอดชำระผ่านพร้อมเพย์ต้องไม่ต่ำกว่า ฿10',
       }, { status: 400 });
     }
 
-    const netCredit = isCard ? Math.max(0, amountThb - 7) : amountThb;
+    const netCredit = isCard ? Math.max(0, amountThb - 8) : amountThb;
     const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
     let methodTypes: ('card' | 'promptpay')[] = ['promptpay', 'card'];
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
               product_data: {
                 name: `เติมเงินเครดิต SMM (฿${amountThb.toLocaleString()})`,
                 description: isCard
-                  ? `User: ${user.username} (ID #${user.userId}) [หักค่าธรรมเนียม -7 เครดิต ได้รับสุทธิ ${netCredit} เครดิต]`
+                  ? `User: ${user.username} (ID #${user.userId}) [หักค่าธรรมเนียม -8 เครดิต ได้รับสุทธิ ${netCredit} เครดิต]`
                   : `User: ${user.username} (ID #${user.userId})`,
               },
               unit_amount: Math.round(amountThb * 100),

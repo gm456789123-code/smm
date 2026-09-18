@@ -38,14 +38,14 @@ export default function PdpaConsent({ paused = false }: { paused?: boolean }) {
 
   return (
     <div
-      className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-xl"
+      className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-2xl"
       role="dialog" aria-labelledby="pdpa-title"
     >
-      <div className="pg-stat relative flex flex-col sm:flex-row sm:items-center gap-3 p-4 sm:p-5"
-        style={{ background: 'rgba(255,255,255,0.92)' }}>
+      <div className="glass relative flex flex-col sm:flex-row sm:items-center gap-3 p-4 sm:p-5 rounded-2xl border border-[rgba(139,92,246,0.35)] shadow-2xl"
+        style={{ background: 'rgba(13,18,34,0.96)', backdropFilter: 'blur(20px)' }}>
         <button
           onClick={() => setDismissed(true)}
-          className="absolute top-3 right-3 sm:hidden text-[#8B7A9E] hover:text-[#2D1B4E] transition-colors"
+          className="absolute top-3 right-3 sm:hidden text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
           aria-label="ปิด"
         >
           <BsX size={18} />
@@ -53,25 +53,33 @@ export default function PdpaConsent({ paused = false }: { paused?: boolean }) {
 
         <div className="flex items-center gap-3 flex-1 pr-6 sm:pr-0">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{ background: 'rgba(109,59,175,0.12)', border: '1px solid rgba(109,59,175,0.30)' }}>
-            <BsShieldLockFill size={16} className="text-[#6D3BAF]" />
+            style={{ background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.30)' }}>
+            <BsShieldLockFill size={16} className="text-[#a78bfa]" />
           </div>
-          <p id="pdpa-title" className="text-[#4A3B63] text-xs sm:text-sm leading-relaxed">
-            เว็บไซต์นี้ใช้ข้อมูลส่วนบุคคลของท่านตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล (PDPA)
+          <p id="pdpa-title" className="text-[#CBD5E1] text-xs sm:text-sm leading-relaxed">
+            เว็บไซต์นี้ใช้คุกกี้และข้อมูลส่วนบุคคลตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล (PDPA)
             อ่านเพิ่มเติมได้ที่{' '}
-            <Link href="/privacy" className="text-[#6D3BAF] font-semibold underline hover:text-[#2D1B4E]">
+            <Link href="/privacy" className="text-[#a78bfa] font-semibold underline hover:text-white">
               นโยบายความเป็นส่วนตัว
+            </Link>{' '}
+            และ{' '}
+            <Link href="/refund" className="text-[#a78bfa] font-semibold underline hover:text-white">
+              นโยบายการคืนเงิน
             </Link>
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <button onClick={accept} className="pg-btn-primary px-5 py-2 text-xs sm:text-sm whitespace-nowrap">
-            ยอมรับ
+          <button
+            onClick={accept}
+            className="px-5 py-2 text-xs sm:text-sm font-semibold rounded-xl text-white shadow-lg cursor-pointer transition-all"
+            style={{ background: 'linear-gradient(135deg,#7c3aed,#6d28d9)' }}
+          >
+            ยอมรับทั้งหมด
           </button>
           <button
             onClick={() => setDismissed(true)}
-            className="hidden sm:inline-flex text-[#8B7A9E] hover:text-[#2D1B4E] transition-colors"
+            className="hidden sm:inline-flex text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
             aria-label="ปิด"
           >
             <BsX size={20} />

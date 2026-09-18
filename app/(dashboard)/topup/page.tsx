@@ -9,8 +9,8 @@ import {
   BsArrowClockwise, BsDownload, BsClock,
 } from 'react-icons/bs';
 
-const PROMPTPAY_AMOUNTS = [10, 20, 50, 100, 150, 300, 500, 1000, 2000, 5000, 10000];
-const CARD_AMOUNTS      = [150, 300, 500, 1000, 2000, 5000, 10000];
+const PROMPTPAY_AMOUNTS = [10, 20, 50, 100, 150, 200, 300, 500, 1000, 2000, 5000, 10000];
+const CARD_AMOUNTS      = [200, 300, 500, 1000, 2000, 5000, 10000];
 
 type PaymentChannelKey = 'promptpay' | 'card' | 'truewallet';
 
@@ -34,8 +34,8 @@ const CHANNELS: PaymentChannel[] = [
   {
     key: 'card',
     label: 'บัตรเครดิต / เดบิต',
-    sub: 'ขั้นต่ำ ฿150 • Visa, Mastercard, Google/Apple Pay',
-    badge: { text: '-7 เครดิต', color: '#f87171', bg: '#1e1124' },
+    sub: 'ขั้นต่ำ ฿200 • Visa, Mastercard, Google Pay, Apple Pay, Link',
+    badge: { text: '-8 เครดิต', color: '#f87171', bg: '#1e1124' },
     icon: <BsCreditCard2Front />,
     color: 'blue',
   },
@@ -132,19 +132,20 @@ export default function TopupPage() {
     };
   }, [activeQr]);
 
-  const minRequired = channel === 'card' ? 150 : 10;
+  const minRequired = channel === 'card' ? 200 : 10;
   const currentAmounts = channel === 'card' ? CARD_AMOUNTS : PROMPTPAY_AMOUNTS;
   const finalAmount = amount ?? (custom ? Number(custom) : null);
-  const netCredit = channel === 'card' && finalAmount ? Math.max(0, finalAmount - 7) : finalAmount;
+  const netCredit = channel === 'card' && finalAmount ? Math.max(0, finalAmount - 8) : finalAmount;
 
   // กดชำระเงิน
   async function handlePayment() {
-    const min = channel === 'card' ? 150 : 10;
-    if (!finalAmount || finalAmount < min) {
+    if (!finalAmount) return;
+    const min = channel === 'card' ? 200 : 10;
+    if (finalAmount < min) {
       setResult({
         type: 'error',
         text: channel === 'card'
-          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿150 (หักค่าธรรมเนียม -7 เครดิตทุกกรณี)'
+          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿200 (หักค่าธรรมเนียม -8 เครดิตทุกกรณี)'
           : 'ยอดชำระผ่านพร้อมเพย์ขั้นต่ำ ฿10 บาท',
       });
       return;
@@ -241,8 +242,8 @@ export default function TopupPage() {
     setChannel(key);
     setActiveQr(null);
     setResult(null);
-    if (key === 'card' && (!amount || amount < 150)) {
-      setAmount(150);
+    if (key === 'card' && (!amount || amount < 200)) {
+      setAmount(200);
       setCustom('');
     } else if (key === 'promptpay' && (!amount || amount < 10)) {
       setAmount(50);
@@ -396,9 +397,9 @@ export default function TopupPage() {
                 <div className="space-y-1">
                   <p className="font-bold text-rose-200">ข้อกำหนดการชำระผ่านบัตรเครดิต / เดบิต</p>
                   <p className="text-rose-300/90 leading-relaxed">
-                    • <strong>ยอดชำระขั้นต่ำ ฿150 บาท</strong> (ห้ามต่ำกว่า ฿150)<br />
-                    • <strong>หักค่าธรรมเนียม -7 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿150 จะได้รับสุทธิ 143 เครดิตเข้ากระเป๋า)<br />
-                    • รองรับ <strong>Visa, Mastercard, JCB, Google Pay และ Apple Pay</strong>
+                    • <strong>ยอดชำระขั้นต่ำ ฿200 บาท</strong> (ห้ามต่ำกว่า ฿200)<br />
+                    • <strong>หักค่าธรรมเนียม -8 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿200 จะได้รับสุทธิ 192 เครดิตเข้ากระเป๋า)<br />
+                    • รองรับ <strong>Visa, Mastercard, JCB, Google Pay, Apple Pay และ Link</strong>
                   </p>
                 </div>
               </div>
@@ -437,7 +438,7 @@ export default function TopupPage() {
                     <p className="text-2xl font-bold text-white font-mono">฿{(finalAmount || 0).toLocaleString()}</p>
                     {channel === 'card' && finalAmount ? (
                       <p className="text-[11px] text-rose-300 font-medium">
-                        หักค่าธรรมเนียม -7 เครดิต ➔ <span className="font-bold text-emerald-300">ได้รับสุทธิ ฿{(netCredit || 0).toLocaleString()} เครดิต</span>
+                        หักค่าธรรมเนียม -8 เครดิต ➔ <span className="font-bold text-emerald-300">ได้รับสุทธิ ฿{(netCredit || 0).toLocaleString()} เครดิต</span>
                       </p>
                     ) : null}
                     {bonusPct > 0 && finalAmount ? (

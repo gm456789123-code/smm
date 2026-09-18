@@ -61,6 +61,7 @@ export default async function PublicLayout({ children }: { children: React.React
               <Link href="/#pricing"  className="hover:text-[#2D1B4E] transition-colors">Pricing</Link>
               <Link href="/terms"     className="hover:text-[#2D1B4E] transition-colors">Terms</Link>
               <Link href="/privacy"   className="hover:text-[#2D1B4E] transition-colors">Privacy</Link>
+              <Link href="/refund"    className="hover:text-[#2D1B4E] transition-colors">Refund Policy</Link>
               <Link href="/register"  className="text-[#9B6DD5] hover:text-[#2D1B4E] transition-colors font-semibold">
                 Register
               </Link>
