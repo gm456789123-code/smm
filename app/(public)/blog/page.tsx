@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import Image from 'next/image';
 import db from '@/lib/db';
 import { RowDataPacket } from 'mysql2';
@@ -42,13 +42,13 @@ export default async function BlogPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 space-y-10">
       <div className="space-y-2">
-        <h1 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold text-white">Blog</h1>
-        <p className="text-[#475569]">Tips, platform updates, and practical SMM strategies</p>
+        <h1 className="font-[family-name:var(--font-jakarta)] text-4xl font-extrabold text-[#2D1B4E]">Blog</h1>
+        <p className="text-[#5B4A7A]">Tips, platform updates, and practical SMM strategies</p>
       </div>
 
       {posts.length === 0 ? (
-        <div className="glass p-12 text-center">
-          <p className="text-[#475569]">No posts yet</p>
+        <div className="bg-white/80 backdrop-blur-md border border-white/90 shadow-sm rounded-2xl p-12 text-center">
+          <p className="text-[#6B5B82]">No posts yet</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -59,10 +59,10 @@ export default async function BlogPage() {
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                className="glass p-5 space-y-3 group hover:border-[rgba(139,92,246,0.3)] transition-colors"
+                className="bg-white/80 backdrop-blur-md border border-white/90 shadow-sm rounded-2xl p-5 space-y-3 group hover:border-[#8B5CF6]/50 hover:shadow-md transition-all"
               >
                 {safeCoverImage && (
-                  <div className="aspect-video bg-[rgba(139,92,246,0.08)] rounded-lg overflow-hidden">
+                  <div className="aspect-video bg-[rgba(139,92,246,0.08)] rounded-xl overflow-hidden">
                     <Image
                       src={safeCoverImage}
                       alt={post.title}
@@ -73,12 +73,12 @@ export default async function BlogPage() {
                   </div>
                 )}
                 <div className="space-y-1.5">
-                  <h2 className="font-[family-name:var(--font-jakarta)] font-semibold text-[#F1F5F9] text-sm group-hover:text-[#c4b5fd] transition-colors line-clamp-2">
+                  <h2 className="font-[family-name:var(--font-jakarta)] font-semibold text-[#2D1B4E] text-sm group-hover:text-[#7C3AED] transition-colors line-clamp-2">
                     {post.title}
                   </h2>
-                  {post.excerpt && <p className="text-[#475569] text-xs line-clamp-3">{post.excerpt}</p>}
+                  {post.excerpt && <p className="text-[#5B4A7A] text-xs line-clamp-3 leading-relaxed">{post.excerpt}</p>}
                   {post.published_at && (
-                    <p className="text-[10px] text-[#334155]">
+                    <p className="text-[11px] text-[#8B7A9E] font-medium">
                       {new Date(post.published_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
                   )}
