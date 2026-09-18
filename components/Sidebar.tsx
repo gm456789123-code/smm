@@ -160,16 +160,6 @@ export default function Sidebar({ role, username }: SidebarProps) {
             <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={logoUrl}
-          alt={brandName}
-          className="max-h-8 max-w-[140px] object-contain"
-          onError={(e) => { (e.target as HTMLImageElement).src = '/icon.png'; }}
-        />
-        {/* <div className="ml-auto">
-          <LangSwitcher />
-        </div> */}
       </div>
 
       {/* Backdrop — sits between top bar (z-40) and sidebar (z-50) */}
