@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   BsQrCodeScan, BsCheckCircleFill, BsExclamationCircleFill,
   BsArrowRight, BsShieldCheck, BsWallet2, BsGift,
-  BsCreditCard2Front, BsLockFill, BsLightningChargeFill,
+  BsCreditCard2Front, BsLightningChargeFill,
   BsArrowClockwise, BsDownload, BsClock,
 } from 'react-icons/bs';
 import StripeCardEmbedded from '@/components/StripeCardEmbedded';
@@ -556,9 +556,6 @@ export default function TopupPage() {
                         + โบนัส ฿{(Math.round(finalAmount * bonusPct) / 100).toLocaleString()}
                       </p>
                     ) : null}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-[#a78bfa]">
-                    <BsLockFill size={12} /> ปลอดภัยมาตรฐาน Stripe
                   </div>
                 </div>
 
