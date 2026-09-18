@@ -8,6 +8,7 @@ import {
   BsCreditCard2Front, BsLockFill, BsLightningChargeFill,
   BsArrowClockwise, BsDownload, BsClock,
 } from 'react-icons/bs';
+import StripeCardEmbedded from '@/components/StripeCardEmbedded';
 
 const PROMPTPAY_AMOUNTS = [10, 20, 50, 100, 150, 200, 300, 500, 1000, 2000, 5000, 10000];
 const CARD_AMOUNTS      = [200, 300, 500, 1000, 2000, 5000, 10000];
@@ -70,6 +71,14 @@ export default function TopupPage() {
     qrUrl: string;
     amount: number;
     hostedUrl?: string;
+  } | null>(null);
+
+  // สถานะ Client Secret สำหรับฟอร์มกรอกบัตรบนหน้าเว็บโดยตรง (ไม่เด้งออก)
+  const [cardSecret, setCardSecret] = useState<{
+    clientSecret: string;
+    intentId: string;
+    amount: number;
+    netCredit: number;
   } | null>(null);
 
   // ป๊อปอัปสำเร็จ
@@ -184,9 +193,9 @@ export default function TopupPage() {
       return;
     }
 
-    // 2. กรณี บัตรเครดิต ➔ วิ่งไป Stripe Checkout เพื่อรับรหัส OTP SMS จากธนาคาร
+    // 2. กรณี บัตรเครดิต ➔ สร้าง Intent แล้วเปิดฟอร์ม Stripe Payment Element บนหน้าเว็บเราโดยตรง (ไม่เด้งออก)
     try {
-      const res = await fetch('/api/payment/create-checkout-session', {
+      const res = await fetch('/api/payment/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -195,10 +204,15 @@ export default function TopupPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok || !data.url) {
+      if (!res.ok || !data.clientSecret) {
         setResult({ type: 'error', text: data.error || 'เกิดข้อผิดพลาดในการเชื่อมต่อ Stripe' });
       } else {
-        window.location.href = data.url;
+        setCardSecret({
+          clientSecret: data.clientSecret,
+          intentId: data.intentId,
+          amount: finalAmount,
+          netCredit: netCredit || finalAmount - 8,
+        });
       }
     } catch {
       setResult({ type: 'error', text: 'เชื่อมต่อ Stripe ไม่สำเร็จ กรุณาลองใหม่' });
@@ -241,6 +255,7 @@ export default function TopupPage() {
   function selectChannel(key: PaymentChannelKey) {
     setChannel(key);
     setActiveQr(null);
+    setCardSecret(null);
     setResult(null);
     if (key === 'card' && (!amount || amount < 200)) {
       setAmount(200);
@@ -405,8 +420,48 @@ export default function TopupPage() {
               </div>
             )}
 
-            {/* หากยังไม่ได้กดสร้าง QR ให้เลือกยอดเงิน */}
-            {!activeQr ? (
+            {/* 1. หากผู้ใช้เลือกบัตรและกดชำระเงินแล้ว -> แสดงแบบฟอร์มกรอกข้อมูลบัตรบนหน้าเว็บโดยตรง (ไม่เด้งออก) */}
+            {cardSecret ? (
+              <div className="space-y-4 py-2">
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-[rgba(59,130,246,0.08)] border border-[rgba(59,130,246,0.25)]">
+                  <div className="space-y-0.5">
+                    <span className="text-xs text-[#94A3B8]">ยอดชำระผ่านบัตร</span>
+                    <p className="text-2xl font-bold text-white font-mono">฿{cardSecret.amount.toLocaleString()}</p>
+                    <p className="text-xs text-emerald-400 font-medium">
+                      ได้รับสุทธิ: <span className="font-bold">฿{cardSecret.netCredit.toLocaleString()} เครดิต</span> (หักค่าธรรมเนียม -8)
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCardSecret(null)}
+                    className="px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-300 hover:text-rose-200 border border-rose-500/30 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                  >
+                    ยกเลิก / เปลี่ยนยอด
+                  </button>
+                </div>
+
+                <StripeCardEmbedded
+                  clientSecret={cardSecret.clientSecret}
+                  amount={cardSecret.amount}
+                  netCredit={cardSecret.netCredit}
+                  onSuccess={async (intentId) => {
+                    try {
+                      const res = await fetch(`/api/payment/check-intent?id=${intentId}`);
+                      const data = await res.json();
+                      const cred = data.amount || cardSecret.netCredit;
+                      setSuccessModal({ amount: cred, ref: intentId });
+                    } catch {
+                      setSuccessModal({ amount: cardSecret.netCredit, ref: intentId });
+                    }
+                    window.dispatchEvent(new Event('smm-data-changed'));
+                    setCardSecret(null);
+                  }}
+                  onError={(errMsg) => {
+                    setResult({ type: 'error', text: errMsg });
+                  }}
+                />
+              </div>
+            ) : !activeQr ? (
               <>
                 <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
                   {currentAmounts.map((a) => (
@@ -478,7 +533,7 @@ export default function TopupPage() {
                     ) : (
                       <>
                         <BsCreditCard2Front size={16} />
-                        ชำระผ่านบัตร ฿{(finalAmount || 0).toLocaleString()} (สุทธิ {netCredit ? `${netCredit.toLocaleString()} เครดิต` : ''})
+                        กรอกข้อมูลบัตรเพื่อชำระ ฿{(finalAmount || 0).toLocaleString()} (สุทธิ {netCredit ? `${netCredit.toLocaleString()} เครดิต` : ''})
                         <BsArrowRight size={14} />
                       </>
                     )}

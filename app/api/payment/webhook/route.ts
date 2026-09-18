@@ -34,17 +34,21 @@ export async function POST(request: Request) {
       const intent = event.data.object as Stripe.PaymentIntent;
       const userId = intent.metadata?.userId;
       const amountThb = Number(intent.metadata?.amountThb ?? (intent.amount ? intent.amount / 100 : 0));
+      const creditAmount = intent.metadata?.netCredit ? Number(intent.metadata.netCredit) : amountThb;
 
       if (!userId || !amountThb) {
         console.warn('payment_intent.succeeded missing userId or amountThb metadata:', intent.id);
         return Response.json({ received: true, warning: 'missing metadata' });
       }
 
+      const isCard = intent.metadata?.paymentMethod === 'card';
       const result = await creditTopupAtomic({
         userId: Number(userId),
-        amount: amountThb,
+        amount: creditAmount,
         ref: intent.id,
-        note: `Stripe PaymentIntent THB ${amountThb}`,
+        note: isCard
+          ? `Stripe Card THB ${amountThb} (หักค่าธรรมเนียม -8 เครดิต = +${creditAmount})`
+          : `Stripe PromptPay THB ${amountThb}`,
         provider: 'stripe',
         referral: true,
         bonus: true,
@@ -60,13 +64,13 @@ export async function POST(request: Request) {
       }
 
       sendAdminPush({
-        title: '💳 เงินเข้าใหม่ (Stripe)',
-        body: `ผู้ใช้ ID #${userId} เติมเงิน ฿${amountThb.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`,
+        title: isCard ? '💳 เงินเข้าใหม่ (Stripe บัตรเครดิต)' : '💳 เงินเข้าใหม่ (Stripe)',
+        body: `ผู้ใช้ ID #${userId} เติมเงิน ฿${amountThb.toLocaleString('th-TH', { minimumFractionDigits: 2 })}${isCard ? ` (สุทธิ ${creditAmount} เครดิต)` : ''}`,
         url: '/admin/topups',
         tag: `topup-stripe-${intent.id}`,
       }).catch(() => {});
 
-      console.log(`Top-up completed: user ${userId} +THB ${amountThb} (${intent.id})`);
+      console.log(`Top-up completed: user ${userId} +THB ${creditAmount} (${intent.id})`);
     } else if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.userId || session.client_reference_id;
@@ -85,7 +89,7 @@ export async function POST(request: Request) {
           amount: creditAmount,
           ref: session.id,
           note: isCard
-            ? `Stripe Card THB ${amountThb} (หักค่าธรรมเนียม -5 เครดิต = +${creditAmount})`
+            ? `Stripe Card THB ${amountThb} (หักค่าธรรมเนียม -8 เครดิต = +${creditAmount})`
             : `Stripe PromptPay THB ${amountThb}`,
           provider: 'stripe',
           referral: true,
@@ -95,7 +99,7 @@ export async function POST(request: Request) {
         if (result.status === 'credited') {
           sendAdminPush({
             title: '💳 เงินเข้าใหม่ (Stripe Checkout)',
-            body: `ผู้ใช้ ID #${userId} เติมเงิน ฿${amountThb.toLocaleString('th-TH', { minimumFractionDigits: 2 })}`,
+            body: `ผู้ใช้ ID #${userId} เติมเงิน ฿${amountThb.toLocaleString('th-TH', { minimumFractionDigits: 2 })}${isCard ? ` (สุทธิ ${creditAmount} เครดิต)` : ''}`,
             url: '/admin/topups',
             tag: `topup-stripe-${session.id}`,
           }).catch(() => {});

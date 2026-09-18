@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -36,8 +36,11 @@ function SuccessContent() {
         setStatus('success');
         return;
       }
-      stripe.retrievePaymentIntent(clientSecret).then(({ paymentIntent }) => {
+      stripe.retrievePaymentIntent(clientSecret).then(async ({ paymentIntent }) => {
         if (paymentIntent?.status === 'succeeded') {
+          try {
+            await fetch(`/api/payment/check-intent?id=${paymentIntent.id}`);
+          } catch {}
           setStatus('success');
           window.dispatchEvent(new Event('smm-data-changed'));
         } else {

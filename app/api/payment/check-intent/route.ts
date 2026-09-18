@@ -18,12 +18,16 @@ export async function GET(req: NextRequest) {
       const amountThb = Number(intent.metadata?.amountThb ?? (intent.amount ? intent.amount / 100 : 0));
       const creditAmount = intent.metadata?.netCredit ? Number(intent.metadata.netCredit) : amountThb;
 
+      const isCard = intent.metadata?.paymentMethod === 'card';
+
       if (creditAmount > 0) {
         const result = await creditTopupAtomic({
           userId: user.userId,
           amount: creditAmount,
           ref: intent.id,
-          note: `Stripe PromptPay THB ${amountThb}`,
+          note: isCard
+            ? `Stripe Card THB ${amountThb} (หักค่าธรรมเนียม -8 เครดิต = +${creditAmount})`
+            : `Stripe PromptPay THB ${amountThb}`,
           provider: 'stripe',
           referral: true,
           bonus: true,
@@ -31,15 +35,15 @@ export async function GET(req: NextRequest) {
 
         if (result.status === 'credited') {
           sendAdminPush({
-            title: '💳 เงินเข้าใหม่ (Stripe PromptPay)',
-            body: `ผู้ใช้ ID #${user.userId} เติมเงิน ฿${amountThb.toLocaleString('th-TH')}`,
+            title: isCard ? '💳 เงินเข้าใหม่ (Stripe บัตรเครดิต)' : '💳 เงินเข้าใหม่ (Stripe PromptPay)',
+            body: `ผู้ใช้ ID #${user.userId} เติมเงิน ฿${amountThb.toLocaleString('th-TH')}${isCard ? ` (สุทธิ ${creditAmount} เครดิต)` : ''}`,
             url: '/admin/topups',
             tag: `topup-stripe-${intent.id}`,
           }).catch(() => {});
         }
       }
 
-      return NextResponse.json({ status: 'succeeded', amount: amountThb, ref: intent.id });
+      return NextResponse.json({ status: 'succeeded', amount: creditAmount, ref: intent.id });
     }
 
     return NextResponse.json({ status: intent.status });

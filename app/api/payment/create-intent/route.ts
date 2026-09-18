@@ -68,11 +68,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // กรณีอื่นๆ เช่น Card
+    // กรณี Card, Google Pay, Apple Pay, Link
     const intent = await stripe.paymentIntents.create({
       amount: Math.round(amountThb * 100),
       currency: 'thb',
-      payment_method_types: ['card'],
+      automatic_payment_methods: { enabled: true },
       metadata: {
         userId: String(user.userId),
         username: user.username,
