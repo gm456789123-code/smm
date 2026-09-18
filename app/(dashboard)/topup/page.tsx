@@ -52,7 +52,7 @@ const CHANNELS: PaymentChannel[] = [
   },
   {
     key: 'truewallet',
-    label: 'TrueMoney',
+    label: 'TrueMoney Gift',
     sub: 'ซองของขวัญ / วอเลท (ฟรีค่าธรรมเนียม 0%)',
     badge: { text: 'ฟรี 0%', color: '#4ade80', bg: '#0d2218' },
     icon: <BsWallet2 />,
@@ -683,7 +683,7 @@ export default function TopupPage() {
         {/* ขั้นตอนที่ 2: TRUEMONEY ANGPAO FLOW */}
         {channel === 'truewallet' && (
           <form onSubmit={submitAngpao} className="glass p-5 space-y-4">
-            <StepLabel n={2} text="กรอกลิ้งค์หรือรหัสซองของขวัญ TrueMoney (ฟรีค่าธรรมเนียม 0%)" />
+            <StepLabel n={2} text="กรอกลิ้งค์หรือรหัสซองของขวัญ TrueMoney Gift (ฟรีค่าธรรมเนียม 0%)" />
 
             <div className="glass rounded-xl p-4 space-y-2 border border-[rgba(239,68,68,0.15)] bg-rose-500/5">
               <p className="text-[10px] text-[#94A3B8] uppercase tracking-widest">รูปแบบลิ้งค์ที่รองรับ</p>
