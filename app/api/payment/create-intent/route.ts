@@ -20,18 +20,18 @@ export async function POST(req: NextRequest) {
     }
 
     const { amountThb, paymentMethod } = await req.json();
-    const isCard = paymentMethod === 'card';
-    const minAmount = isCard ? 200 : 10;
+    const isCardOrWallet = paymentMethod === 'card' || paymentMethod === 'googlepay';
+    const minAmount = isCardOrWallet ? 200 : 10;
 
     if (!amountThb || typeof amountThb !== 'number' || amountThb < minAmount || amountThb > 50000) {
       return NextResponse.json({
-        error: isCard
-          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿200 (หักค่าธรรมเนียม -8 เครดิตทุกกรณี)'
+        error: isCardOrWallet
+          ? 'ยอดชำระต้องไม่ต่ำกว่า ฿200 (หักค่าธรรมเนียม -8 เครดิตทุกกรณี)'
           : 'ยอดชำระผ่านพร้อมเพย์ต้องไม่ต่ำกว่า ฿10',
       }, { status: 400 });
     }
 
-    const netCredit = isCard ? Math.max(0, amountThb - 8) : amountThb;
+    const netCredit = isCardOrWallet ? Math.max(0, amountThb - 8) : amountThb;
 
     if (paymentMethod === 'promptpay') {
       // สร้าง Stripe PromptPay intent และ confirm ทันทีเพื่อให้ได้ QR image
@@ -68,17 +68,38 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // กรณี Card, Google Pay, Apple Pay, Link
+    // กรณี Card: กำหนด card เท่านั้น เพื่อไม่ให้มีแท็บ PromptPay/Google Pay โผล่มาในฟอร์มบัตร
+    if (paymentMethod === 'card') {
+      const intent = await stripe.paymentIntents.create({
+        amount: Math.round(amountThb * 100),
+        currency: 'thb',
+        payment_method_types: ['card'],
+        metadata: {
+          userId: String(user.userId),
+          username: user.username,
+          amountThb: String(amountThb),
+          netCredit: String(netCredit),
+          paymentMethod: 'card',
+        },
+      });
+
+      return NextResponse.json({
+        intentId: intent.id,
+        clientSecret: intent.client_secret,
+      });
+    }
+
+    // กรณี Google Pay / Apple Pay (Express Checkout)
     const intent = await stripe.paymentIntents.create({
       amount: Math.round(amountThb * 100),
       currency: 'thb',
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ['card'],
       metadata: {
         userId: String(user.userId),
         username: user.username,
         amountThb: String(amountThb),
         netCredit: String(netCredit),
-        paymentMethod: 'card',
+        paymentMethod: 'googlepay',
       },
     });
 

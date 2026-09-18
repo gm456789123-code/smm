@@ -9,11 +9,13 @@ import {
   BsArrowClockwise, BsDownload, BsClock,
 } from 'react-icons/bs';
 import StripeCardEmbedded from '@/components/StripeCardEmbedded';
+import StripeGooglePayEmbedded from '@/components/StripeGooglePayEmbedded';
+import { SiGooglepay } from 'react-icons/si';
 
 const PROMPTPAY_AMOUNTS = [10, 20, 50, 100, 150, 200, 300, 500, 1000, 2000, 5000, 10000];
 const CARD_AMOUNTS      = [200, 300, 500, 1000, 2000, 5000, 10000];
 
-type PaymentChannelKey = 'promptpay' | 'card' | 'truewallet';
+type PaymentChannelKey = 'promptpay' | 'card' | 'googlepay' | 'truewallet';
 
 interface PaymentChannel {
   key: PaymentChannelKey;
@@ -21,7 +23,7 @@ interface PaymentChannel {
   sub: string;
   badge?: { text: string; color: string; bg: string };
   icon: React.ReactNode;
-  color: 'purple' | 'blue' | 'orange';
+  color: 'purple' | 'blue' | 'emerald' | 'orange';
 }
 
 const CHANNELS: PaymentChannel[] = [
@@ -35,10 +37,18 @@ const CHANNELS: PaymentChannel[] = [
   {
     key: 'card',
     label: 'บัตรเครดิต / เดบิต',
-    sub: 'ขั้นต่ำ ฿200 • Visa, Mastercard, Google Pay, Apple Pay, Link',
+    sub: 'ขั้นต่ำ ฿200 • Visa, Mastercard, JCB',
     badge: { text: '-8 เครดิต', color: '#f87171', bg: '#1e1124' },
     icon: <BsCreditCard2Front />,
     color: 'blue',
+  },
+  {
+    key: 'googlepay',
+    label: 'Google Pay',
+    sub: 'ขั้นต่ำ ฿200 • แตะจ่ายสะดวกในคลิกเดียว',
+    badge: { text: '-8 เครดิต', color: '#f87171', bg: '#1e1124' },
+    icon: <SiGooglepay className="text-xl" />,
+    color: 'emerald',
   },
   {
     key: 'truewallet',
@@ -51,9 +61,10 @@ const CHANNELS: PaymentChannel[] = [
 ];
 
 const COLOR_MAP = {
-  purple: { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.5)', icon: 'rgba(139,92,246,0.25)', iconText: '#a78bfa' },
-  blue:   { bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.5)',  icon: 'rgba(59,130,246,0.2)',   iconText: '#60a5fa' },
-  orange: { bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.5)', icon: 'rgba(251,146,60,0.2)',  iconText: '#fb923c' },
+  purple:  { bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.5)', icon: 'rgba(139,92,246,0.25)', iconText: '#a78bfa' },
+  blue:    { bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.5)',  icon: 'rgba(59,130,246,0.2)',   iconText: '#60a5fa' },
+  emerald: { bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.5)',  icon: 'rgba(16,185,129,0.2)',   iconText: '#34d399' },
+  orange:  { bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.5)', icon: 'rgba(251,146,60,0.2)',  iconText: '#fb923c' },
 };
 
 export default function TopupPage() {
@@ -141,20 +152,21 @@ export default function TopupPage() {
     };
   }, [activeQr]);
 
-  const minRequired = channel === 'card' ? 200 : 10;
-  const currentAmounts = channel === 'card' ? CARD_AMOUNTS : PROMPTPAY_AMOUNTS;
+  const isCardOrWallet = channel === 'card' || channel === 'googlepay';
+  const minRequired = isCardOrWallet ? 200 : 10;
+  const currentAmounts = isCardOrWallet ? CARD_AMOUNTS : PROMPTPAY_AMOUNTS;
   const finalAmount = amount ?? (custom ? Number(custom) : null);
-  const netCredit = channel === 'card' && finalAmount ? Math.max(0, finalAmount - 8) : finalAmount;
+  const netCredit = isCardOrWallet && finalAmount ? Math.max(0, finalAmount - 8) : finalAmount;
 
   // กดชำระเงิน
   async function handlePayment() {
     if (!finalAmount) return;
-    const min = channel === 'card' ? 200 : 10;
+    const min = isCardOrWallet ? 200 : 10;
     if (finalAmount < min) {
       setResult({
         type: 'error',
-        text: channel === 'card'
-          ? 'ยอดชำระผ่านบัตรเครดิตต้องไม่ต่ำกว่า ฿200 (หักค่าธรรมเนียม -8 เครดิตทุกกรณี)'
+        text: isCardOrWallet
+          ? 'ยอดชำระขั้นต่ำ ฿200 (หักค่าธรรมเนียม -8 เครดิตทุกกรณี)'
           : 'ยอดชำระผ่านพร้อมเพย์ขั้นต่ำ ฿10 บาท',
       });
       return;
@@ -193,14 +205,14 @@ export default function TopupPage() {
       return;
     }
 
-    // 2. กรณี บัตรเครดิต ➔ สร้าง Intent แล้วเปิดฟอร์ม Stripe Payment Element บนหน้าเว็บเราโดยตรง (ไม่เด้งออก)
+    // 2. กรณี บัตรเครดิต หรือ Google Pay ➔ สร้าง Intent แล้วเปิดฟอร์มบนหน้าเว็บเราโดยตรง (ไม่เด้งออก)
     try {
       const res = await fetch('/api/payment/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amountThb: finalAmount,
-          paymentMethod: 'card',
+          paymentMethod: channel === 'googlepay' ? 'googlepay' : 'card',
         }),
       });
       const data = await res.json();
@@ -257,7 +269,7 @@ export default function TopupPage() {
     setActiveQr(null);
     setCardSecret(null);
     setResult(null);
-    if (key === 'card' && (!amount || amount < 200)) {
+    if ((key === 'card' || key === 'googlepay') && (!amount || amount < 200)) {
       setAmount(200);
       setCustom('');
     } else if (key === 'promptpay' && (!amount || amount < 10)) {
@@ -329,7 +341,7 @@ export default function TopupPage() {
         {/* ขั้นตอนที่ 1: เลือกช่องทาง */}
         <div className="glass p-5 space-y-3">
           <StepLabel n={1} text="เลือกช่องทางชำระเงิน" />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {CHANNELS.map(t => {
               const active = channel === t.key;
               const c = COLOR_MAP[t.color];
@@ -378,14 +390,16 @@ export default function TopupPage() {
           </div>
         </div>
 
-        {/* ขั้นตอนที่ 2: STRIPE FLOW (พร้อมเพย์ & บัตรเครดิต) */}
-        {(channel === 'promptpay' || channel === 'card') && (
+        {/* ขั้นตอนที่ 2: STRIPE FLOW (พร้อมเพย์, บัตรเครดิต, GOOGLE PAY) */}
+        {(channel === 'promptpay' || channel === 'card' || channel === 'googlepay') && (
           <div className="glass p-5 space-y-4">
             <StepLabel
               n={2}
               text={
                 channel === 'promptpay'
                   ? 'เลือกยอดเงินและชำระด้วย พร้อมเพย์ (สแกนจ่ายเงินเข้าทันที)'
+                  : channel === 'googlepay'
+                  ? 'เลือกยอดเงินและชำระด้วย Google Pay'
                   : 'เลือกยอดเงินและชำระด้วย บัตรเครดิต / เดบิต'
               }
             />
@@ -414,18 +428,35 @@ export default function TopupPage() {
                   <p className="text-rose-300/90 leading-relaxed">
                     • <strong>ยอดชำระขั้นต่ำ ฿200 บาท</strong> (ห้ามต่ำกว่า ฿200)<br />
                     • <strong>หักค่าธรรมเนียม -8 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿200 จะได้รับสุทธิ 192 เครดิตเข้ากระเป๋า)<br />
-                    • รองรับ <strong>Visa, Mastercard, JCB, Google Pay, Apple Pay และ Link</strong>
+                    • รองรับ <strong>Visa, Mastercard, JCB</strong> (ปลอดภัยมาตรฐานธนาคารระดับสากล)
                   </p>
                 </div>
               </div>
             )}
 
-            {/* 1. หากผู้ใช้เลือกบัตรและกดชำระเงินแล้ว -> แสดงแบบฟอร์มกรอกข้อมูลบัตรบนหน้าเว็บโดยตรง (ไม่เด้งออก) */}
+            {/* ประกาศแจ้งเตือนกรณี Google Pay */}
+            {channel === 'googlepay' && (
+              <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 flex items-start gap-2.5 text-xs text-emerald-300">
+                <BsExclamationCircleFill size={16} className="shrink-0 text-emerald-400 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-bold text-emerald-200">ข้อกำหนดการชำระผ่าน Google Pay</p>
+                  <p className="text-emerald-300/90 leading-relaxed">
+                    • <strong>ยอดชำระขั้นต่ำ ฿200 บาท</strong> (ห้ามต่ำกว่า ฿200)<br />
+                    • <strong>หักค่าธรรมเนียม -8 เครดิตทุกกรณี</strong> (เช่น ชำระ ฿200 จะได้รับสุทธิ 192 เครดิตเข้ากระเป๋า)<br />
+                    • แตะจ่ายสะดวกรวดเร็วผ่าน Google Pay ด้วยบัตรที่บันทึกไว้ในอุปกรณ์ของคุณ
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* 1. หากผู้ใช้เลือกบัตรหรือ Google Pay และกดชำระเงินแล้ว -> แสดงแบบฟอร์มบนหน้าเว็บโดยตรง (ไม่เด้งออก) */}
             {cardSecret ? (
               <div className="space-y-4 py-2">
                 <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-[rgba(59,130,246,0.08)] border border-[rgba(59,130,246,0.25)]">
                   <div className="space-y-0.5">
-                    <span className="text-xs text-[#94A3B8]">ยอดชำระผ่านบัตร</span>
+                    <span className="text-xs text-[#94A3B8]">
+                      {channel === 'googlepay' ? 'ยอดชำระผ่าน Google Pay' : 'ยอดชำระผ่านบัตร'}
+                    </span>
                     <p className="text-2xl font-bold text-white font-mono">฿{cardSecret.amount.toLocaleString()}</p>
                     <p className="text-xs text-emerald-400 font-medium">
                       ได้รับสุทธิ: <span className="font-bold">฿{cardSecret.netCredit.toLocaleString()} เครดิต</span> (หักค่าธรรมเนียม -8)
@@ -440,26 +471,50 @@ export default function TopupPage() {
                   </button>
                 </div>
 
-                <StripeCardEmbedded
-                  clientSecret={cardSecret.clientSecret}
-                  amount={cardSecret.amount}
-                  netCredit={cardSecret.netCredit}
-                  onSuccess={async (intentId) => {
-                    try {
-                      const res = await fetch(`/api/payment/check-intent?id=${intentId}`);
-                      const data = await res.json();
-                      const cred = data.amount || cardSecret.netCredit;
-                      setSuccessModal({ amount: cred, ref: intentId });
-                    } catch {
-                      setSuccessModal({ amount: cardSecret.netCredit, ref: intentId });
-                    }
-                    window.dispatchEvent(new Event('smm-data-changed'));
-                    setCardSecret(null);
-                  }}
-                  onError={(errMsg) => {
-                    setResult({ type: 'error', text: errMsg });
-                  }}
-                />
+                {channel === 'googlepay' ? (
+                  <StripeGooglePayEmbedded
+                    clientSecret={cardSecret.clientSecret}
+                    amount={cardSecret.amount}
+                    netCredit={cardSecret.netCredit}
+                    onSwitchToCard={() => selectChannel('card')}
+                    onSuccess={async (intentId) => {
+                      try {
+                        const res = await fetch(`/api/payment/check-intent?id=${intentId}`);
+                        const data = await res.json();
+                        const cred = data.amount || cardSecret.netCredit;
+                        setSuccessModal({ amount: cred, ref: intentId });
+                      } catch {
+                        setSuccessModal({ amount: cardSecret.netCredit, ref: intentId });
+                      }
+                      window.dispatchEvent(new Event('smm-data-changed'));
+                      setCardSecret(null);
+                    }}
+                    onError={(errMsg) => {
+                      setResult({ type: 'error', text: errMsg });
+                    }}
+                  />
+                ) : (
+                  <StripeCardEmbedded
+                    clientSecret={cardSecret.clientSecret}
+                    amount={cardSecret.amount}
+                    netCredit={cardSecret.netCredit}
+                    onSuccess={async (intentId) => {
+                      try {
+                        const res = await fetch(`/api/payment/check-intent?id=${intentId}`);
+                        const data = await res.json();
+                        const cred = data.amount || cardSecret.netCredit;
+                        setSuccessModal({ amount: cred, ref: intentId });
+                      } catch {
+                        setSuccessModal({ amount: cardSecret.netCredit, ref: intentId });
+                      }
+                      window.dispatchEvent(new Event('smm-data-changed'));
+                      setCardSecret(null);
+                    }}
+                    onError={(errMsg) => {
+                      setResult({ type: 'error', text: errMsg });
+                    }}
+                  />
+                )}
               </div>
             ) : !activeQr ? (
               <>
@@ -491,7 +546,7 @@ export default function TopupPage() {
                   <div className="space-y-0.5">
                     <p className="text-xs text-[#94A3B8]">ยอดที่ต้องชำระ</p>
                     <p className="text-2xl font-bold text-white font-mono">฿{(finalAmount || 0).toLocaleString()}</p>
-                    {channel === 'card' && finalAmount ? (
+                    {isCardOrWallet && finalAmount ? (
                       <p className="text-[11px] text-rose-300 font-medium">
                         หักค่าธรรมเนียม -8 เครดิต ➔ <span className="font-bold text-emerald-300">ได้รับสุทธิ ฿{(netCredit || 0).toLocaleString()} เครดิต</span>
                       </p>
@@ -516,6 +571,8 @@ export default function TopupPage() {
                     style={{
                       background: channel === 'promptpay'
                         ? 'linear-gradient(135deg,#7c3aed,#6d28d9)'
+                        : channel === 'googlepay'
+                        ? 'linear-gradient(135deg,#059669,#047857)'
                         : 'linear-gradient(135deg,#2563eb,#1d4ed8)',
                     }}
                   >
@@ -528,6 +585,12 @@ export default function TopupPage() {
                       <>
                         <BsLightningChargeFill size={16} />
                         สแกนจ่าย พร้อมเพย์ ฿{(finalAmount || 0).toLocaleString()} (เงินเข้าทันที)
+                        <BsArrowRight size={14} />
+                      </>
+                    ) : channel === 'googlepay' ? (
+                      <>
+                        <SiGooglepay className="text-xl" />
+                        ชำระด้วย Google Pay ฿{(finalAmount || 0).toLocaleString()} (สุทธิ {netCredit ? `${netCredit.toLocaleString()} เครดิต` : ''})
                         <BsArrowRight size={14} />
                       </>
                     ) : (

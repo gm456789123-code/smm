@@ -62,8 +62,8 @@ function CheckoutForm({ amount, netCredit, onSuccess, onError }: CheckoutFormPro
           options={{
             layout: 'tabs',
             wallets: {
-              applePay: 'auto',
-              googlePay: 'auto',
+              applePay: 'never',
+              googlePay: 'never',
             },
           }}
         />
