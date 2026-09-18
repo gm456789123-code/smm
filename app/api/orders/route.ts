@@ -68,12 +68,6 @@ export async function POST(req: NextRequest) {
   const runs = body.runs ? Math.floor(Number(body.runs)) : undefined;
   const interval = body.interval ? Math.floor(Number(body.interval)) : undefined;
 
-  if (provider === 'km-social') {
-    return NextResponse.json({
-      error: 'ระบบ km-social ปิดปรับปรุงชั่วคราว กรุณาเลือกใช้บริการจาก 24social',
-    }, { status: 400 });
-  }
-
   if (!serviceId || !link || !quantity) {
     return NextResponse.json({ error: 'serviceId, link, and quantity are required.' }, { status: 400 });
   }
