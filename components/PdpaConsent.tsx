@@ -1,40 +1,55 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { BsShieldLockFill, BsX, BsCheck2 } from 'react-icons/bs';
 
-const CONSENT_KEY = 'pdpa_consent_v2';
+let sessionConsentGiven = false;
+
+function isDashboardRoute(path: string): boolean {
+  if (!path) return false;
+  return (
+    path.startsWith('/admin') ||
+    path.startsWith('/dashboard') ||
+    path.startsWith('/order') ||
+    path.startsWith('/topup') ||
+    path.startsWith('/profile') ||
+    path.startsWith('/mass-order') ||
+    path.startsWith('/balance') ||
+    path.startsWith('/report')
+  );
+}
+
+function checkIsLoggedIn(): boolean {
+  if (typeof document === 'undefined') return false;
+  return document.cookie.includes('auth_token=');
+}
 
 export default function PdpaConsent() {
+  const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
-  const [hasAccepted, setHasAccepted] = useState(true);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    try {
-      const stored = localStorage.getItem(CONSENT_KEY);
-      setHasAccepted(stored === '1');
-    } catch {
-      setHasAccepted(false);
-    }
   }, []);
 
   function accept() {
-    try {
-      localStorage.setItem(CONSENT_KEY, '1');
-    } catch {}
-    setHasAccepted(true);
+    sessionConsentGiven = true;
     setDismissed(true);
   }
 
   function dismiss() {
+    sessionConsentGiven = true;
     setDismissed(true);
   }
 
-  // Before mount on client or if already accepted/dismissed, don't render
-  if (!mounted || hasAccepted || dismissed) return null;
+  // ไม่แสดงหาก: ยังไม่ mount / อยู่หน้าแดชบอร์ด / ล็อกอินแล้ว / เคยกดปิดในเซสชันนี้แล้ว
+  if (!mounted) return null;
+  if (isDashboardRoute(pathname)) return null;
+  if (checkIsLoggedIn()) return null;
+  if (sessionConsentGiven || dismissed) return null;
 
   return (
     <div
