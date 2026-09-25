@@ -10,6 +10,12 @@ const CREDIT_TYPES = new Set(['topup', 'referral', 'bonus']);
 const TX_LABELS: Record<string, string> = {
   topup: 'เติมเงิน', spend: 'ใช้จ่าย', referral: 'ค่าคอมมิชชั่น', bonus: 'โบนัสเติมเงิน',
 };
+const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
+  completed: { label: 'สำเร็จ',          cls: 'text-emerald-500' },
+  pending:   { label: 'กำลังดำเนินการ',  cls: 'text-amber-500' },
+  cancelled: { label: 'ถูกปฏิเสธ',        cls: 'text-rose-500' },
+  failed:    { label: 'ล้มเหลว',          cls: 'text-rose-500' },
+};
 
 export default function BalancePage() {
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -75,7 +81,9 @@ export default function BalancePage() {
                 <p className={`font-mono font-semibold ${CREDIT_TYPES.has(t.tx_type) ? 'text-emerald-400' : 'text-rose-400'}`}>
                   {CREDIT_TYPES.has(t.tx_type) ? '+' : '-'}฿{Number(t.amount).toLocaleString()}
                 </p>
-                <span className={`text-[10px] ${t.tx_status === 'completed' ? 'text-emerald-500' : 'text-amber-500'}`}>{t.tx_status}</span>
+                <span className={`text-[10px] ${STATUS_LABELS[t.tx_status]?.cls ?? 'text-amber-500'}`}>
+                  {STATUS_LABELS[t.tx_status]?.label ?? t.tx_status}
+                </span>
               </div>
             </div>
           ))}
