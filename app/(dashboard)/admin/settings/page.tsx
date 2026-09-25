@@ -28,7 +28,6 @@ const PAYMENT_SETTINGS = [
   { key: 'bank_account_name',  label: 'ชื่อบัญชีธนาคาร', placeholder: 'เช่น นาย กิตติภพ ...', desc: 'ใช้แสดงในหน้าเติมเงิน และตรวจชื่อผู้รับในสลิป' },
   { key: 'bank_account_number',label: 'เลขบัญชีธนาคาร', placeholder: 'เช่น 123-4-56789-0', desc: 'ใช้ตรวจเลขบัญชี 4 ตัวท้ายในสลิป' },
   { key: 'truewallet_id',      label: 'เบอร์ TrueMoney Wallet', placeholder: 'เช่น 0838808867', desc: 'แสดงในหน้าเติมเงิน TrueMoney' },
-  { key: 'stripe_active',      label: 'เปิดใช้งานช่องทาง Stripe (1 = เปิด, 0 = ปิด)', placeholder: '0 หรือ 1', desc: 'เมื่อเปิด จะแสดงตัวเลือกชำระเงินผ่านบัตรเครดิต/เดบิต/พร้อมเพย์ของ Stripe ในหน้าเติมเงิน' },
 ];
 
 const TEXTAREA_KEYS = new Set(['announcement_text', 'brand_desc']);
@@ -71,7 +70,6 @@ export default function AdminSettingsPage() {
     telegram_active: '0', discord_active:  '0',
     promptpay_number: '', bank_name: '', bank_account_name: '',
     bank_account_number: '', truewallet_id: '',
-    stripe_active: '0',
   };
 
   useEffect(() => {

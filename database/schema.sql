@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   ref          VARCHAR(255)   DEFAULT NULL,
   tx_status    VARCHAR(10)    DEFAULT 'pending',
   note         TEXT           DEFAULT NULL,
+  proof_url    VARCHAR(500)   DEFAULT NULL,
   provider     VARCHAR(50)    DEFAULT NULL,
   api_failed   TINYINT(1)     DEFAULT 0,
   api_error    TEXT           DEFAULT NULL,
@@ -59,6 +60,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 --   ADD COLUMN IF NOT EXISTS link_url   TEXT         DEFAULT NULL,
 --   ADD COLUMN IF NOT EXISTS qty        INT          DEFAULT NULL;
 -- Also run: database/migrations/001_transactions_unique_ref.sql
+-- Also run: database/migrations/003_transactions_proof_url.sql
 
 CREATE TABLE IF NOT EXISTS sessions (
   id         INT AUTO_INCREMENT PRIMARY KEY,

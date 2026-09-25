@@ -114,12 +114,11 @@ export default async function PublicLayout({ children }: { children: React.React
             <div className="space-y-3">
               <p className="text-xs font-bold text-[#2D1B4E] uppercase tracking-wider">การชำระเงินที่รองรับ</p>
               <p className="text-xs text-[#4A3B63] leading-relaxed">
-                ระบบชำระเงินมาตรฐานธนาคารระดับสากล ผ่าน Stripe และ พร้อมเพย์
+                โอนเงินผ่านพร้อมเพย์หรือธนาคาร แนบสลิป แอดมินตรวจสอบและอนุมัติยอดให้อย่างรวดเร็ว
               </p>
               <div className="flex flex-wrap gap-1.5 pt-1 text-xs text-[#2D1B4E]">
                 <span className="px-2.5 py-1 rounded-lg bg-white/50 border border-white/70 font-medium">พร้อมเพย์</span>
-                <span className="px-2.5 py-1 rounded-lg bg-white/50 border border-white/70 font-medium">Visa / Mastercard</span>
-                <span className="px-2.5 py-1 rounded-lg bg-white/50 border border-white/70 font-medium">Google Pay</span>
+                <span className="px-2.5 py-1 rounded-lg bg-white/50 border border-white/70 font-medium">โอนธนาคาร</span>
                 <span className="px-2.5 py-1 rounded-lg bg-white/50 border border-white/70 font-medium">TrueMoney</span>
               </div>
               <div className="pt-2">

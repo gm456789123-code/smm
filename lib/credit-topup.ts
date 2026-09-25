@@ -146,7 +146,7 @@ export async function creditTopupAtomic(opts: {
 }
 
 /**
- * Insert a pending ledger row with unique ref (e.g. angpao hold).
+ * Insert a pending ledger row with unique ref (e.g. angpao hold, slip awaiting admin review).
  * Returns duplicate if ref already exists.
  */
 export async function insertPendingTx(opts: {
@@ -155,21 +155,150 @@ export async function insertPendingTx(opts: {
   ref: string;
   note: string;
   txType: string;
+  provider?: string | null;
+  proofUrl?: string | null;
 }): Promise<CreditResult> {
   const ref = String(opts.ref ?? '').trim();
   if (!ref) return { status: 'error', message: 'Invalid ref' };
 
   try {
     await pool.query(
-      `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note)
-       VALUES (?, ?, ?, ?, 'pending', ?)`,
-      [opts.userId, opts.txType, opts.amount ?? 0, ref, opts.note]
+      `INSERT INTO transactions (user_id, tx_type, amount, ref, tx_status, note, provider, proof_url)
+       VALUES (?, ?, ?, ?, 'pending', ?, ?, ?)`,
+      [opts.userId, opts.txType, opts.amount ?? 0, ref, opts.note, opts.provider ?? null, opts.proofUrl ?? null]
     );
     return { status: 'credited' };
   } catch (err) {
     if (isDuplicateKeyError(err)) return { status: 'duplicate' };
     console.error('[insertPendingTx]', err);
     return { status: 'error', message: 'DB error' };
+  }
+}
+
+export type ApproveResult =
+  | { status: 'approved'; amount: number }
+  | { status: 'not_found' }
+  | { status: 'not_pending' }
+  | { status: 'error'; message: string };
+
+export type RejectResult =
+  | { status: 'rejected' }
+  | { status: 'not_found' }
+  | { status: 'not_pending' }
+  | { status: 'error'; message: string };
+
+/**
+ * Admin approves a pending row (e.g. manually-reviewed payment slip) for a confirmed amount.
+ * Locks the row so two admins cannot approve the same submission twice.
+ */
+export async function approvePendingTx(opts: {
+  txId: number;
+  txType: string;
+  amount: number;
+  approvalNote: string;
+  referral?: boolean;
+  bonus?: boolean;
+}): Promise<ApproveResult> {
+  const amount = Number(opts.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { status: 'error', message: 'Invalid amount' };
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const [rows] = await conn.query<RowDataPacket[]>(
+      `SELECT id, user_id, tx_status FROM transactions
+       WHERE id = ? AND tx_type = ? FOR UPDATE`,
+      [opts.txId, opts.txType]
+    );
+    const tx = rows[0];
+    if (!tx) {
+      await conn.rollback();
+      return { status: 'not_found' };
+    }
+    if (tx.tx_status !== 'pending') {
+      await conn.rollback();
+      return { status: 'not_pending' };
+    }
+
+    const [upd] = await conn.query<ResultSetHeader>(
+      `UPDATE transactions
+       SET tx_status = 'completed', amount = ?, note = CONCAT(IFNULL(note,''), ?)
+       WHERE id = ? AND tx_status = 'pending'`,
+      [amount, opts.approvalNote, opts.txId]
+    );
+    if (upd.affectedRows === 0) {
+      await conn.rollback();
+      return { status: 'not_pending' };
+    }
+
+    const [userResult] = await conn.query<ResultSetHeader>(
+      'UPDATE users SET balance = balance + ? WHERE id = ?',
+      [amount, tx.user_id]
+    );
+    if ((userResult.affectedRows ?? 0) === 0) {
+      await conn.rollback();
+      return { status: 'error', message: 'User not found' };
+    }
+
+    // Ref is not available here without another lookup, so referral/bonus reuse the tx id as key
+    const dedupeKey = `admintx:${opts.txId}`;
+    if (opts.referral) {
+      await applyReferralCommission(conn, tx.user_id, amount, dedupeKey);
+    }
+    if (opts.bonus) {
+      await applyTopupBonus(conn, tx.user_id, amount, dedupeKey);
+    }
+
+    await conn.commit();
+    return { status: 'approved', amount };
+  } catch (err) {
+    await conn.rollback();
+    console.error('[approvePendingTx]', err);
+    return { status: 'error', message: 'DB error' };
+  } finally {
+    conn.release();
+  }
+}
+
+export async function rejectPendingTx(opts: {
+  txId: number;
+  txType: string;
+  rejectionNote: string;
+}): Promise<RejectResult> {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [rows] = await conn.query<RowDataPacket[]>(
+      `SELECT id, tx_status FROM transactions WHERE id = ? AND tx_type = ? FOR UPDATE`,
+      [opts.txId, opts.txType]
+    );
+    const tx = rows[0];
+    if (!tx) {
+      await conn.rollback();
+      return { status: 'not_found' };
+    }
+    if (tx.tx_status !== 'pending') {
+      await conn.rollback();
+      return { status: 'not_pending' };
+    }
+
+    await conn.query(
+      `UPDATE transactions
+       SET tx_status = 'cancelled', note = CONCAT(IFNULL(note,''), ?)
+       WHERE id = ? AND tx_status = 'pending'`,
+      [opts.rejectionNote, opts.txId]
+    );
+    await conn.commit();
+    return { status: 'rejected' };
+  } catch (err) {
+    await conn.rollback();
+    console.error('[rejectPendingTx]', err);
+    return { status: 'error', message: 'DB error' };
+  } finally {
+    conn.release();
   }
 }
 
